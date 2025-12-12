@@ -5,8 +5,9 @@
 
 * Mostrar pel·lícules en base a criteris de l'app com la popularitat, gèneres o novetats
 
-* Filtrar contingut amb un cercador per a quan busquen una pel·lícula concreta
+* Filtrar contingut amb un buscador per a quan busquen una pel·lícula concreta.
 
+* Mostrar tot el cataleg
 
 2 UC2 – Cercar continguts
 
@@ -15,7 +16,7 @@
 
 3 UC3 – Consultar detall d’un vídeo
 
-*Vore la informació detallada sobre una pel·lícula
+* Vore la informació detallada sobre una pel·lícula.
 
 
 4 UC4 – Iniciar sessió / Validar subscripció
@@ -35,7 +36,7 @@
 
 7 UC7 – Continuar visualització
 
-* Desar el punt exacte de reproducció i reprendre-la.
+* Guardar el punt exacte de reproducció i reprendre-la.
 
 
 ## Aplicació d'escriptori d'administració
@@ -76,7 +77,7 @@
 
 8 UC8 – Comprovar inconsistències
 
-* Executar validacions per assegurar que les pel·lícules siguen correctes.
+* Comprobar cataleg y servidor 1 a 1 i si falta algún que avise
 
 
 ## Administració de subscripcions
@@ -91,6 +92,8 @@
 2 UC2 – Iniciar sessió
 
 * Autenticar l'usuari existent.
+
+* Donar opció de compte no existen, crear compte
 
 
 3 UC3 – Consultar tipus de subscripcions
@@ -121,3 +124,8 @@
 8 UC8 – Cancel·lar subscripció
 
 * Finalitzar subscripció i comentar el perquè a més de donar motius por a quedarse com ofertes o cambi de tipus de subscripció.
+
+
+9 UC9 – Modificar Usuari
+
+* Modificar parametres del usuari i el seu perfil.
