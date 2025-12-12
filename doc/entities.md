@@ -26,3 +26,6 @@ Video_estat
 ```
 Admin
 ```
+```
+Serie
+```
