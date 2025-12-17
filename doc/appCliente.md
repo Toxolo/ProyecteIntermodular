@@ -17,4 +17,3 @@ Usuari --> RV
 
 
 @enduml
-
