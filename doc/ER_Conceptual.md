@@ -11,27 +11,26 @@ entity Usuari {
   --
   nom: String
   cognom: String
+  rol: Enum('usuari', 'admin')
   email: String
   password: String
   adreca: String
   edat: Integer
+  --
+  Suscripcio: Integer 
+  metodo_pago: Integer <<FK>>
+  inici: Date
+  fi: Date
 }
 
-entity Admin {
-  *id: Integer <<PK>>
-  --
-  nom: String
-  password: String
-}
+
 
 entity Suscripcio {
   *id: Integer <<PK>>
   --
-  tipus: String
-  inici: Date
-  fi: Date
-  usuari: Integer <<FK>>
-  metodo_pago: Integer <<FK>>
+  tipus: enum('premium','familiar'...)
+  preu: Float
+  duracio: Date 
 }
 
 entity Perfil {
@@ -112,12 +111,11 @@ entity PayPal {
 ' Relaciones
 Usuari ||--o{ Perfil : "crea"
 Usuari }o--|| Suscripcio : "contrata"
-Admin }o--o{ Suscripcio : "gestiona"
-Admin ||--o{ Video : "puja"
-Admin ||--o{ Video_Cataleg : "administra"
+Usuari }o--o{ Suscripcio : "gestiona"
+Usuari ||--o{ Video : "puja"
+Usuari ||--o{ Video_Cataleg : "administra"
 Video ||--|| Video_Cataleg : "pertany a"
 Serie ||--o{ Video_Cataleg : "conté"
-Suscripcio ||--|| Metodo_Pago : "utiliza"
 Perfil ||--o{ Visualitzacio : "registra"
 Video_Cataleg ||--o{ Visualitzacio : "té"
 Metodo_Pago }o--o{ Usuari

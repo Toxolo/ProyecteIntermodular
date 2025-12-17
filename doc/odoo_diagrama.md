@@ -27,6 +27,7 @@ WEB --> UC6
 WEB --> UC7
 UC2 <--> Usuari : iniciar sessio
 Usuari --> UC8
+Admin <--> UC2 : iniciar sessio
 
 
 @enduml 

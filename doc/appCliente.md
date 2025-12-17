@@ -6,18 +6,17 @@
 left to right direction
 
 actor Usuari
+actor Admin
 
 rectangle "Server" {
-  usecase "Comprovar credencials" as RV
+  usecase "Comprovar token i suscricio" as RV
   usecase "Llistar videos" as IS
-  usecase "Trobar .mp4" as EC
-  usecase "Validar suscripció" as CF
+  usecase "Post .mp4" as Post
 }
 
 Usuari --> IS
-Usuari --> EC
-Usuari --> CF
 Usuari --> RV
+Admin --> Post
 
 
 @enduml

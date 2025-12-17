@@ -1,28 +1,30 @@
+# Server Express
+
+```uml
 @startuml
 
 left to right direction
 
-actor Usuari
+actor Admin
 
 rectangle "Server" {
-  usecase "ruta" as ruta
   usecase "post .mp4" as post
   usecase "EDITAR METADATA" as editar
-  usecase "get catalog" as catalog
-  usecase "Delete .mp4\nAND\ncataleg" as delete
-  usecase "UPDATE\nVID CAT" as update
+  usecase "Delete .mp4" as delete
   usecase "COMPROBAR\nERROR" as error
+  usecase "Comprovar token" as token
+  usecase "Trovar .mp4" as vid
+
 }
 
-Usuari --> ruta
-Usuari --> post
-Usuari --> editar
-Usuari --> catalog
-Usuari --> delete
-Usuari --> update
-Usuari --> error
+Admin --> post
+Admin --> editar
+Admin --> delete
+Admin --> error
+Admin --> token
+Usuari --> vid
+Admin --> vid
 
 @enduml
 
-
-
+```
