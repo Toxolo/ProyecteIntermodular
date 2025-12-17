@@ -1,3 +1,5 @@
+# UC ODOO Backend
+
 ```uml
 @startuml
 left to right direction
@@ -12,6 +14,7 @@ rectangle "Odoo" {
   usecase "Consultar tipus de subscripcions" as UC5
   usecase "Contractar subscripció" as UC6
   usecase "Cancel·lar subscripció" as UC7
+  usecase "logout" as UC8
 
 }
 
@@ -22,7 +25,8 @@ WEB --> UC4
 WEB --> UC5
 WEB --> UC6
 WEB --> UC7
-UC2 --> Usuari
+UC2 <--> Usuari : iniciar sessio
+Usuari --> UC8
 
 
 @enduml 
