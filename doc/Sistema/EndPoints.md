@@ -15,7 +15,7 @@
 | /vid | /vid | | | /vid/:id |
 | /vid/:id  | /login | | | |
 | /error    | /logout ||||
-| |||||
+| /Public/video:id/:resolution|||||
 
 ## Server Odoo
 
@@ -74,6 +74,9 @@
 - /error
   - Retorna el resultat, error si no coinxidis amb id cataleg, okey en cas contrari
 - /user/logout
+  - Retorna resultat de comprovacio si s'ha eliminat el token
+- /Public/video:id/:resolution
+  - Retorna un video partit segons el seu id i resolució
 
 #### /post
 
