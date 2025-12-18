@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Diagrama de flujo
 
 ```uml
@@ -64,7 +63,8 @@ endif
 
 @enduml
 ```
-=======
+
+```uml
 @startuml
 start
 :Abre APP;
@@ -136,4 +136,4 @@ endif
 
 stop
 @enduml
->>>>>>> main
+```
