@@ -1,0 +1,48 @@
+# ER Cataleg
+
+```plantuml
+@startuml
+
+title ER Cataleg
+
+entity VideoCataleg {
+    *id: innteger <<PK>>
+    ---
+    titol: varchar(50)
+    descripcio: varchar(255)
+    categoria: integer <<FK>>
+    pegi: integer
+    estudi: integer <<FK>>
+    valoracio: double
+    temporada: integer
+    serie: iteger <<FK>>
+    numCapitol: integer
+    dataEmissio: date
+    thumbnail: img
+    duracio: integer
+}
+
+entity Serie{
+    *id: innteger <<PK>>
+    ---
+    nom: varchar(20)    
+}
+entity Estudi{
+    *id: innteger <<PK>>
+    ---
+    nom: varchar(20)    
+}
+
+entity Categoria{
+    *id: innteger <<PK>>
+    ---
+    nom: varchar(20)
+}
+
+
+VideoCataleg ||--o{ Serie: Apareixer
+VideoCataleg ||--o{ Categoria : Contindre
+VideoCataleg ||--o{ Estudi : Realitzar
+
+@enduml
+```
