@@ -1,3 +1,6 @@
+# Diagrama Secuencia
+
+```plantuml
 @startuml DiagramaSecuenciaUCPrincipales
 title Diagrama de Secuencia - Casos de Uso Principales
 
@@ -100,3 +103,4 @@ else Configuración
 end
 
 @enduml
+```
