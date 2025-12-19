@@ -39,10 +39,36 @@ entity Categoria{
     nom: varchar(20)
 }
 
+entity Historial {
+    *perfil: integer <<FK>>
+    *usuari: integer <<FK>>
+    *videoCataleg: integer <<FK>>
+    ---
+    visualitzacio: integer
+    ultimaReproduccio: integer
+    completat: boolean
+}
+entity Usuari {
+    *id : Integer <<PK>>
+}
+
+entity Perfil {
+    *id: innteger <<PK>>
+    ---
+    nom: varchar(20)
+    infantil: boolean
+    usuari: integer <<FK>>
+}
 
 VideoCataleg ||--o{ Serie: Apareixer
 VideoCataleg ||--o{ Categoria : Contindre
 VideoCataleg ||--o{ Estudi : Realitzar
+VideoCataleg }o--|| Historial: Seguir
+
+Usuari }o--|| Perfil : Utilitzar
+Perfil }o--o{ VideoCataleg : Consultar
+
+Perfil }o--|| Historial
 
 @enduml
 ```
