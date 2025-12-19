@@ -71,6 +71,7 @@ entity Perfil {
     ---
     nom: varchar(20)
     infantil: boolean
+    usuari: integer <<FK>>
 }
 
 entity VideoCataleg {
@@ -125,14 +126,15 @@ VideoCataleg ||--o{ Categoria : Contindre
 VideoCataleg ||--o{ Estudi : Realitzar
 VideoCataleg }o--|| Historial: Seguir
 
-Usuari }o--o{ Video : Reproduir
+
 Usuari }o--|| Perfil : Utilitzar
 Usuari ||--o{ Suscripcio : Pagar
 Usuari }o--o{ MetodePago : Crear
 Usuari }o--|| Video : Pujar
-Usuari }o--o{ VideoCataleg : Consultar
 
-Perfil }o--|| Historial: Ser
+Perfil }o--o{ VideoCataleg : Consultar
+Perfil }o--o{ Video : Reproduir
+Perfil }o--|| Historial : Registrar
 
 ' Herencia
 MetodePago <|-- Visa : Heretar

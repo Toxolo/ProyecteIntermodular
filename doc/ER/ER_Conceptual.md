@@ -1,129 +1,145 @@
-# Diagrama ER Conceptual
+# Diagrama ER
 
 ```plantuml
-
 @startuml
 
-left to right direction
-
-skinparam linetype ortho
-
 entity Usuari {
-  *id: Integer <<PK>>
-  --
-  nom: String
-  cognom: String
-  rol: Enum('usuari', 'admin')
-  email: String
-  password: String
-  adreca: String
-  edat: Integer
-  --
-  Suscripcio: Integer 
-  metodo_pago: Integer <<FK>>
-  inici: Date
-  fi: Date
+    *id <<PK>>
+    ---
+    Nom
+    Cognom
+    rol
+    email
+    password
+    direccio
+    fechaNacimiento
+    suscripcio
+    metodoPago
+    iniciSuscripcio
+    fiSuscripcio
 }
 
 entity Suscripcio {
-  *id: Integer <<PK>>
-  --
-  tipus: enum('premium','familiar'...)
-  preu: Float
-  duracio: Date 
+    *id <<PK>>
+    ---
+    tipo
+    preu
+    duracio
 }
 
-entity Perfil {
-  *id: Integer <<PK>>
-  --
-  nom: String
-  infantil: Boolean
-}
-
-entity Serie {
-  *id: Integer <<PK>>
-  --
-  nom: String
-}
-
-entity Video_Cataleg {
-  *id: Integer <<PK>>
-  --
-  titol: String
-  duracio: Integer
-  categoria: String
-  descripcio: String
-  thumbnail_url: String
-  classificacio_edat: Integer
-  estudi: String
-  valoracio: Double
-  temporada: Integer
-  episodi: Integer
-  data_estrena: Date
-}
-
-entity Video {
-  *id: Integer <<PK>>
-  --
-  url_fragments: String
-  format: String
-}
-
-entity Visualitzacio {
-  *perfil_id: Integer <<FK>>
-  *video_cataleg_id: Integer <<FK>>
-  --
-  temps_vist: Integer
-  ultima_reproduccio: Date
-  completat: Boolean
-  valoracio_usuari: Integer
-}
-
-entity Metodo_Pago {
-  *id: Integer <<PK>>
-  --
-  Usuari: Integer <<FK>>
+entity MetodePago {
+    *id <<PK>>
+    ---
+    usuari  <<FK>>
 }
 
 entity Visa {
-  *id: Integer <<PK>>
+  *id <<PK>>
   --
-  num_tarjeta: String
-  fecha_expiracion: Date
-  cvv: String
+  num_tarjeta
+  fecha_expiracion
+  cvv
 }
 
 entity MasterCard {
-  *id: Integer <<PK>>
+  *id <<PK>>
   --
-  num_tarjeta: String
-  fecha_expiracion: Date
-  cvv: String
+  num_tarjeta
+  fecha_expiracion
+  cvv
 }
 
 entity PayPal {
-  *id: Integer <<PK>>
+  *id <<PK>>
   --
-  email: String
-  cuenta_id: String
+  cuenta: String
+  num_targeta: varchar(20)
 }
 
-' Relaciones
-Usuari ||--o{ Perfil : "crea"
-Usuari }o--|| Suscripcio : "contrata"
-Usuari }o--o{ Suscripcio : "gestiona"
-Usuari ||--o{ Video : "puja"
-Usuari ||--o{ Video_Cataleg : "administra"
-Video ||--|| Video_Cataleg : "pertany a"
-Serie ||--o{ Video_Cataleg : "conté"
-Perfil ||--o{ Visualitzacio : "registra"
-Video_Cataleg ||--o{ Visualitzacio : "té"
-Metodo_Pago }o--o{ Usuari
+entity Video {
+    *id <<PK>>
+    ---
+    titol: varchar(50)
+    duracio: integer
+    codec: ENUM('Tipus') 
+    resolucio:integer
+    pes: double (MB)
+}
 
-' Herencia (triángulo vacío)
-Metodo_Pago <|-- Visa
-Metodo_Pago <|-- MasterCard
-Metodo_Pago <|-- PayPal
+entity Perfil {
+    *id <<PK>>
+    ---
+    nom: varchar(20)
+    infantil: boolean
+    usuari: integer <<FK>>
+}
+
+entity VideoCataleg {
+    *id  <<PK>>
+    ---
+    titol
+    descripcio
+    categoria: <<FK>>
+    pegi 
+    estudi <<FK>>
+    valoracio
+    temporada
+    serie <<FK>>
+    numCapitol
+    dataEmissio
+    thumbnail
+    duracio
+}
+
+entity Serie{
+    *id: innteger <<PK>>
+    ---
+    nom: varchar(20)    
+}
+entity Estudi{
+    *id: innteger <<PK>>
+    ---
+    nom: varchar(20)    
+}
+
+entity Categoria{
+    *id:  <<PK>>
+    ---
+    nom
+}
+
+entity Historial {
+    *perfil <<FK>>
+    *usuari <<FK>>
+    *videoCataleg <<FK>>
+    ---
+    visualitzacio
+    ultimaReproduccio
+    completat
+}
+
+' Relacions
+
+VideoCataleg ||--o{ Serie: Apareixer
+VideoCataleg ||--|| Video: Pertanyer
+VideoCataleg ||--o{ Categoria : Contindre
+VideoCataleg ||--o{ Estudi : Realitzar
+VideoCataleg }o--|| Historial: Seguir
+
+
+Usuari }o--|| Perfil : Utilitzar
+Usuari ||--o{ Suscripcio : Pagar
+Usuari }o--o{ MetodePago : Crear
+Usuari }o--|| Video : Pujar
+
+Perfil }o--o{ VideoCataleg : Consultar
+Perfil }o--o{ Video : Reproduir
+Perfil }o--|| Historial : Registrar
+
+' Herencia
+MetodePago <|-- Visa : Heretar
+MetodePago <|-- MasterCard : Heretar
+MetodePago <|-- PayPal : Heretar
 
 @enduml
 ```
