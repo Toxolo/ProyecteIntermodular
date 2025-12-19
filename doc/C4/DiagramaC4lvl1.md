@@ -1,3 +1,5 @@
+# Diagrama C4 Nivell 1
+
 ```plantuml
 @startuml
 left to right direction
@@ -37,6 +39,5 @@ MAIN <-- User : Inicia Sessió
 MAIN <-- Admin : Inicia Sessió
 MAIN --> Admin : Inicia Sessió
 
-
-
 @enduml
+```

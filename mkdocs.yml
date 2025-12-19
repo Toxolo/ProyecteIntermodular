@@ -15,7 +15,7 @@ nav:
     - Diagrama ER Cataleg: ER/ER-Cataleg.md
   - Sistema:
     - Requeriments Funcionals: Sistema/requeriments_funcionals.md
-    - Relacions Generals: Sistema/ relacionesGenerales.md
+    - Relacions Generals: Sistema/relacionesGenerales.md
     - Endpoints: Sistema/EndPoints.md
     - Arquitectures: Sistema/Arquitectures.md
   - UC:

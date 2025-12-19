@@ -52,7 +52,7 @@
 
 - **Funcionals**  
 
-    ```text
+    ```text  
     RF01 - L'usuari ha de ser capac de crear-se un conter  
     RF02 - L'usuari ha de insertar un metode de pagament  
     RF03 - El sistema comprovara les credencials dels usuaris  
