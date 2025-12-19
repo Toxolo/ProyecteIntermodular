@@ -1,6 +1,6 @@
 # Diagrama Modelo Datos
 
-```platuml
+```plantuml
 @startuml
 
 entity Usuari {
@@ -138,10 +138,6 @@ Perfil }o--|| Historial: Ser
 MetodePago <|-- Visa : Heretar
 MetodePago <|-- MasterCard : Heretar
 MetodePago <|-- PayPal : Heretar
-
-
-
-
 
 @enduml
 ```

@@ -59,6 +59,7 @@
     RF04 - El sistema controlara tots els perfils de cada usuari  
     RF05 - L'usuari ha de poder modificar els parametres de la suscripcio  
     RF06 - L'usuari ha de poder modificar els parametres del seu conter i perfils
+    ```
 
 - **No Funcionals**  
 

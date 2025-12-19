@@ -1,9 +1,11 @@
 # Diagrama ER Conceptual
 
-```uml
+```plantuml
 
 @startuml
+
 left to right direction
+
 skinparam linetype ortho
 
 entity Usuari {
@@ -22,8 +24,6 @@ entity Usuari {
   inici: Date
   fi: Date
 }
-
-
 
 entity Suscripcio {
   *id: Integer <<PK>>
@@ -126,3 +126,4 @@ Metodo_Pago <|-- MasterCard
 Metodo_Pago <|-- PayPal
 
 @enduml
+```
