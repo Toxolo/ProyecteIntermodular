@@ -1,33 +1,21 @@
-# Entidades del Sistema
+# Entitats del Sistema
 
-```text
-Video
-```
+## Video
 
-```text
-Metadades_Video
-```
+## Video Cataleg
 
-```text
-Usuari
-```
+## Usuari
 
-```text
-Suscripció
-```
+## Categoria
 
-```text
-Perfil
-```
+## Serie
 
-```text
-Video_estat
-```
+## Estudi
 
-```text
-Admin
-```
+## Suscripcio
 
-```text
-Serie
-```
+## Metode Pago
+
+## Perfil
+
+## Historial de Reproduccions

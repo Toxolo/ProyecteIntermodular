@@ -1,6 +1,6 @@
 # UC ODOO Backend
 
-```uml
+```plantuml
 @startuml
 left to right direction
 

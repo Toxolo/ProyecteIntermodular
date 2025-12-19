@@ -1,6 +1,37 @@
 site_name: Padalustro
 
-docs_dir: doc               # OK, si tus archivos .md están en una carpeta llamada "doc"
+nav:
+  - Inici: index.md
+  #- Acerca de: about.md
+  - Diagrames C4:
+    - C4 Nivell 1: C4/DiagramaC4lvl1.md
+    - C4 Nivell 2: C4/c4Nivell2.md
+    - C4 Nivell 3: 
+      - Cataleg: C4/c4Nivell3Cataleg.md
+      - Media Server: C4/c4Nivell3MediaServer.md
+  - Entitat Relacio: 
+    - Diagrama ER Inicial: ER/ER_Conceptual.md
+    - Diagrama Model de dades: ER/DiagramaModeloDatos.md
+    - Diagrama ER Cataleg: ER/ER-Cataleg.md
+  - Sistema:
+    - Requeriments Funcionals: Sistema/requeriments_funcionals.md
+    - Relacions Generals: Sistema/ relacionesGenerales.md
+    - Endpoints: Sistema/EndPoints.md
+    - Arquitectures: Sistema/Arquitectures.md
+  - UC:
+    - Cataleg: UC/appCliente.md
+    - Media Server: UC/serverExpress.md
+    - Odoo: UC/odoo_diagrama.md
+    - Derivacio UC Front: UC/Derivar_UC.md
+  - Altres:
+    - Diagrama Clases: DiagramaClases.md
+    - Diagrama Fluxe: DiagramaFlujo.md
+    - Diagrama Sequencia: DiagramaSecuencia.md
+    - Entitats: entities.md
+    - Diagrama Pipeline: Pipeline.md
+
+
+docs_dir: doc              
 
 theme:
   name: material

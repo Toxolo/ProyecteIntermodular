@@ -1,6 +1,6 @@
-# Diagrama de flujo
+# Diagrama de flujo 1
 
-```uml
+```plantuml
 @startuml
 
 (*) --> Obrir_app
@@ -64,7 +64,9 @@ endif
 @enduml
 ```
 
-```uml
+# Diagrama de flujo 2
+
+```plantuml
 @startuml
 start
 :Abre APP;

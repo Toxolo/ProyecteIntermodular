@@ -1,6 +1,6 @@
 # UC App Client
 
-```uml
+```plantuml
 
 @startuml
 left to right direction

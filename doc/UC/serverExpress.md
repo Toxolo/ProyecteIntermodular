@@ -1,6 +1,6 @@
 # Server Express
 
-```uml
+```plantuml
 @startuml
 
 left to right direction
