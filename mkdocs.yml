@@ -23,6 +23,10 @@ nav:
     - Media Server: UC/serverExpress.md
     - Odoo: UC/odoo_diagrama.md
     - Derivacio UC Front: UC/Derivar_UC.md
+  - Sequencia:
+    - Inici Sessio: sequencia/iniciSessio.md
+    - Cataleg: sequencia/accedirCataleg.md
+    - Reproduccio Video: sequencia/reproduirVideo.md
   - Altres:
     - Diagrama Clases: DiagramaClases.md
     - Diagrama Fluxe: DiagramaFlujo.md
