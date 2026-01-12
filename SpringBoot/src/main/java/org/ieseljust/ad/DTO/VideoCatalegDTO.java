@@ -2,7 +2,6 @@ package org.ieseljust.ad.DTO;
 
 import java.io.Serializable;
 import java.sql.Date;
-import java.time.LocalDateTime;
 import java.util.Set;
 
 import org.ieseljust.ad.Model.categoria;
@@ -21,7 +20,7 @@ public class VideoCatalegDTO implements Serializable {
 
     private String description;
 
-    private Set<categoria> categori;
+    private Set<categoria> category;
 
     private Integer classification;
 
@@ -41,9 +40,9 @@ public class VideoCatalegDTO implements Serializable {
 
     private Integer duration;
 
-	private LocalDateTime data_creacio;
+	// private LocalDateTime data_creacio;
 
-	private LocalDateTime data_modif;
+	// private LocalDateTime data_modif;
 
 	public static VideoCatalegDTO convertToDTO(video_cataleg videoCataleg) {
 
@@ -52,7 +51,7 @@ public class VideoCatalegDTO implements Serializable {
         videoCatalegDTO.setId(videoCataleg.getId());
 		videoCatalegDTO.setTitle(videoCataleg.getTitle());
 		videoCatalegDTO.setDescription(videoCataleg.getDescription());
-		videoCatalegDTO.setCategori(videoCataleg.getCategori());
+		videoCatalegDTO.setCategory(videoCataleg.getCategory());
 		videoCatalegDTO.setClassification(videoCataleg.getClassification());
 		videoCatalegDTO.setStudy(videoCataleg.getStudy());
 		videoCatalegDTO.setRating(videoCataleg.getRating());
@@ -67,6 +66,7 @@ public class VideoCatalegDTO implements Serializable {
 
 	}
 
+    /* 
 	public static video_cataleg convertToEntity(VideoCatalegDTO videoCatalegDTO) {
 
 		video_cataleg videoCataleg = new video_cataleg();
@@ -74,7 +74,7 @@ public class VideoCatalegDTO implements Serializable {
         videoCataleg.setId(videoCatalegDTO.getId());
 		videoCataleg.setTitle(videoCatalegDTO.getTitle());
 		videoCataleg.setDescription(videoCatalegDTO.getDescription());
-		videoCataleg.setCategori(videoCatalegDTO.getCategori());
+		videoCataleg.setCategory(videoCatalegDTO.getCategory());
 		videoCataleg.setClassification(videoCatalegDTO.getClassification());
 		videoCataleg.setStudy(videoCatalegDTO.getStudy());
 		videoCataleg.setRating(videoCatalegDTO.getRating());
@@ -89,5 +89,6 @@ public class VideoCatalegDTO implements Serializable {
 		return videoCataleg;
 
 	}
+        */
 
 }

@@ -6,11 +6,11 @@ import org.ieseljust.ad.DTO.VideoCatalegDTO;
 
 public interface VideoCatalegService {
 
-    void saveVideoCataleg(VideoCatalegDTO videoCatalegDTO);
+    // void saveVideoCataleg(VideoCatalegDTO videoCatalegDTO);
 
     VideoCatalegDTO getVideoCatalegById(Long id);
 
-    List<VideoCatalegDTO> listAllVideoCatalegs();
+    List<VideoCatalegDTO> listAllVideoCataleg();
 
-    void deleteVideoCataleg(Long id);
+    boolean deleteVideoCataleg(Long id);
 }

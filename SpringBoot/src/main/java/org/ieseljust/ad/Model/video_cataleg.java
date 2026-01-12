@@ -44,7 +44,7 @@ public class video_cataleg {
         joinColumns = @JoinColumn(name = "id_video_cataleg"),
         inverseJoinColumns = @JoinColumn(name = "categoria_id")
     )
-    private Set<categoria> categori;
+    private Set<categoria> category;
 
     @Column(nullable = false)
     private Integer classification;
@@ -78,12 +78,12 @@ public class video_cataleg {
     public video_cataleg() {
     }
 
-    public video_cataleg(String title, String description, Set<categoria> categori, Integer classification, estudi study,
+    public video_cataleg(String title, String description, Set<categoria> category, Integer classification, estudi study,
             double rating, Integer season, serie series, Integer chapter, Date date_emission, String thumbnail,
             Integer duration) {
         this.title = title;
         this.description = description;
-        this.categori = categori;
+        this.category = category;
         this.classification = classification;
         this.study = study;
         this.rating = rating;
@@ -119,12 +119,12 @@ public class video_cataleg {
         this.description = description;
     }
 
-    public Set<categoria> getCategori() {
-        return categori;
+    public Set<categoria> getCategory() {
+        return category;
     }
 
-    public void setCategori(Set<categoria> categori) {
-        this.categori = categori;
+    public void setCategory(Set<categoria> category) {
+        this.category = category;
     }
 
     public Integer getClassification() {

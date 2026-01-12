@@ -2,6 +2,7 @@ package org.ieseljust.ad.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.ieseljust.ad.DTO.VideoCatalegDTO;
 import org.ieseljust.ad.Model.video_cataleg;
@@ -15,21 +16,19 @@ public class VideoCatalegServiceImpl implements VideoCatalegService {
     @Autowired
     private VideoCatalegRepository videoCatalegRepository;
 
+    /* 
     @Override
     public void saveVideoCataleg(VideoCatalegDTO videoCatalegDTO) {
         video_cataleg video = VideoCatalegDTO.convertToEntity(videoCatalegDTO);
         videoCatalegRepository.save(video);
     }
+*/
+    
+
+    
 
     @Override
-    public VideoCatalegDTO getVideoCatalegById(Long id) {
-        video_cataleg video = videoCatalegRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Video no trobat amb id: " + id));
-        return VideoCatalegDTO.convertToDTO(video);
-    }
-
-    @Override
-    public List<VideoCatalegDTO> listAllVideoCatalegs() {
+    public List<VideoCatalegDTO> listAllVideoCataleg() {
         List<video_cataleg> videoCatalegs = videoCatalegRepository.findAll();
 
         List<VideoCatalegDTO> dtoList = new ArrayList<>();
@@ -39,8 +38,31 @@ public class VideoCatalegServiceImpl implements VideoCatalegService {
         return dtoList;
     }
 
-    @Override
-    public void deleteVideoCataleg(Long id) {
-        videoCatalegRepository.deleteById(id);
+@Override
+    public VideoCatalegDTO getVideoCatalegById(Long id) {
+        Optional<video_cataleg> video = videoCatalegRepository.findById(id);
+
+        if (video.isPresent())
+            return VideoCatalegDTO.convertToDTO(video.get());
+        
+        return null;
+
     }
+
+
+
+@Override
+public boolean deleteVideoCataleg(Long id) {
+    Optional<video_cataleg> video = videoCatalegRepository.findById(id);
+
+    if (video.isPresent()) {
+        videoCatalegRepository.delete(video.get());
+        return true;
+    }
+
+    return false;
+}
+
+
+
 }
