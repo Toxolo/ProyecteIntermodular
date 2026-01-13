@@ -2,9 +2,9 @@ package org.padalustro.presentation.controller;
 
 import java.util.List;
 
-import org.padalustro.application.usecase.DeleteVideoCatalegUseCase;
-import org.padalustro.application.usecase.GetAllVideoCatalegUseCase;
-import org.padalustro.application.usecase.GetVideoCatalegByIdUseCase;
+import org.padalustro.application.usecase.Cataleg.DeleteVideoCatalegUseCase;
+import org.padalustro.application.usecase.Cataleg.GetAllVideoCatalegUseCase;
+import org.padalustro.application.usecase.Cataleg.GetVideoCatalegByIdUseCase;
 import org.padalustro.infrastructure.DTO.VideoCatalegDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;

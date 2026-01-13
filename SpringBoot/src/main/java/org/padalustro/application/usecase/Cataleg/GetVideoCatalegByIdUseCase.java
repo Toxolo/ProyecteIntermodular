@@ -1,4 +1,4 @@
-package org.padalustro.application.usecase;
+package org.padalustro.application.usecase.Cataleg;
 
 import org.padalustro.domain.exceptions.VideoCatalegNotFoundException;
 import org.padalustro.domain.repository.VideoCatalegRepository;

@@ -3,11 +3,15 @@ package org.padalustro.infrastructure.DTO;
 import java.io.Serializable;
 import java.sql.Date;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.padalustro.domain.entities.categoria;
 import org.padalustro.domain.entities.estudi;
 import org.padalustro.domain.entities.serie;
 import org.padalustro.domain.entities.video_cataleg;
+import org.padalustro.infrastructure.DTO.IDs.CategoriaIdDTO;
+import org.padalustro.infrastructure.DTO.IDs.EstudiIdDTO;
+import org.padalustro.infrastructure.DTO.IDs.SerieIdDTO;
 
 import lombok.Data;
 
@@ -20,17 +24,17 @@ public class VideoCatalegDTO implements Serializable {
 
     private String description;
 
-    private Set<categoria> category;
+    private Set<CategoriaIdDTO> category;
 
     private Integer classification;
 
-    private estudi study;
+    private EstudiIdDTO study;
 
     private double rating;
 
     private Integer season;
 
-    private serie series;
+    private SerieIdDTO series;
 
     private Integer chapter;
 
@@ -51,12 +55,21 @@ public class VideoCatalegDTO implements Serializable {
         videoCatalegDTO.setId(videoCataleg.getId());
 		videoCatalegDTO.setTitle(videoCataleg.getTitle());
 		videoCatalegDTO.setDescription(videoCataleg.getDescription());
-		videoCatalegDTO.setCategory(videoCataleg.getCategory());
+		if (videoCataleg.getCategory() != null) {
+            videoCatalegDTO.setCategory(videoCataleg.getCategory().stream()
+                .map(c -> new CategoriaIdDTO(c.getId()))
+                .collect(Collectors.toSet()));
+        }
 		videoCatalegDTO.setClassification(videoCataleg.getClassification());
-		videoCatalegDTO.setStudy(videoCataleg.getStudy());
+		if (videoCataleg.getStudy() != null) {
+            videoCatalegDTO.setStudy(new EstudiIdDTO(videoCataleg.getStudy().getId()));
+        }
+
 		videoCatalegDTO.setRating(videoCataleg.getRating());
         videoCatalegDTO.setSeason(videoCataleg.getSeason());
-        videoCatalegDTO.setSeries(videoCataleg.getSeries());
+        if (videoCataleg.getSeries() != null) {
+            videoCatalegDTO.setSeries(new SerieIdDTO(videoCataleg.getSeries().getId()));
+        }
         videoCatalegDTO.setChapter(videoCataleg.getChapter());
         videoCatalegDTO.setDate_emission(videoCataleg.getDate_emission());
         videoCatalegDTO.setThumbnail(videoCataleg.getThumbnail());
@@ -72,12 +85,33 @@ public class VideoCatalegDTO implements Serializable {
         videoCataleg.setId(this.getId());
         videoCataleg.setTitle(this.getTitle());
         videoCataleg.setDescription(this.getDescription());
-        videoCataleg.setCategory(this.getCategory());
+
+
+        if (this.getCategory() != null) {
+        videoCataleg.setCategory(
+            this.getCategory().stream()
+                .map(c -> {
+                    categoria cat = new categoria();
+                    cat.setId(c.getId());
+                    return cat;
+                })
+                .collect(Collectors.toSet())
+            );
+        }
         videoCataleg.setClassification(this.getClassification());
-        videoCataleg.setStudy(this.getStudy());
+
+        if (this.getStudy() != null) {
+            estudi study = new estudi();
+            study.setId(this.getStudy().getId());
+            videoCataleg.setStudy(study);
+        }
         videoCataleg.setRating(this.getRating());
         videoCataleg.setSeason(this.getSeason());
-        videoCataleg.setSeries(this.getSeries());
+        if (this.getSeries() != null) {
+            serie series = new serie();
+            series.setId(this.getSeries().getId());
+            videoCataleg.setSeries(series);
+        }
         videoCataleg.setChapter(this.getChapter());
         videoCataleg.setDate_emission(this.getDate_emission());
         videoCataleg.setThumbnail(this.getThumbnail());
