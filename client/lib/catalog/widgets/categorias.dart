@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../catalog_styles.dart';
+import '../../models/video.dart';
+import '../../services/video_service.dart';
 import 'image_card.dart';
 
 class CategorySection extends StatelessWidget {
@@ -7,50 +8,48 @@ class CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column( //le ponemos a mano el nombre de las categorias
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        _SingleCategory(title: 'Tendencias'),
-        SizedBox(height: 20),
-        _SingleCategory(title: 'Recomendados'),
-        SizedBox(height: 20),
-        _SingleCategory(title: 'Series'),
-      ],
-    );
-  }
-}
-
-class _SingleCategory extends StatelessWidget {
-  final String title;
-
-  const _SingleCategory({ //Creamos el constructor del widget y obligamos a pasar el nombre de la categoria.
-    required this.title,
-  });
-
-  @override
-  Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start, //Alinea los elementos hijos al inicio horizontal del contenedor.
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            title,
-            style: CatalogStyles.sectionTitle,
+            'Catálogo',
+            style: TextStyle(color: Colors.white, fontSize: 18),
           ),
         ),
         const SizedBox(height: 10),
+
         SizedBox(
-          height: 170,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: const [
-              ImageCard(),
-              ImageCard(),
-              ImageCard(),
-              ImageCard(),
-            ],
+          height: 160,
+          child: FutureBuilder<List<Video>>(
+            future: VideoService.getVideos(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No hay vídeos',
+                    style: TextStyle(color: Color.fromARGB(255, 190, 159, 0)),
+                  ),
+                );
+              }
+
+              final videos = snapshot.data!;
+
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: videos.length,
+                itemBuilder: (context, index) {
+                  return ImageCard(video: videos[index]);
+                },
+              );
+            },
           ),
         ),
       ],
