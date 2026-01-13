@@ -48,8 +48,22 @@ services:
       MYSQL_DATABASE: CatalegSpring
     volumes:
       - mysql-data:/var/lib/mysql
+  mediaServer-DB:
+    image: mysql:8.0
+    container_name: mediaServer-db
+    restart: unless-stopped
+    ports:
+      - "3309:3309"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mediaServer
+    volumes:
+      - mediaServer:/var/lib/mysql
+      - ./mediaServer:/docker-entrypoint-initdb.d 
+
 
 volumes:
   odoo-data:
   postgres-data:
   mysql-data:
+  mediaServer:
