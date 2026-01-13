@@ -1,10 +1,12 @@
-
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
+import '../../models/video.dart';
 import '../pages/vistaprev.dart';
 
 class ImageCard extends StatelessWidget {
-  const ImageCard({super.key});
+  final Video video;
+
+  const ImageCard({super.key, required this.video});
 
   @override
   Widget build(BuildContext context) {
@@ -20,16 +22,26 @@ class ImageCard extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => VistaPrev()),
+            MaterialPageRoute(
+              builder: (context) => VistaPrev(videoId: video.id),
+            ),
           );
         },
-        child: Icon(
-          Icons.circle,
-          size: 40, // Adjust size as needed
-          color: Colors.white, // Change color if needed
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              video.title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ),
         ),
       ),
-        //aqui poner la imagen del video en vertical
-      );
+    );
   }
 }
