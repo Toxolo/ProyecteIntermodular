@@ -57,9 +57,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: mediaServer
+      MYSQL_USER: mediadmin           
+      MYSQL_PASSWORD: mediaServer
     volumes:
       - mediaServer:/var/lib/mysql
       - ./mediaServer:/docker-entrypoint-initdb.d 
+      
 
 
 volumes:
