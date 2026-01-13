@@ -11,10 +11,6 @@ const memoryUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 500 * 1024 * 1024 }, 
 });
-
-
-
-    
     export const uploadVideo = memoryUpload;
 
     export const processVideo = (req,res)=> {
@@ -59,7 +55,7 @@ const memoryUpload = multer({
             outputPlaylist
         ];
 
-        console.log('Ejecutando FFmpeg:', ffmpeg, args.join(' '));
+        console.log('Executant FFmpeg:', ffmpeg, args.join(' '));
 
         const ffmpegProcess = spawn(ffmpeg || 'ffmpeg', args);
 
