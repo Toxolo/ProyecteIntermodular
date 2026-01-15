@@ -8,18 +8,12 @@ class CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Catálogo',
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-        ),
         const SizedBox(height: 10),
-
         SizedBox(
           height: 160,
           child: FutureBuilder<List<Video>>(
@@ -40,19 +34,20 @@ class CategorySection extends StatelessWidget {
                 );
               }
 
-              final videos = snapshot.data!;
+              final videos = snapshot.data!; // lista consegida correctamente
 
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: videos.length,
+                itemCount: videos.length, // cantidad dinámica de cards
                 itemBuilder: (context, index) {
-                  return ImageCard(video: videos[index]);
+                  return ImageCard(video: videos[index]);  // card con datos del video
                 },
               );
             },
           ),
         ),
       ],
+      ),
     );
   }
 }

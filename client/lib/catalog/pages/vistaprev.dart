@@ -13,8 +13,7 @@ class VistaPrev extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CatalogStyles.backgroundBlack,
-
-      body: Stack( // permite usar Positioned
+      body: Stack( // permite usar widgets encima de otros
         children: [
           Column(
             children: [

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import '../widgets/llistes.dart';
 import 'catalog_page.dart';
+import 'perfil_page.dart';
+
 // import 'perfil_page.dart';
 
 
@@ -76,6 +78,14 @@ class LlistesPage extends StatelessWidget {
         onTap: (index) {
           if (index == 1) {
             Navigator.pop(context);
+          }
+          if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PerfilPage(),
+              ),
+            );
           }
         },
       ),
