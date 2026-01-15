@@ -45,9 +45,8 @@ public class historial {
     private Integer visualization;
 
     @Column(name = "latest_play", nullable = false)
-    private Integer latest_play
-;
+    private Integer latest_play;
 
     @Column(nullable = false)
-    private Boolean completed;
+    private Boolean completat;
 }
