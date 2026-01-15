@@ -8,9 +8,9 @@ async function connect() {
         const pool = mysql.createPool({
             host: process.env.MYSQL_HOST || 'localhost',
             port: process.env.MYSQL_PORT || '3309',
-            user: process.env.DB_USER || 'mediadmin',
-            password: process.env.DB_PASSWORD || 'mediaServer',
-            database: process.env.MYSQL_DATABASE || 'mediaServer',
+            user: /*process.env.DB_USER ||*/ 'mediadmin',
+            password: /*process.env.DB_PASSWORD || */'mediaServer',
+            database: /*process.env.MYSQL_DATABASE ||*/ 'mediaServer',
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0,

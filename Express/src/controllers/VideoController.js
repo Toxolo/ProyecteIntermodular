@@ -4,6 +4,17 @@ import {spawn} from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import {publicPath} from '../../index.js ';
+import connect from '../../connectionDB.js';
+
+const db = await connect();
+
+export const getVideos = async(req,res) => {
+    const [rows] = await db.query(
+        'SELECT * FROM video'
+    )
+    res.status(200).json(rows)
+}
+
 
 
 
@@ -37,8 +48,7 @@ const memoryUpload = multer({
             return res.status(400).json({ error: 'No se recibió ningún vídeo o está vacío' });
         }
 
-        const name = req.file.originalname;
-        const videoId = name.split('.').slice(0,-1)
+        const videoId = req.id;
         const outputDir = publicPath + `/${videoId}`;
         const outputPlaylist = path.join(outputDir, 'index.m3u8');
 
