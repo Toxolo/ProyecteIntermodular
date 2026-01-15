@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/video.dart';
 import '../models/video_mapper.dart';
 
 class VideoService {
@@ -11,7 +10,7 @@ class VideoService {
 
     if (response.statusCode == 200) { // preparamos la lista de videos
       final List data = json.decode(response.body);
-      return data.map((e) => VideoMapper.fromJson(e)).toList();
+      return data.map((e) => Video.fromJson(e)).toList();
     } else {
       throw Exception('Error al cargar videos'); // mensaje de error en caso de qu no carguen los videos
     }
@@ -21,9 +20,26 @@ class VideoService {
     final response = await http.get(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode == 200) {
-      return VideoMapper.fromJson(json.decode(response.body)); // devuelve el video por id
+      return Video.fromJson(json.decode(response.body)); // devuelve el video por id
     } else {
       throw Exception('Error al cargar video $id');// mensaje de error en caso de qu no cargue el video/id
+    }
+  }
+
+
+  //lista de categorias
+  static const String categoryUrl = 'http://10.0.2.2:8090/Category';
+
+  static Future<Map<int, String>> getCategoryMap() async {
+    final response = await http.get(Uri.parse(categoryUrl));
+
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      return {
+        for (final c in data) c['id'] as int: c['name'] as String
+      };
+    } else {
+      throw Exception('Error al cargar categorías');
     }
   }
 }

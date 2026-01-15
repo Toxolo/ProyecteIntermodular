@@ -1,16 +1,30 @@
-import 'video.dart';
+class Video {
+  final int id;
+  final String title;
+  final String description;
+  final int duration;
+  final String thumbnail;
+  final List<int> categorias;
 
-extension VideoMapper on Video {
-  static Video fromJson(Map<String, dynamic> json) {
+  Video({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.duration,
+    required this.thumbnail,
+    required this.categorias,
+  });
+
+  factory Video.fromJson(Map<String, dynamic> json) {
     return Video(
       id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      duration: json['duration'],
-      rating: (json['rating'] as num).toDouble(),
-      thumbnail: json['thumbnail'],
-      seriesName: json['series']['name'],
-      studyName: json['study']['name'],
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      duration: json['duration'] ?? 0,
+      thumbnail: json['thumbnail'] ?? '',
+      categorias: json['category'] != null
+          ? List<int>.from(json['category'].map((e) => e['id']))
+          : [],
     );
-    }
+  }
 }
