@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
-import '../../models/video.dart';
+import '../../models/video_mapper.dart';
 import '../pages/vistaprev.dart';
 
 class ImageCard extends StatelessWidget {

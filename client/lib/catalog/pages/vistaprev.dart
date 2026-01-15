@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import 'catalog_page.dart';
-import '../../models/video.dart'; // modelo del backend
+import '../../models/video_mapper.dart'; // modelo del backend
 import '../../services/video_service.dart'; // servicio API REST
 
 class VistaPrev extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import 'image_card.dart';
-import '../../models/video.dart';
+import '../../models/video_mapper.dart';
 import '../../services/video_service.dart';
 
 class llistesSection extends StatelessWidget {
