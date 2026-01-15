@@ -53,7 +53,7 @@ services:
     container_name: mediaServer-db
     restart: unless-stopped
     ports:
-      - "3309:3309"
+      - "3309:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: mediaServer
