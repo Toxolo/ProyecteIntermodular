@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import '../widgets/categorias.dart';
 import 'llistes_page.dart';
-// import 'perfil_page.dart';
+import 'perfil_page.dart';
 
 class CatalogPage extends StatelessWidget {
   const CatalogPage({super.key});
@@ -96,15 +96,15 @@ class CatalogPage extends StatelessWidget {
               ),
             );
           }
-          /*if (index == 2) {
-            // abrir llistes_page
+          if (index == 2) {
+            // abrir perfil_page
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => const PerfilPage(),
               ),
             );
-          }*/
+          }
           print(index);},
       ),
     );

@@ -13,7 +13,7 @@ class llistesSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start, // alineacion de las listas
       children: const [
         _SingleCategory(title: 'lista 1'), // listas creadas a mano de usuario
-        SizedBox(height: 20), // separación visual entre listas
+        SizedBox(height: 20), // separación entre listas
         _SingleCategory(title: 'lista 2'),
         SizedBox(height: 20),
         _SingleCategory(title: 'lista 3'),
@@ -45,11 +45,11 @@ class _SingleCategory extends StatelessWidget {
         SizedBox(
           height: 170,
           child: FutureBuilder<List<Video>>(
-            future: VideoService.getVideos(), // obtenemos vídeos del backend
+            future: VideoService.getVideos(), // obtenemos metadata de vídeos del backend
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
-                  child: CircularProgressIndicator(), // el tipico coso de carga
+                  child: CircularProgressIndicator(), // el tipico circulo de carga
                 );
               }
 
@@ -57,7 +57,7 @@ class _SingleCategory extends StatelessWidget {
                 return const SizedBox(); // evita errores sin datos
               }
 
-              final videos = snapshot.data!; // lista obtenida correctamente
+              final videos = snapshot.data!; // lista consegida correctamente
 
               return ListView.builder(
                 scrollDirection: Axis.horizontal,
