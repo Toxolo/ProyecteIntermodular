@@ -68,7 +68,7 @@ export async function metadata(req, res, next) {
         
         //Metadates afegides al req per a ser accecibles desde les funcions posteriors
 
-        req.id = Date.now().toString();
+        req.videoId = Date.now().toString();
         req.videoDuration = duration;
         req.videoCodec = codec.trim();
         req.videoResolution = resolution.trim();

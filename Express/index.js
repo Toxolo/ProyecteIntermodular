@@ -11,11 +11,12 @@ const __dirname = path.dirname(__filename);
 
 app.use(express.json());
 
+app.use(express.static('public'))
+
 export const publicPath = path.join(__dirname, 'public');
 console.log(publicPath);
 
-export const publicFolder = express.static('public');
-app.use(publicFolder);
+app.use('/static', express.static('public'));
 
 
 app.use(Routes);
