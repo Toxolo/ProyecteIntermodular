@@ -34,6 +34,7 @@ entity ValoracioVideo{
     *id: integer
     perfil: integer <<FK>>
     video: integer <<FK>>
+    valoració: integer
 }
 
 entity Serie{
