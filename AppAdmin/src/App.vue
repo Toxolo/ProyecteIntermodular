@@ -1,160 +1,175 @@
+<!-- App.vue o el componente donde muestras la lista de vídeos -->
 <script setup lang="ts">
-import { ref } from "vue";
-import { invoke } from "@tauri-apps/api/core";
+import { onMounted, ref, computed } from 'vue'
+import axios from 'axios'
+import VideoCard from './components/VideoCard.vue'
 
-const greetMsg = ref("");
-const name = ref("");
-
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsg.value = await invoke("greet", { name: name.value });
+// interface per als videos obtinguts
+interface Video {
+  id: number
+  titol: string
+  duracio: number
+  codec: string
+  resolucio: string
+  pes: number
 }
+
+const tipoBuscador =[
+  { id:1, name:'ID'},
+  { id:2, name:'Titol'}  
+]
+
+// definicio de constants
+const videos = ref<Video[]>([])
+const searchQuery = ref('')           
+const loading = ref(true)
+const error = ref<string | null>(null)
+const selected = ref('')
+
+async function fetchVideos() {
+  try {
+    const response = await axios.get('http://localhost:3000')
+    videos.value = response.data
+  } catch (err) {
+    console.error('Error al cargar vídeos:', err)
+    error.value = "No s'han pogut carregar els vídeos"
+  } finally {
+    loading.value = false
+  }
+}
+
+// executa la funcio fetchVideos al iniciar
+onMounted(fetchVideos)
+
+// Llista de videos filtrats amb el buscador
+const filteredVideos = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return videos.value
+  }
+
+  const query = searchQuery.value.toLowerCase().trim()
+ 
+  if (selected.value === '1'){
+    return videos.value.filter(video =>
+      video.id.toString().includes(query)
+    )
+  }
+  if (selected.value === '2'){
+    return videos.value.filter(video =>
+      video.titol.toLowerCase().includes(query)
+    )
+  } 
+
+})
 </script>
 
 <template>
-  <main class="container">
-    <h1>Welcome to Tauri + Vue</h1>
+  <div class="container">
+    <h1>Padalustro</h1>
+    
+    <select id="dropdown" v-model="selected">
+      <option value="" disabled>Tipo</option>
+      <option
+        v-for="type in tipoBuscador"
+        :key="type.id"
+        :value="type.id"
+      >
+        {{ type.name }}
+      </option>
+    </select>
 
-    <div class="row">
-      <a href="https://vitejs.dev" target="_blank">
-        <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-      </a>
-      <a href="https://tauri.app" target="_blank">
-        <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-      </a>
-      <a href="https://vuejs.org/" target="_blank">
-        <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-      </a>
+    <!-- Buscador -->
+    <div class="search-container">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Buscar..."
+        class="search-input"
+      />
+      <span v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">
+        ×
+      </span>
     </div>
-    <p>Click on the Tauri, Vite, and Vue logos to learn more.</p>
 
-    <form class="row" @submit.prevent="greet">
-      <input id="greet-input" v-model="name" placeholder="Enter a name..." />
-      <button type="submit">Greet</button>
-    </form>
-    <p>{{ greetMsg }}</p>
-  </main>
+    <div v-if="loading" class="status">Carregant...</div>
+    <div v-else-if="error" class="status error">{{ error }}</div>
+    <div v-else-if="filteredVideos.length === 0" class="status">
+      <span v-if="searchQuery">No s'ha trobat cap vídeo amb "{{ searchQuery }}"</span>
+      <span v-else>No hi ha vídeos</span>
+    </div>
+
+    <div v-else class="video-grid">
+      <VideoCard
+        v-for="video in filteredVideos" 
+        :key="video.id"
+        :video="video"
+      />
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #249b73);
-}
-
-</style>
-<style>
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
 .container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 20px 16px;
 }
 
 h1 {
   text-align: center;
+  margin-bottom: 1.5rem;
 }
 
-input,
-button {
+.search-container {
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 40px;           
+  border: 1px solid #ccc;
   border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+  box-sizing: border-box;
 }
 
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
+.search-input:focus {
   outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
 }
 
-#greet-input {
-  margin-right: 5px;
+.clear-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.4rem;
+  color: #999;
+  cursor: pointer;
+  user-select: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
-
-  a:hover {
-    color: #24c8db;
-  }
-
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
+.clear-btn:hover {
+  color: #333;
 }
 
+.video-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.status {
+  text-align: center;
+  padding: 80px 20px;
+  font-size: 1.2rem;
+  color: #444;
+}
+
+.error {
+  color: #c62828;
+}
 </style>

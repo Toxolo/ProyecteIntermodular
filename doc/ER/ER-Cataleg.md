@@ -13,13 +13,28 @@ entity VideoCataleg {
     categoria: integer <<FK>>
     pegi: integer
     estudi: integer <<FK>>
+    temporada: integer
+    serie: iteger <<FK>>
+    numCapitol: integer
+    dataEmissio: date
+    thumb>
+    pegi: integer
+    estudi: integer <<FK>>
     valoracio: double
     temporada: integer
     serie: iteger <<FK>>
     numCapitol: integer
     dataEmissio: date
-    thumbnail: img
+    thumbnail nail: img
     duracio: integer
+}
+
+
+entity ValoracioVideo{
+    *id: integer
+    perfil: integer <<FK>>
+    video: integer <<FK>>
+    valoració: integer
 }
 
 entity Serie{
@@ -69,6 +84,9 @@ Usuari }o--|| Perfil : Utilitzar
 Perfil }o--o{ VideoCataleg : Consultar
 
 Perfil }o--|| Historial
+Perfil --> ValoracioVideo
+
+ValoracioVideo --> VideoCataleg
 
 @enduml
 ```
