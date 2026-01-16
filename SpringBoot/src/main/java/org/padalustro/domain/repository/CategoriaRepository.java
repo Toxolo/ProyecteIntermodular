@@ -11,5 +11,8 @@ public interface CategoriaRepository {
 
     List<CategoriaDTO> listAllCategories();
     List<CategoriaDTO> findAllDTO();
+    void saveAll(List<CategoriaDTO> categories);
+
+    
 
 }
