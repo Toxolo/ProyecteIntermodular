@@ -1,47 +1,47 @@
 import 'package:flutter/material.dart';
-import '../../models/video_mapper.dart';
-import '../../services/video_service.dart';
+
+import 'package:client/models/video_mapper.dart';
+import 'package:client/models/category.dart';
+import 'package:client/services/video_service.dart';
+import 'package:client/services/category_service.dart';
+
 import 'image_card.dart';
 
 class CategorySection extends StatelessWidget {
   const CategorySection({super.key});
-  
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: FutureBuilder(
-        // Carga vídeos y categorías
-        future: VideoService.getVideos(),
+      child: FutureBuilder<List<dynamic>>(
+        future: Future.wait([
+          VideoService.getVideos(),
+          CategoryService.getCategories(),
+        ]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.hasData) {
             return const Center(
               child: Text(
-                'No hay vídeos',
+                'No hay datos',
                 style: TextStyle(color: Color.fromARGB(255, 190, 159, 0)),
               ),
             );
           }
 
-          final videos = snapshot.data! as List<Video>; // lista de videos
+          final videos = snapshot.data![0] as List<Video>;
+          final categories = snapshot.data![1] as List<Category>;
 
-          // pone videos por categoría
-          final categoryMap = {
-            1: "Acció",
-            2: "Aventura",
-            3: "Comedia",
-            4: "Drama",
-            5: "Ciència Ficció",
-            6: "Animació",
+          // Convertimos List<Category> → Map<int, String>
+          final Map<int, String> categoryMap = {
+            for (final c in categories) c.id: c.name,
           };
 
+          // Agrupamos vídeos por categoría
           final Map<String, List<Video>> videosByCategory = {};
 
           for (final video in videos) {
@@ -52,11 +52,10 @@ class CategorySection extends StatelessWidget {
             }
           }
 
-          //si las categorias no van se muestran todos los videos
+          // fallback si no hay categorías
           if (videosByCategory.isEmpty) {
             videosByCategory['Todos'] = videos;
           }
-
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,7 +64,7 @@ class CategorySection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 10),
-                  Text( //texto de titulo de categoria
+                  Text(
                     entry.key,
                     style: const TextStyle(
                       color: Colors.white,
@@ -78,11 +77,9 @@ class CategorySection extends StatelessWidget {
                     height: 160,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: entry.value.length, // cantidad de videos por categoría
+                      itemCount: entry.value.length,
                       itemBuilder: (context, index) {
-                        return ImageCard(
-                          video: entry.value[index], // ponemos el card del video
-                        );
+                        return ImageCard(video: entry.value[index]);
                       },
                     ),
                   ),

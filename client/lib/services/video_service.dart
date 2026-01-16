@@ -26,20 +26,4 @@ class VideoService {
     }
   }
 
-
-  //lista de categorias
-  static const String categoryUrl = 'http://10.0.2.2:8090/Category';
-
-  static Future<Map<int, String>> getCategoryMap() async {
-    final response = await http.get(Uri.parse(categoryUrl));
-
-    if (response.statusCode == 200) {
-      final List data = json.decode(response.body);
-      return {
-        for (final c in data) c['id'] as int: c['name'] as String
-      };
-    } else {
-      throw Exception('Error al cargar categorías');
-    }
-  }
 }
