@@ -1,10 +1,12 @@
 import express from 'express';
-import {processVideo,uploadVideo,get} from '../controllers/VideoController.js';
+import {processVideo,uploadVideo,getVideos} from '../controllers/VideoController.js';
+import {metadata} from '../midlewares/extractMetadata.js';
+import { saveDB } from '../midlewares/saveMetadataDB.js';
 
 const Routes = express.Router();
 
-Routes.post('/vid',uploadVideo.single('video'), processVideo);
-Routes.get('/', get);
+Routes.post('/vid',uploadVideo.single('video'),metadata, saveDB, processVideo);
+Routes.get('/', getVideos);
 
 export default Routes;
 
