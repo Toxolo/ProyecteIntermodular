@@ -4,6 +4,9 @@
 # AppAdmin
 ./AppAdmin/.vscode
 
+# Express
+./Express/public/*
+
 ## Logs
 logs
 *.log

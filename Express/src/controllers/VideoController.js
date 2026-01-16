@@ -120,7 +120,3 @@ export const processVideo = (req, res) => {
 
     // ffmpeg -i /home/disnaking/Downloads/videoplayback.mp4 -profile:v baseline -level 3.0 -start_number 0 -hls_time 10 -hls_list_size 0 -f hls ./public/index.m3u8       
 };
-
-export const get = (req, res) => {
-    res.send("get video");
-};

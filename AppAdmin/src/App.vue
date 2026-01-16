@@ -1,71 +1,44 @@
-<!-- App.vue o el componente donde muestras la lista de vídeos -->
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
-import axios from 'axios'
-import VideoCard from './components/VideoCard.vue'
+import { ref } from 'vue'
+import VideoList from './components/VideoList.vue'
+import UploadScreen from './screens/UploadScreen.vue'
+import EditScreen from './screens/EditScreen.vue'
 
-// interface per als videos obtinguts
-interface Video {
-  id: number
-  titol: string
-  duracio: number
-  codec: string
-  resolucio: string
-  pes: number
-}
-
-const tipoBuscador =[
-  { id:1, name:'ID'},
-  { id:2, name:'Titol'}  
+// Search filter options
+const tipoBuscador = [
+  { id: 1, name: 'ID' },
+  { id: 2, name: 'Titol' }  
 ]
 
-// definicio de constants
-const videos = ref<Video[]>([])
-const searchQuery = ref('')           
-const loading = ref(true)
-const error = ref<string | null>(null)
+// State variables
+const searchQuery = ref('')
 const selected = ref('')
+const showUploadScreen = ref(false)
 
-async function fetchVideos() {
-  try {
-    const response = await axios.get('http://localhost:3000')
-    videos.value = response.data
-  } catch (err) {
-    console.error('Error al cargar vídeos:', err)
-    error.value = "No s'han pogut carregar els vídeos"
-  } finally {
-    loading.value = false
-  }
+// Refresh interval in milliseconds (30 seconds by default)
+const refreshInterval = 30000
+
+// Handle edit video event
+function handleEditVideo(videoId: number) {
+  console.log('Edit video with ID:', videoId)
+  // TODO: Open edit modal or navigate to edit page
+  // For now, you can show the upload screen with the video data
+  // or create a separate EditScreen component
+  alert(`Editing video ID: ${videoId}`)
 }
-
-// executa la funcio fetchVideos al iniciar
-onMounted(fetchVideos)
-
-// Llista de videos filtrats amb el buscador
-const filteredVideos = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return videos.value
-  }
-
-  const query = searchQuery.value.toLowerCase().trim()
- 
-  if (Number(selected.value) === 1){
-    return videos.value.filter(video =>
-      video.id.toString().includes(query)
-    )
-  } else {
-    return videos.value.filter(video =>
-      video.titol.toLowerCase().includes(query)
-    )
-  }
-})
 </script>
 
 <template>
-  <div class="container">
+  <!-- Upload Screen Modal -->
+  <UploadScreen v-if="showUploadScreen" @close="showUploadScreen = false" />
+
+  <!-- Main Content -->
+  <div v-else class="container">
     <h1>Padalustro</h1>
     
+    <!-- Search and filters section -->
     <div class="filters-wrapper">
+      <!-- Dropdown to select search type -->
       <select id="dropdown" v-model="selected">
         <option value="" disabled>Selecciona tipus de cerca</option>
         <option
@@ -77,7 +50,7 @@ const filteredVideos = computed(() => {
         </option>
       </select>
 
-      <!-- Buscador -->
+      <!-- Search input -->
       <div class="search-container">
         <input
           v-model="searchQuery"
@@ -85,26 +58,30 @@ const filteredVideos = computed(() => {
           :placeholder="`Buscar per ${selected ? tipoBuscador.find(t => t.id === Number(selected))?.name : 'titol'}...`"
           class="search-input"
         />
+        <!-- Clear search button -->
         <span v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">
           ×
         </span>
       </div>
+
+      <!-- Upload button -->
+      <button class="upload-btn" @click="showUploadScreen = true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        Pujar
+      </button>
     </div>
 
-    <div v-if="loading" class="status">Carregant...</div>
-    <div v-else-if="error" class="status error">{{ error }}</div>
-    <div v-else-if="filteredVideos.length === 0" class="status">
-      <span v-if="searchQuery">No s'ha trobat cap vídeo amb "{{ searchQuery }}"</span>
-      <span v-else>No hi ha vídeos</span>
-    </div>
-
-    <div v-else class="video-list">
-      <VideoCard
-        v-for="video in filteredVideos" 
-        :key="video.id"
-        :video="video"
-      />
-    </div>
+    <!-- Video List Component with auto-refresh -->
+    <VideoList 
+      :search-query="searchQuery" 
+      :search-type="Number(selected) || 2"
+      :refresh-interval="refreshInterval"
+      @edit-video="handleEditVideo"
+    />
   </div>
 </template>
 
@@ -126,7 +103,7 @@ h1 {
 .filters-wrapper {
   display: flex;
   gap: 16px;
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto 3rem;
   align-items: center;
 }
@@ -240,26 +217,32 @@ h1 {
   transform: translateY(-50%) scale(0.95);
 }
 
-/* Video List - Full Width Cards */
-.video-list {
+/* Upload Button */
+.upload-btn {
+  flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 1200px;
-  margin: 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: white;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-/* Status Messages */
-.status {
-  text-align: center;
-  padding: 80px 20px;
-  font-size: 1.1rem;
-  color: #666;
+.upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
-.error {
-  color: #e74c3c;
-  font-weight: 500;
+.upload-btn:active {
+  transform: translateY(0);
 }
 
 /* Responsive */
@@ -269,17 +252,13 @@ h1 {
     max-width: 100%;
   }
   
-  #dropdown {
-    flex: 1;
+  #dropdown,
+  .upload-btn {
     width: 100%;
   }
   
   h1 {
     font-size: 2rem;
-  }
-  
-  .video-list {
-    gap: 12px;
   }
 }
 </style>

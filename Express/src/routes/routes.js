@@ -5,8 +5,9 @@ import { saveDB } from '../midlewares/saveMetadataDB.js';
 
 const Routes = express.Router();
 
-Routes.post('/vid',uploadVideo.single('video'),metadata, saveDB, processVideo);
+Routes.post('/vid',uploadVideo.single('video'), metadata, saveDB, processVideo);
 Routes.get('/', getVideos);
+Routes.post('/meta', uploadVideo.single('video'), metadata);
 
 export default Routes;
 

@@ -11,5 +11,14 @@ export const saveDB = async(req,res,next) => {
         [req.videoId, req.file.originalname.split('.').slice(0,-1), req.videoDuration, req.videoCodec, req.videoResolution, size]
     )
     console.log(result);
-    next()
+
+    const response = {
+        id: req.videoId,
+        duration: req.videoDuration,
+        codec: req.videoCodec,
+        size: req.file.size,
+        name: req.file.originalname.split('.').slice(0, -1).join('.'),
+        resolution: req.videoResolution
+    };
+    next();
 }
