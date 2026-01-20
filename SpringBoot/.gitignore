@@ -1,0 +1,10 @@
+# Maven target
+target/
+
+# IDE
+*.iml
+.idea/
+*.class
+
+# Logs
+*.log

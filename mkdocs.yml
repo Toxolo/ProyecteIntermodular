@@ -30,7 +30,6 @@ nav:
   - Altres:
     - Diagrama Clases: DiagramaClases.md
     - Diagrama Fluxe: DiagramaFlujo.md
-    - Diagrama Sequencia: DiagramaSecuencia.md
     - Entitats: entities.md
     - Diagrama Pipeline: Pipeline.md
 
