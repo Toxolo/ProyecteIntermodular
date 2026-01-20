@@ -1,6 +1,20 @@
 import express from 'express';
+
 const app = express();
 const port = 3000;
+
+import cors from 'cors';
+
+app.use(cors({
+  origin: [
+    'http://localhost:1420',
+    'http://localhost:5173'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+}));
+
 import Routes from './src/routes/routes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
