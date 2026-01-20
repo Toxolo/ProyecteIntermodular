@@ -1,0 +1,119 @@
+
+admin_passwd (odoo)= gky7-53ch-7jsg
+db_host = db
+db_port = 5432
+db_user = odoo
+db_password = odoo
+
+odoo_user = gabrie@gmail.com
+odoo_password = odoo
+
+   API-DOCKER
+ --------------
+
+- POST http://localhost:8069/api/authenticate = login inicial
+
+{
+  "jsonrpc": "2.0",
+  "method": "call",
+  "params": {
+    "db":"Padalustro",
+    "login":"prueba@gmail.com",
+    "password":"prueba"
+  },
+  "id": 1
+}
+
+
+Response:
+
+{
+  "token": "ACCESS_JWT_TOKEN",
+  "refreshToken": "REFRESH_JWT_TOKEN",
+  "user_id": 7,
+  "rotation_period": 2700,
+  "short_term_token_span": 60,
+  "long_term_token_span": 3600,
+  "user": {
+    "id": 7,
+    "nom": "Gabriel",
+    "email": "prueba@gmail.com",
+    "active": true,
+    "has_subscription": true
+  }
+}
+
+
+- POST http://localhost:8069/api/update/access-token = refresh del access token
+
+{
+  "user_id": 7
+}
+
+
+Response:
+
+{
+  "access_token": "NEW_ACCESS_JWT_TOKEN"
+}
+
+
+- POST http://localhost:8069/api/update/refresh-token = rotación del refresh token (A los 45 min el cliente debe llamar aquí.)
+
+{
+  "user_id": 7
+}
+
+
+Response:
+
+{
+  "status": "done",
+  "refreshToken": "NEW_REFRESH_JWT_TOKEN"
+}
+
+
+- POST http://localhost:8069/api/revoke/token = logout real (refresh token queda inutilizable, usuario forzado relogin.)
+
+{
+  "user_id": 7
+}
+
+
+Response:
+
+{
+  "status": "success",
+  "logged_out": 1
+}
+
+
+- POST http://localhost:8069/api/protected/test = endpoint protegido
+
+{}
+
+
+Response:
+
+{
+  "uid": 7,
+  "status": "ok"
+}
+
+
+- POST http://localhost:8069/api/me = perfil actual del usuario autenticado
+
+{}
+
+
+Response:
+
+{
+  "id": 7,
+  "nom": "Gabriel",
+  "email": "prueba@gmail.com",
+  "active": true,
+  "has_subscription": true
+}
+
+
