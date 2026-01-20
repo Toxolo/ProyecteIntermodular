@@ -1,7 +1,7 @@
 package org.padalustro.application.usecase.Cataleg;
 
-import org.padalustro.domain.entities.video_cataleg;
 import org.padalustro.domain.repository.VideoCatalegRepository;
+import org.padalustro.infrastructure.DTO.VideoCatalegDTO;
 
 public class SaveVideoCatalegUseCase {
 
@@ -11,7 +11,7 @@ public class SaveVideoCatalegUseCase {
         this.videoCatalegRepository = videoCatalegRepository;
     }
 
-    public void execute(video_cataleg video) {
-        videoCatalegRepository.save(video);
+    public void execute(VideoCatalegDTO dto) {
+        videoCatalegRepository.saveVideoCataleg(dto);
     }
 }

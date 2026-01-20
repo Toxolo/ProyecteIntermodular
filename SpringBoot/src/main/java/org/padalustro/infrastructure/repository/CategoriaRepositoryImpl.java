@@ -7,7 +7,6 @@ import org.padalustro.domain.repository.CategoriaRepository;
 import org.padalustro.infrastructure.DTO.CategoriaDTO;
 import org.padalustro.infrastructure.repository.jpa.CategoriaJpaRepository;
 import org.springframework.stereotype.Service;
-
 @Service
 public class CategoriaRepositoryImpl implements CategoriaRepository {
 
@@ -29,5 +28,19 @@ public class CategoriaRepositoryImpl implements CategoriaRepository {
     public List<CategoriaDTO> findAllDTO() {
         return listAllCategories();
     }
+
+    @Override
+    public void saveAll(List<CategoriaDTO> categories) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'saveAll'");
+    }
+    @Override
+    public List<CategoriaDTO> findByType(String type) {
+        return jpaRepository.findByNameIgnoreCase(type)
+            .stream()
+            .map(CategoriaDTO::convertToDTO)
+            .toList();
+}
+
 
 }

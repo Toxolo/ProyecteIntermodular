@@ -27,6 +27,4 @@ public interface VideoCatalegRepository {
     Optional<video_cataleg> findById(Long id);
 
     void delete(video_cataleg video_cataleg);
-
-    void save(video_cataleg video);
 }
