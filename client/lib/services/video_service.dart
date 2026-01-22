@@ -4,6 +4,7 @@ import '../models/video_mapper.dart';
 
 class VideoService {
   static const String baseUrl = 'http://10.0.2.2:8090/Cataleg';
+  // static const String baseUrl = 'http://localhost:8090/Category';
 
   static Future<List<Video>> getVideos() async {
     final response = await http.get(Uri.parse(baseUrl)); // llamada al endpoint

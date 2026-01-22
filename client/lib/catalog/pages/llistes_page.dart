@@ -1,89 +1,65 @@
+import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import '../widgets/llistes.dart';
-import 'catalog_page.dart';
 import 'perfil_page.dart';
 
 // import 'perfil_page.dart';
 
 
 class LlistesPage extends StatelessWidget {
-  const LlistesPage({super.key});
+  final AppDatabase db; // <-- base de dades passada des del main
+
+  const LlistesPage({super.key, required this.db});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CatalogStyles.backgroundBlack, //hacemos que el fondo sea negro
+      backgroundColor: CatalogStyles.backgroundBlack,
       body: Column(
         children: [
           Container(
             height: 80,
             padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // el logo y el icono de búsqueda
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 40,
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.search, color: Color.fromRGBO(255, 255, 255, 1)), 
-                    ),
-                  ],
+                Image.asset('assets/images/logo.png', height: 40),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.search, color: Colors.white),
                 ),
-                const Spacer(),
               ],
             ),
           ),
-
-          //  catalogo
           const SizedBox(height: 10),
           Expanded(
             child: ListView(
-              children: const [
-                llistesSection(), //aqui llamamos a la parte de llistes
-                SizedBox(height: 20),
+              children: [
+                LlistesSection(db: db), // <-- enviem la BD a la secció
+                const SizedBox(height: 20),
               ],
             ),
           ),
         ],
       ),
-
-      // barra de menu por abajo
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0, //llistes seleccionado
+        currentIndex: 0,
         backgroundColor: Colors.black,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu), //seleccionamos el icono de las 3 lineas
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home), // casita de abajo
-            label: '',
-            
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.circle),
-            label: '',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.circle), label: ''),
         ],
         onTap: (index) {
-          if (index == 1) {
-            Navigator.pop(context);
-          }
+          if (index == 1) Navigator.pop(context);
           if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const PerfilPage(),
+                builder: (context) => PerfilPage(db: db,),
               ),
             );
           }

@@ -1,4 +1,5 @@
 
+import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import '../widgets/categorias.dart';
@@ -6,7 +7,9 @@ import 'llistes_page.dart';
 import 'perfil_page.dart';
 
 class CatalogPage extends StatelessWidget {
-  const CatalogPage({super.key});
+  final AppDatabase db;
+
+  const CatalogPage({super.key, required this.db});
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +60,9 @@ class CatalogPage extends StatelessWidget {
           const SizedBox(height: 10),
           Expanded(
             child: ListView(
-              children: const [
-                CategorySection(), //aqui llamamos a la parte de categorias
-                SizedBox(height: 20),
+              children: [
+                CategorySection(db: db,), //aqui llamamos a la parte de categorias
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -92,7 +95,7 @@ class CatalogPage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const LlistesPage(),
+                builder: (context) => LlistesPage(db: db,),
               ),
             );
           }
@@ -101,7 +104,7 @@ class CatalogPage extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const PerfilPage(),
+                builder: (context) => PerfilPage(db: db,),
               ),
             );
           }

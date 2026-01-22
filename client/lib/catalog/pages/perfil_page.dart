@@ -1,10 +1,13 @@
+import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import 'catalog_page.dart';
 import 'llistes_page.dart';
 
 class PerfilPage extends StatelessWidget {
-  const PerfilPage({super.key});
+  final AppDatabase db;
+
+  const PerfilPage({super.key, required this.db});
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +77,7 @@ class PerfilPage extends StatelessWidget {
                   onChanged: (value) {
                     //  switch preparar para cambiar a modo infantil
                   },
-                  activeColor: const Color(0xFFD4AF37),
+                  activeThumbColor: const Color(0xFFD4AF37),
                 ),
               ],
             ),
@@ -163,13 +166,13 @@ class PerfilPage extends StatelessWidget {
           if (index == 0) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const LlistesPage()),
+              MaterialPageRoute(builder: (_) => LlistesPage(db: db,)),
             );
           }
           if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const CatalogPage()),
+              MaterialPageRoute(builder: (_) => CatalogPage(db: db,)),
             );
           }
         },

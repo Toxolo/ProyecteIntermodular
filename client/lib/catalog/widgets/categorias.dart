@@ -1,3 +1,4 @@
+import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
 
 import 'package:client/models/video_mapper.dart';
@@ -8,7 +9,9 @@ import 'package:client/services/category_service.dart';
 import 'image_card.dart';
 
 class CategorySection extends StatelessWidget {
-  const CategorySection({super.key});
+  final AppDatabase db; // <-- Afegim la BD
+
+  const CategorySection({super.key, required this.db});
 
   @override
   Widget build(BuildContext context) {
@@ -36,12 +39,10 @@ class CategorySection extends StatelessWidget {
           final videos = snapshot.data![0] as List<Video>;
           final categories = snapshot.data![1] as List<Category>;
 
-          // Convertimos List<Category> → Map<int, String>
           final Map<int, String> categoryMap = {
             for (final c in categories) c.id: c.name,
           };
 
-          // Agrupamos vídeos por categoría
           final Map<String, List<Video>> videosByCategory = {};
 
           for (final video in videos) {
@@ -52,7 +53,6 @@ class CategorySection extends StatelessWidget {
             }
           }
 
-          // fallback si no hay categorías
           if (videosByCategory.isEmpty) {
             videosByCategory['Todos'] = videos;
           }
@@ -79,7 +79,10 @@ class CategorySection extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       itemCount: entry.value.length,
                       itemBuilder: (context, index) {
-                        return ImageCard(video: entry.value[index]);
+                        return ImageCard(
+                          video: entry.value[index],
+                          db: db,
+                        );
                       },
                     ),
                   ),

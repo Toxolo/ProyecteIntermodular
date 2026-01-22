@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import '../../models/video_mapper.dart';
 import '../pages/vistaprev.dart';
+import '../../data/local/app_database.dart'; // <-- importa la BD
 
 class ImageCard extends StatelessWidget {
   final Video video;
+  final AppDatabase db; // <-- afegim la BD
 
-  const ImageCard({super.key, required this.video});
+  const ImageCard({super.key, required this.video, required this.db});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +25,10 @@ class ImageCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => VistaPrev(videoId: video.id),
+              builder: (context) => VistaPrev(
+                videoId: video.id,
+                db: db, // <-- passem la BD
+              ),
             ),
           );
         },
