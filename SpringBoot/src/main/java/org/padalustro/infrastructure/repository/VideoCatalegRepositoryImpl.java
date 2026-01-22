@@ -80,4 +80,15 @@ public class VideoCatalegRepositoryImpl implements VideoCatalegRepository {
     public void delete(video_cataleg video_cataleg) {
         jpaRepository.delete(video_cataleg);
     }
+    @Override
+    public void updateVideoCataleg(Long id, VideoCatalegDTO dto) {
+        Optional<video_cataleg> existingEntityOpt = jpaRepository.findById(id);
+        if (existingEntityOpt.isPresent()) {
+            video_cataleg existingEntity = existingEntityOpt.get();
+            existingEntity.setTitle(dto.getTitle());
+            existingEntity.setDescription(dto.getDescription());
+            // Update other fields as necessary
+            jpaRepository.save(existingEntity);
+        }
+    }
 }

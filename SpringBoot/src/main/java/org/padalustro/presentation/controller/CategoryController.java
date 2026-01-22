@@ -12,24 +12,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 
+
 @RestController
-@RequestMapping("/Category")
+@RequestMapping("")
 public class CategoryController {
 
     private final GetAllCategoryUseCase getAllCategory;
 
 
+
     
     public CategoryController(
-            GetAllCategoryUseCase getAllCategory) {
-        this.getAllCategory = getAllCategory;
-    }
+        GetAllCategoryUseCase getAllCategory) {
+
+    this.getAllCategory = getAllCategory;
+}
 
 
-   
-    @GetMapping
+
+
+    @GetMapping("/Category")
     public ResponseEntity<List<CategoriaDTO>> getAll() {
         return ResponseEntity.ok(getAllCategory.execute());
     }
+
 
 }
