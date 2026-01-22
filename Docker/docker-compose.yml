@@ -3,34 +3,33 @@ services:
   # =========================
   # ODOO (company)
   # =========================
-  odoo:
-    build: ./Odoo
-    container_name: odoo
-    restart: no
+  odoo: 
+    build:
+      context: .
+      dockerfile: Odoo/Dockerfile
+    restart: always
     ports:
       - "8069:8069"
     depends_on:
-      - postgres-db
+      - db
     environment:
-      - HOST=postgres-db
+      - HOST=db
       - USER=odoo
       - PASSWORD=odoo
     volumes:
       - odoo-data:/var/lib/odoo
       - ../Odoo/extra-addons:/mnt/extra-addons
       - ../Odoo/config:/etc/odoo
-      - ./Odoo/modules-zip:/mnt/modules-zip
-
-  postgres-db:
+  
+  db:
     image: postgres:14
-    container_name: postgres-db
-    restart: no
+    restart: always
     environment:
-      POSTGRES_USER: odoo
-      POSTGRES_PASSWORD: odoo
-      POSTGRES_DB: postgres
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_DB=postgres
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -68,6 +67,6 @@ services:
 
 volumes:
   odoo-data:
-  postgres-data:
+  db-data:
   mysql-data:
   mediaServer:
