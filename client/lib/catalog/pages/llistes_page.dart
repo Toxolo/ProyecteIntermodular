@@ -1,16 +1,31 @@
-import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
+import 'package:client/data/local/app_database.dart';
 import '../catalog_styles.dart';
-import '../widgets/llistes.dart';
-import 'perfil_page.dart';
+import '../widgets/bottom_bar.dart';
+import 'videos_de_llista_page.dart';
 
-// import 'perfil_page.dart';
-
-
-class LlistesPage extends StatelessWidget {
-  final AppDatabase db; // <-- base de dades passada des del main
+class LlistesPage extends StatefulWidget {
+  final AppDatabase db;
 
   const LlistesPage({super.key, required this.db});
+
+  @override
+  State<LlistesPage> createState() => _LlistesPageState();
+}
+
+class _LlistesPageState extends State<LlistesPage> {
+  late Future<List<VideoList>> _llistesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshLlistes();
+  }
+
+  void _refreshLlistes() {
+    _llistesFuture = widget.db.listsDao.getAllLists();
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,37 +49,98 @@ class LlistesPage extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: ListView(
-              children: [
-                LlistesSection(db: db), // <-- enviem la BD a la secció
-                const SizedBox(height: 20),
-              ],
+            child: FutureBuilder<List<VideoList>>(
+              future: _llistesFuture,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                }
+
+                final llistes = snapshot.data!;
+                if (llistes.isEmpty) {
+                  return const Center(
+                    child: Text('Cap llista creada',
+                        style: TextStyle(color: Colors.white)),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: llistes.length,
+                  itemBuilder: (context, index) {
+                    final llista = llistes[index];
+
+                    return ListTile(
+                      title: Text(
+                        llista.name,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      onTap: () {
+                        // Anem a la pàgina de vídeos d’aquesta llista
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VideosDeLlistaPage(
+                              db: widget.db,
+                              llista: llista,
+                            ),
+                          ),
+                        );
+                      },
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              backgroundColor: Colors.black,
+                              title: const Text(
+                                'Confirmar eliminació',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              content: Text(
+                                'Segur que vols eliminar la llista "${llista.name}"?',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancel·lar',
+                                      style: TextStyle(color: Colors.white)),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, true),
+                                  child: const Text('Eliminar',
+                                      style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm == true) {
+                            await widget.db.listsDao.deleteList(llista.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'Llista "${llista.name}" eliminada'),
+                              ),
+                            );
+                            _refreshLlistes(); // Recarreguem la llista
+                          }
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.circle), label: ''),
-        ],
-        onTap: (index) {
-          if (index == 1) Navigator.pop(context);
-          if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PerfilPage(db: db,),
-              ),
-            );
-          }
-        },
-      ),
+      bottomNavigationBar: BottomBar(currentIndex: 0, db: widget.db),
     );
   }
 }

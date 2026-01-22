@@ -34,4 +34,32 @@ class ListsDao extends DatabaseAccessor<AppDatabase> with _$ListsDaoMixin {
         .get();
     return query.isNotEmpty;
   }
+
+  Future<void> removeVideoFromList({required int listId, required int videoId}) async {
+    await (delete(videoListItems)
+          ..where((t) => t.listId.equals(listId) & t.videoId.equals(videoId)))
+        .go();
+  }
+
+  /// Retorna totes les llistes que contenen un vídeo
+  Future<List<VideoList>> getListsContainingVideo(int videoId) async {
+    final query = await (select(videoLists).join([
+      innerJoin(
+        videoListItems,
+        videoListItems.listId.equalsExp(videoLists.id),
+      )
+    ])
+          ..where(videoListItems.videoId.equals(videoId)))
+        .get();
+
+    // Extraiem només les llistes
+    return query.map((row) => row.readTable(videoLists)).toList();
+  }
+
+  Future<void> deleteList(int listId) async {
+    await (delete(videoLists)..where((t) => t.id.equals(listId))).go();
+    // També eliminem tots els vídeos d’aquesta llista
+    await (delete(videoListItems)..where((t) => t.listId.equals(listId))).go();
+  }
+
 }

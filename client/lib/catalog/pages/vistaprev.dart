@@ -169,7 +169,7 @@ class VistaPrev extends StatelessWidget {
             ],
           ),
 
-          // 🔙 Fletxa de tornar a catàleg
+          // Fletxa de tornar a catàleg
           Positioned(
             top: 40,
             right: 15,
@@ -186,6 +186,7 @@ class VistaPrev extends StatelessWidget {
           ),
         ],
       ),
+      
     );
   }
 }

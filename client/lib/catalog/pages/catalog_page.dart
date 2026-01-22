@@ -1,10 +1,10 @@
 
+import 'package:client/catalog/widgets/bottom_bar.dart';
 import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import '../widgets/categorias.dart';
-import 'llistes_page.dart';
-import 'perfil_page.dart';
+
 
 class CatalogPage extends StatelessWidget {
   final AppDatabase db;
@@ -70,46 +70,8 @@ class CatalogPage extends StatelessWidget {
       ),
 
       // barra de menu por abajo
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1, //  catalog seleccionado
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu), //seleccionamos el icono de las 3 lineas
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home), // casita de abajo
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.circle),
-            label: '',
-          ),
-        ],
-        onTap: (index) { 
-          if (index == 0) {
-            // abrir llistes_page
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => LlistesPage(db: db,),
-              ),
-            );
-          }
-          if (index == 2) {
-            // abrir perfil_page
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PerfilPage(db: db,),
-              ),
-            );
-          }
-          print(index);},
-      ),
+      bottomNavigationBar: BottomBar(currentIndex: 1, db: db), // catalog
+
     );
   }
 }

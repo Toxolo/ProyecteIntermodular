@@ -18,6 +18,7 @@ class AddToListBottomSheet extends StatefulWidget {
 
 class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
   late Future<List<VideoList>> _llistesFuture;
+  Set<int> selectedListIds = {};
 
   @override
   void initState() {
@@ -25,8 +26,22 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
     _refreshLists();
   }
 
-  void _refreshLists() {
+  void _refreshLists() async {
     _llistesFuture = widget.service.getAllLists();
+    final listsWithVideo = await widget.service.getListsContainingVideo(widget.videoId);
+    setState(() {
+      selectedListIds = listsWithVideo.toSet();
+    });
+  }
+
+  void _toggleList(VideoList list, bool selected) async {
+    if (selected) {
+      await widget.service.addVideoToList(listId: list.id, videoId: widget.videoId);
+      setState(() => selectedListIds.add(list.id));
+    } else {
+      await widget.service.removeVideoFromList(listId: list.id, videoId: widget.videoId);
+      setState(() => selectedListIds.remove(list.id));
+    }
   }
 
   void _showCreateListDialog() {
@@ -34,28 +49,29 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Nova llista'),
+        backgroundColor: Colors.black,
+        title: const Text('Nova llista', style: TextStyle(color: Colors.white)),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: 'Nom de la llista'),
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: 'Nom de la llista',
+            hintStyle: TextStyle(color: Colors.grey),
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: const Text('Cancel·lar', style: TextStyle(color: Colors.yellow)),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () async {
-              try {
-                await widget.service.createList(controller.text);
-                Navigator.pop(context);
-                setState(() => _refreshLists());
-              } catch (e) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(e.toString())));
-              }
+              if (controller.text.trim().isEmpty) return;
+              await widget.service.createList(controller.text.trim());
+              Navigator.pop(context);
+              _refreshLists();
             },
-            child: const Text('Crear'),
+            child: const Text('Crear', style: TextStyle(color: Colors.yellow)),
           ),
         ],
       ),
@@ -66,7 +82,6 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
   Widget build(BuildContext context) {
     return FractionallySizedBox(
       heightFactor: 0.6,
-      widthFactor: 1,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(
@@ -84,12 +99,9 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
+            const Text(
+              'Afegir a llista',
+              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
             Expanded(
@@ -104,24 +116,16 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
                     itemCount: llistes.length,
                     itemBuilder: (context, index) {
                       final llista = llistes[index];
-                      return Card(
-                        color: Colors.grey[900],
-                        child: ListTile(
-                          title: Text(llista.name, style: const TextStyle(color: Colors.white)),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.add, color: Colors.yellow),
-                            onPressed: () async {
-                              try {
-                                await widget.service.addVideoToList(listId: llista.id, videoId: widget.videoId);
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(content: Text('Vídeo afegit a la llista')));
-                              } catch (e) {
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(SnackBar(content: Text(e.toString())));
-                              }
-                            },
-                          ),
-                        ),
+                      final selected = selectedListIds.contains(llista.id);
+
+                      return CheckboxListTile(
+                        title: Text(llista.name, style: const TextStyle(color: Colors.white)),
+                        value: selected,
+                        onChanged: (value) {
+                          if (value != null) _toggleList(llista, value);
+                        },
+                        activeColor: Colors.yellow,
+                        checkColor: Colors.black,
                       );
                     },
                   );

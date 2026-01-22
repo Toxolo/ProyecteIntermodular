@@ -5,6 +5,8 @@ class Video {
   final int duration;
   final String thumbnail;
   final List<int> categorias;
+  final int chapter;
+  final int season;
 
   Video({
     required this.id,
@@ -13,6 +15,8 @@ class Video {
     required this.duration,
     required this.thumbnail,
     required this.categorias,
+    required this.chapter,
+    required this.season,
   });
 
   factory Video.fromJson(Map<String, dynamic> json) {
@@ -25,6 +29,8 @@ class Video {
       categorias: json['category'] != null
           ? List<int>.from(json['category'].map((e) => e['id']))
           : [],
+      chapter: json['chapter'] ?? 0,
+      season: json['season'] ?? 0,
     );
   }
 }

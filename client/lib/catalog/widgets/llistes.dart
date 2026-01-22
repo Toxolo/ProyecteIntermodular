@@ -6,7 +6,7 @@ import '../../models/video_mapper.dart';
 import '../../services/video_service.dart';
 
 class LlistesSection extends StatelessWidget {
-  final AppDatabase db; // <-- BD passada des de main o page
+  final AppDatabase db; 
 
   const LlistesSection({super.key, required this.db});
 
@@ -90,7 +90,7 @@ class _SingleCategory extends StatelessWidget {
                       if (!videoSnap.hasData) return const SizedBox();
                       return ImageCard(
                         video: videoSnap.data!,
-                        db: db, // <-- si vols afegir més vídeos a llista
+                        db: db, 
                       );
                     },
                   );

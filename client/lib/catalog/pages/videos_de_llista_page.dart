@@ -1,0 +1,132 @@
+import 'package:client/catalog/pages/vistaprev.dart';
+import 'package:client/models/video_mapper.dart';
+import 'package:flutter/material.dart';
+import 'package:client/data/local/app_database.dart';
+import '../catalog_styles.dart';
+import '../../services/video_service.dart';
+
+class VideosDeLlistaPage extends StatelessWidget {
+  final AppDatabase db;
+  final VideoList llista;
+
+  const VideosDeLlistaPage({super.key, required this.db, required this.llista});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: CatalogStyles.backgroundBlack,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text(llista.name),
+        
+      ),
+      body: FutureBuilder<List<VideoListItem>>(
+        future: db.listsDao.getVideosInList(llista.id),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            );
+          }
+
+          final items = snapshot.data!;
+          if (items.isEmpty) {
+            return const Center(
+              child: Text(
+                'No hi ha vídeos a aquesta llista',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+
+              return FutureBuilder<Video>(
+                future: VideoService.getVideoById(item.videoId),
+                builder: (context, snapshotVideo) {
+                  if (!snapshotVideo.hasData) {
+                    return const SizedBox(
+                        height: 80,
+                        child: Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ));
+                  }
+
+                  final video = snapshotVideo.data!;
+
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => VistaPrev(
+                            videoId: video.id,
+                            db: db,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      color: Colors.grey[900],
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            // ─── Imatge a l'esquerra ───
+                            SizedBox(
+                              width: 120,
+                              height: 70,
+                              child: video.thumbnail.isNotEmpty
+                                  ? Image.network(video.thumbnail, fit: BoxFit.cover)
+                                  : Container(
+                                      color: Colors.white12,
+                                      child: const Icon(Icons.videocam, color: Colors.white),
+                                    ),
+                            ),
+                            const SizedBox(width: 12),
+
+                            // ─── Info a la dreta ───
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    video.title,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Temporada ${video.season}, Capítol ${video.chapter}',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+
+
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}

@@ -11,7 +11,7 @@ class VideoListService {
     return await _listsDao.getAllLists();
   }
 
-  /// Crear una nova llista amb nom
+  /// Crear nova llista
   Future<void> createList(String name) async {
     if (name.trim().isEmpty) {
       throw Exception('El nom de la llista no pot estar buit');
@@ -22,9 +22,33 @@ class VideoListService {
   /// Afegir un vídeo a una llista
   Future<void> addVideoToList({required int listId, required int videoId}) async {
     final exists = await _listsDao.isVideoInList(listId: listId, videoId: videoId);
-    if (exists) {
-      throw Exception('El vídeo ja està en aquesta llista');
+    if (!exists) {
+      await _listsDao.addVideoToList(listId: listId, videoId: videoId);
     }
-    await _listsDao.addVideoToList(listId: listId, videoId: videoId);
   }
+
+  /// Treure un vídeo d'una llista
+  Future<void> removeVideoFromList({required int listId, required int videoId}) async {
+    final exists = await _listsDao.isVideoInList(listId: listId, videoId: videoId);
+    if (exists) {
+      await _listsDao.removeVideoFromList(listId: listId, videoId: videoId);
+    }
+  }
+
+  /// Obtenir IDs de llistes que contenen un vídeo (per checkboxes)
+  Future<Set<int>> getListsContainingVideo(int videoId) async {
+    final allLists = await _listsDao.getAllLists();
+    final result = <int>{};
+    for (var list in allLists) {
+      final contains = await _listsDao.isVideoInList(listId: list.id, videoId: videoId);
+      if (contains) result.add(list.id);
+    }
+    return result;
+  }
+
+  /// Eliminar una llista
+  Future<void> deleteList(int listId) async {
+    await _listsDao.deleteList(listId);
+  }
+
 }

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import '../../models/video_mapper.dart';
 import '../pages/vistaprev.dart';
-import '../../data/local/app_database.dart'; // <-- importa la BD
+import '../../data/local/app_database.dart'; 
 
 class ImageCard extends StatelessWidget {
   final Video video;
-  final AppDatabase db; // <-- afegim la BD
+  final AppDatabase db; 
 
   const ImageCard({super.key, required this.video, required this.db});
 
