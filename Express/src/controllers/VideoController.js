@@ -2,7 +2,6 @@ import multer from 'multer';
 import ffmpeg from 'ffmpeg-static';
 import { spawn } from 'child_process';
 import path from 'path';
-import fs from 'fs';
 import { publicPath } from '../../index.js ';
 import connect from '../../connectionDB.js';
 
@@ -65,10 +64,9 @@ export const processVideo = (req, res) => {
     }
 
     const videoId = req.videoId;
-    const outputDir = publicPath + `/${videoId}`;
-    const outputPlaylist = path.join(outputDir, 'index.m3u8');
+    const outputPlaylist = path.join(req.outputDir, 'index.m3u8');
 
-    fs.mkdirSync(outputDir, { recursive: true });
+    
 
     const args = [
         '-i', 'pipe:0',
