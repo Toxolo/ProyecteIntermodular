@@ -82,7 +82,7 @@ class VideosDeLlistaPage extends StatelessWidget {
                               width: 120,
                               height: 70,
                               child: video.thumbnail.isNotEmpty
-                                  ? Image.network(video.thumbnail, fit: BoxFit.cover)
+                                  ? Image.network('http://10.0.2.2:3000/static/${video.thumbnail}/thumbnail.jpg', fit: BoxFit.cover)
                                   : Container(
                                       color: Colors.white12,
                                       child: const Icon(Icons.videocam, color: Colors.white),

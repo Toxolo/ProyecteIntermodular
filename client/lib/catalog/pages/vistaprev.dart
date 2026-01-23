@@ -10,7 +10,7 @@ import '../../services/video_service.dart';
 
 class VistaPrev extends StatelessWidget {
   final int videoId;
-  final AppDatabase db; // necessitem la BD per crear el servei
+  final AppDatabase db;
 
   const VistaPrev({
     super.key,
@@ -26,39 +26,44 @@ class VistaPrev extends StatelessWidget {
       backgroundColor: CatalogStyles.backgroundBlack,
       body: Stack(
         children: [
-          Column(
-            children: [
-              // Banner / Imatge
-              Container(
-                height: 220,
-                width: double.infinity,
-                color: Colors.cyan,
-              ),
+          FutureBuilder<Video>(
+            future: VideoService.getVideoById(videoId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
+              }
 
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: FutureBuilder<Video>(
-                    future: VideoService.getVideoById(videoId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        );
-                      }
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: Text(
+                    'No se pudo cargar el video',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              }
 
-                      if (!snapshot.hasData) {
-                        return const Center(
-                          child: Text(
-                            'No se pudo cargar el video',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        );
-                      }
+              final video = snapshot.data!;
 
-                      final video = snapshot.data!;
+              return Column(
+                children: [
+                  // 🖼 Banner / Thumbnail dinámico
+                  Image.network(
+                    'http://10.0.2.2:3000/static/${video.thumbnail}/thumbnail.jpg',
+                    height: 220,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 220,
+                      color: Colors.black,
+                    ),
+                  ),
 
-                      return Column(
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
@@ -72,16 +77,16 @@ class VistaPrev extends StatelessWidget {
 
                           const SizedBox(height: 20),
 
-                          // ▶ Botó reproduir
+                          // ▶ Botón reproducir
                           ElevatedButton.icon(
                             onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => VideoPlayerHLS(
-                                    url: 'http://10.0.2.2:3000/static/1768551796479/index.m3u8', // url
+                                    url:
+                                        'http://10.0.2.2:3000/static/${video.thumbnail}/index.m3u8',
                                     onBack: () {
-                                      // Tornem a portrait
                                       SystemChrome.setPreferredOrientations([
                                         DeviceOrientation.portraitUp,
                                       ]);
@@ -108,7 +113,7 @@ class VistaPrev extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              // Afegir a llista
+                              // ➕ Añadir a lista
                               GestureDetector(
                                 onTap: () {
                                   showModalBottomSheet(
@@ -123,27 +128,31 @@ class VistaPrev extends StatelessWidget {
                                 },
                                 child: Column(
                                   children: const [
-                                    Icon(Icons.menu, color: Colors.yellow, size: 30),
+                                    Icon(Icons.menu,
+                                        color: Colors.yellow, size: 30),
                                     SizedBox(height: 4),
                                     Text(
                                       'Añadir a lista',
-                                      style: TextStyle(color: Colors.yellow, fontSize: 12),
+                                      style: TextStyle(
+                                          color: Colors.yellow, fontSize: 12),
                                     ),
                                   ],
                                 ),
                               ),
 
-                              // Valoració
+                              // ⭐ Valoración
                               Column(
                                 children: const [
                                   Text(
                                     '*****',
-                                    style: TextStyle(color: Colors.yellow, fontSize: 22),
+                                    style: TextStyle(
+                                        color: Colors.yellow, fontSize: 22),
                                   ),
                                   SizedBox(height: 4),
                                   Text(
                                     'Valoración',
-                                    style: TextStyle(color: Colors.yellow, fontSize: 12),
+                                    style: TextStyle(
+                                        color: Colors.yellow, fontSize: 12),
                                   ),
                                 ],
                               ),
@@ -161,15 +170,15 @@ class VistaPrev extends StatelessWidget {
                             ),
                           ),
                         ],
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
 
-          // Fletxa de tornar a catàleg
+          // ⬅ Flecha volver
           Positioned(
             top: 40,
             right: 15,
@@ -186,7 +195,6 @@ class VistaPrev extends StatelessWidget {
           ),
         ],
       ),
-      
     );
   }
 }
