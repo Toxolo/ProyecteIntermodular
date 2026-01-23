@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.padalustro.domain.entities.video_cataleg;
 import org.padalustro.infrastructure.DTO.VideoCatalegDTO;
 
+
 public interface VideoCatalegRepository {
 
     void saveVideoCataleg(VideoCatalegDTO videoCatalegDTO);
@@ -27,4 +28,6 @@ public interface VideoCatalegRepository {
     Optional<video_cataleg> findById(Long id);
 
     void delete(video_cataleg video_cataleg);
+
+    void updateVideoCataleg(Long id, VideoCatalegDTO dto);
 }
