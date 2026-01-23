@@ -5,10 +5,7 @@ import java.util.List;
 import org.padalustro.application.usecase.Estudi.GetAllEstudiUseCase;
 import org.padalustro.infrastructure.DTO.EstudiDTO;
 import org.springframework.http.ResponseEntity;
-<<<<<<< HEAD
 import org.springframework.web.bind.annotation.CrossOrigin;
-=======
->>>>>>> development
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
