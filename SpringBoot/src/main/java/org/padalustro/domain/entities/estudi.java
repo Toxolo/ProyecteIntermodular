@@ -15,6 +15,7 @@ import lombok.Data;
 @Table(name = "estudi")
 public class estudi {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "estudi_id")

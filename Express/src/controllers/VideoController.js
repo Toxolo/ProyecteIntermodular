@@ -2,7 +2,6 @@ import multer from 'multer';
 import ffmpeg from 'ffmpeg-static';
 import { spawn } from 'child_process';
 import path from 'path';
-import fs from 'fs';
 import { publicPath } from '../../index.js ';
 import connect from '../../connectionDB.js';
 
@@ -65,10 +64,9 @@ export const processVideo = (req, res) => {
     }
 
     const videoId = req.videoId;
-    const outputDir = publicPath + `/${videoId}`;
-    const outputPlaylist = path.join(outputDir, 'index.m3u8');
+    const outputPlaylist = path.join(req.outputDir, 'index.m3u8');
 
-    fs.mkdirSync(outputDir, { recursive: true });
+    
 
     const args = [
         '-i', 'pipe:0',
@@ -119,8 +117,4 @@ export const processVideo = (req, res) => {
     }, 60000);
 
     // ffmpeg -i /home/disnaking/Downloads/videoplayback.mp4 -profile:v baseline -level 3.0 -start_number 0 -hls_time 10 -hls_list_size 0 -f hls ./public/index.m3u8       
-};
-
-export const get = (req, res) => {
-    res.send("get video");
 };

@@ -12,7 +12,7 @@ export async function metadata(req, res, next) {
     console.log('File received → size:', req.file.size, 'bytes');
 
     // We run TWO quick probes (very fast) – one for duration, one for codec
-    // You could combine them into one call, but separate is clearer/safer
+    // You could combine them into one call, but separate is clearer/sa er
 
     try {
 
@@ -75,9 +75,13 @@ export async function metadata(req, res, next) {
         // req.file.size -> size
         //req.file.originalname.split('.').slice(0,-1) -> name
 
+
+
         console.log(`Extracted: duration=${duration}s, codec=${req.videoCodec}, size = ${req.file.size}, name = ${req.file.originalname.split('.').slice(0, -1)}, resolution = ${req.videoResolution}`);
 
-        next();
+
+    next();
+
 
     } catch (err) {
         console.error('Metadata extraction failed:', err.message);
