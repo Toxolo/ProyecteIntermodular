@@ -43,9 +43,6 @@ public class video_cataleg {
     )
     private Set<categoria> category;
 
-    @Column(nullable = false)
-    private Integer classification;
-
     @ManyToOne
     @JoinColumn(name = "estudi_id", nullable = false)
     private estudi study;
@@ -73,13 +70,12 @@ public class video_cataleg {
     public video_cataleg() {
     }
 
-    public video_cataleg(String title, String description, Set<categoria> category, Integer classification, estudi study,
+    public video_cataleg(String title, String description, Set<categoria> category, estudi study,
             double rating, Integer season, serie series, Integer chapter, Date date_emission,
             Integer duration) {
         this.title = title;
         this.description = description;
         this.category = category;
-        this.classification = classification;
         this.study = study;
         this.rating = rating;
         this.season = season;
@@ -122,13 +118,6 @@ public class video_cataleg {
         this.category = category;
     }
 
-    public Integer getClassification() {
-        return classification;
-    }
-
-    public void setClassification(Integer classification) {
-        this.classification = classification;
-    }
 
     public estudi getStudy() {
         return study;

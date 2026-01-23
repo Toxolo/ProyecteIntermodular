@@ -25,8 +25,6 @@ public class VideoCatalegDTO implements Serializable {
 
     private Set<CategoriaIdDTO> category;
 
-    private Integer classification;
-
     private EstudiIdDTO study;
 
     private double rating;
@@ -56,7 +54,6 @@ public class VideoCatalegDTO implements Serializable {
                 .map(c -> new CategoriaIdDTO(c.getId()))
                 .collect(Collectors.toSet()));
         }
-		videoCatalegDTO.setClassification(videoCataleg.getClassification());
 		if (videoCataleg.getStudy() != null) {
             videoCatalegDTO.setStudy(new EstudiIdDTO(videoCataleg.getStudy().getId()));
         }
@@ -92,7 +89,6 @@ public class VideoCatalegDTO implements Serializable {
                 .collect(Collectors.toSet())
             );
         }
-        videoCataleg.setClassification(this.getClassification());
 
         if (this.getStudy() != null) {
             estudi study = new estudi();

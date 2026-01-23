@@ -3,152 +3,133 @@
     <!-- Left Section - Video Upload & Preview -->
     <div class="left-section">
       <!-- Hidden file input -->
-      <input
-        ref="fileInput"
-        type="file"
-        accept="video/*"
-        style="display: none"
-        @change="handleFileChange"
-      />
+      <input ref="fileInput" type="file" accept="video/*" style="display: none" @change="handleFileChange" />
 
       <!-- Select video button -->
-      <button
-        :disabled="uploading"
-        @click="$refs.fileInput.click()"
-        class="upload-btn"
-      >
+      <button class="upload-btn" :disabled="uploading" @click="fileInput?.click()">
         {{ uploading ? 'Subiendo...' : 'Seleccionar video' }}
       </button>
 
       <!-- Video preview -->
       <div v-if="previewUrl" class="preview">
         <video controls :src="previewUrl" width="400" />
-        <p>{{ file?.name }} – {{ (file?.size / 1024 / 1024).toFixed(1) }} MB</p>
+        <p>{{ file?.name }} – {{ formatFileSize(file?.size) }} MB</p>
       </div>
 
-      <!-- Upload progress bar -->
-      <div v-if="uploading || progress > 0" class="progress-bar">
-        <div class="bar" :style="{ width: progress + '%' }"></div>
-        <span>{{ progress }}%</span>
+      <!-- Progress bar -->
+      <div v-if="progressBar > 0" class="progress-bar">
+        <div class="bar" :style="{ width: progressBar + '%' }"></div>
+        <span>{{ Math.round(progressBar) }}%</span>
       </div>
-
-      <!-- Process metadata button -->
-      <button
-        v-if="file && !uploading"
-        @click="getMetadata"
-        class="upload-btn"
-      >
-        Procesar
-      </button>
 
       <!-- Error message -->
       <p v-if="error" class="error">{{ error }}</p>
-
-      <!-- Generated thumbnail preview -->
-      <div v-if="thumbnail" class="thumbnail-preview">
-        <p class="thumbnail-label">Imagen generada:</p>
-        <img :src="thumbnail" alt="Thumbnail" class="thumbnail-img" />
-      </div>
     </div>
 
     <div class="divider"></div>
 
     <!-- Right Section - Form Fields -->
     <div class="right-section">
-      <!-- Title field -->
+      <!-- Title -->
       <div class="form-group">
         <label class="form-label">Títol</label>
-        <input type="text" class="form-input" v-model="formData.titol" />
+        <input type="text" class="form-input" v-model="form.title" />
       </div>
 
-      <!-- Description field -->
+      <!-- Description -->
       <div class="form-group">
         <label class="form-label">Descripción</label>
-        <textarea class="form-textarea" v-model="formData.descripcio" rows="2"></textarea>
+        <textarea class="form-textarea" v-model="form.description" rows="3" />
       </div>
 
-      <!-- Category dropdown with loading state -->
+      <!-- Category -->
       <div class="form-group">
-        <label class="form-label">Categoría</label>
+        <label class="form-label">Categoría 1</label>
         <div v-if="loadingCategories" class="field-loading">
           <div class="mini-spinner"></div>
           <span>Cargando categorías...</span>
         </div>
-        <select v-else class="form-input" v-model="formData.categoria">
+        <select v-else class="form-input" v-model="category1">
           <option value="">Selecciona una categoría</option>
-          <option v-for="(item, index) in categories" :key="index" :value="item.name">
-            {{ item.name }}
+          <option v-for="cat in categories" :key="cat.id ?? cat.name" :value="cat.id">
+            {{ cat.name }}
+          </option>
+        </select>
+
+        <label class="form-label">Categoría 2</label>
+        <div v-if="loadingCategories" class="field-loading">
+          <div class="mini-spinner"></div>
+          <span>Cargando categorías...</span>
+        </div>
+        <select v-else class="form-input" v-model="category2">
+          <option value="">Selecciona una categoría</option>
+          <option v-for="cat in categories" :key="cat.id ?? cat.name" :value="cat.id">
+            {{ cat.name }}
           </option>
         </select>
       </div>
 
-      <!-- Pegi field -->
+      <!-- PEGI 
       <div class="form-group">
-        <label class="form-label">Pegi</label>
-        <input type="text" class="form-input" v-model="formData.pegi" />
+        <label class="form-label">Classificación</label>
+        <input type="text" class="form-input" v-model="form.classification" placeholder="p. ej. 7, 12, 16..." />
       </div>
+      -->
 
-      <!-- Studio dropdown with loading state -->
+      <!-- Studio -->
       <div class="form-group">
         <label class="form-label">Estudio</label>
         <div v-if="loadingEstudios" class="field-loading">
           <div class="mini-spinner"></div>
           <span>Cargando estudios...</span>
         </div>
-        <select v-else class="form-input" v-model="formData.estudio">
+        <select v-else class="form-input" v-model="estudioId">
           <option value="">Selecciona un estudio</option>
-          <option v-for="(item, index) in estudios" :key="index" :value="item.name">
-            {{ item.name }}
+          <option v-for="est in estudios" :key="est.id ?? est.name" :value="est.id">
+            {{ est.name }}
           </option>
         </select>
       </div>
 
-      <!-- Series, Season, Episode row -->
+      <!-- Series / Season / Episode -->
       <div class="form-row">
-        <!-- Series dropdown with loading state -->
         <div class="form-group">
           <label class="form-label">Serie</label>
           <div v-if="loadingSeries" class="field-loading">
             <div class="mini-spinner"></div>
             <span>Cargando...</span>
           </div>
-          <select v-else class="form-input" v-model="formData.serie">
+          <select v-else class="form-input" v-model="seriesId">
             <option value="">Selecciona una serie</option>
-            <option v-for="(item, index) in series" :key="index" :value="item.name">
-              {{ item.name }}
+            <option v-for="s in series" :key="s.id ?? s.name" :value="s.id">
+              {{ s.name }}
             </option>
           </select>
         </div>
-        
-        <!-- Season field -->
+
         <div class="form-group">
           <label class="form-label">Temporada</label>
-          <input type="text" class="form-input" v-model="formData.temporada" />
+          <input type="number" min="1" class="form-input" v-model.number="form.season" />
         </div>
-        
-        <!-- Episode number field -->
+
         <div class="form-group">
-          <label class="form-label">Número capitulo</label>
-          <input type="text" class="form-input" v-model="formData.numero" />
+          <label class="form-label">Número capítulo</label>
+          <input type="number" min="1" class="form-input" v-model.number="form.chapter" />
         </div>
       </div>
 
       <!-- Bottom Actions -->
       <div class="bottom-actions">
-        <!-- Visibility toggle -->
-        <VisibilityToggle v-model="formData.visible" />
-        
-        <!-- Close button -->
-        <button class="delete-btn" @click="emit('close')" title="Eliminar">
+
+        <button class="delete-btn" @click="$emit('close')" title="Cancelar">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
-        
-        <!-- Save button -->
-        <button class="save-btn" title="Desar" @click="handleSave">
-          SAVE
+
+        <button class="save-btn" :disabled="uploading || !file" @click="handleSave">
+          Guardar
         </button>
       </div>
     </div>
@@ -156,238 +137,287 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { onMounted, ref } from 'vue'
 import { useToast, POSITION } from 'vue-toastification'
-import VisibilityToggle from '../components/VisibilityToggle.vue'
 
 const toast = useToast()
 
-// File and preview state
+// ── File & Preview ────────────────────────────────────────
 const file = ref<File | null>(null)
-const previewUrl = ref('')
-const progress = ref(0)
+const previewUrl = ref<string>('')
+const fileInput = ref<HTMLInputElement | null>(null)
+
+// ── Progress & Status ─────────────────────────────────────
+const progressBar = ref(0)
+const progressMessage = ref('')
 const uploading = ref(false)
 const error = ref('')
-const thumbnail = ref('')
 
-// Data from backend
-const categories = ref([])
-const estudios = ref([])
-const series = ref([])
+// ── Form Data ─────────────────────────────────────────────
+const form = ref({
+  id: 0,
+  title: '',
+  description: '',
+  category: [
+    {
+      id: 0
+    },
+    {
+      id: 0
+    }
+  ],
+  study: { id: 0 },
+  series: { id: 0},
+  season: null as number | null,
+  chapter: null as number | null,
+  duration: 0
 
-// Loading states for dropdowns
+})
+const category1 = ref<number | null>(null)
+const category2 = ref<number | null>(null)
+const estudioId = ref<number | null>(null)
+const seriesId = ref<number | null>(null)
+
+// ── Backend Data (dropdowns) ──────────────────────────────
+const categories = ref<Array<{ id?: string; name: string }>>([])
+const estudios = ref<Array<{ id?: string; name: string }>>([])
+const series = ref<Array<{ id?: string; name: string }>>([])
+
 const loadingCategories = ref(false)
 const loadingEstudios = ref(false)
 const loadingSeries = ref(false)
 
-const fileInput = ref<HTMLInputElement | null>(null)
-
 const emit = defineEmits(['close'])
 
-// Form data object
-const formData = ref({
-  id: '',
-  titol: '',
-  descripcio: '',
-  categoria: '',
-  pegi: '',
-  estudio: '',
-  serie: '',
-  temporada: '',
-  numero: '',
-  visible: false
-})
+let ws;
+let clientId: string;
 
-// Generate thumbnail from video file
-function generateThumbnail() {
-  if (!file.value) return
-
-  const video = document.createElement('video')
-  const canvas = document.createElement('canvas')
-  const ctx = canvas.getContext('2d')
-
-  video.src = previewUrl.value
-  video.preload = 'metadata'
-  video.muted = true
-  video.playsInline = true
-  
-  // Seek to 1/4 of video or 3 seconds
-  video.addEventListener('loadedmetadata', () => {
-    video.currentTime = Math.min(video.duration / 4, 3)
-  })
-
-  // When video seeks to position, capture frame
-  video.addEventListener('seeked', () => {
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
-    
-    // Convert canvas to base64 image
-    thumbnail.value = canvas.toDataURL('image/jpeg', 0.85)
-    
-    // Free resources
-    video.src = ''
-  })
-
-  video.addEventListener('error', (e) => {
-    console.error('Error generando thumbnail:', e)
-  })
+// ── Helpers ───────────────────────────────────────────────
+function formatFileSize(bytes?: number): string {
+  if (!bytes) return '0.0'
+  return (bytes / 1024 / 1024).toFixed(1)
 }
 
-// Extract video metadata from backend
-async function getMetadata() {
-  if (!file.value) return
-  
-  try {
-    error.value = ''
-    
-    // Generate thumbnail before sending
-    generateThumbnail()
+// ── File selection ────────────────────────────────────────
+function handleFileChange(e: Event) {
+  const input = e.target as HTMLInputElement
+  const selected = input.files?.[0]
+  if (!selected) return
 
-    const uploadFormData = new FormData()
-    uploadFormData.append('video', file.value)
+  if (!selected.type.startsWith('video/')) {
+    error.value = 'Solo se permiten archivos de vídeo'
+    return
+  }
 
-    const response = await axios.post('http://localhost:3000/meta', uploadFormData, { 
-      onUploadProgress: (progressEvent: any) => {     
-        if (progressEvent.lengthComputable) {
-          progress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        }
-      }
-    })
+  if (selected.size > 500 * 1024 * 1024) {
+    error.value = 'El vídeo es demasiado grande (máx. 500 MB)'
+    return
+  }
 
-    if (response.status !== 200) throw new Error('Error al obtener metadata')
+  file.value = selected
+  previewUrl.value = URL.createObjectURL(selected)
+  error.value = ''
+  setName()
+}
 
-    const data = response.data
-    formData.value.titol = data.name
-    formData.value.id = data.id
-    
-    progress.value = 0
-  } catch (err: any) {
-    error.value = 'Error al obtener metadata: ' + err.message
+function setName(){
+  if (file.value){
+    form.value.title = file.value.name.replace(/\.[^/.]+$/, "")
   }
 }
 
-// Fetch categories, studios, and series from backend
-async function getData() {
-  // Set loading states
+// ── Load dropdown data ─────────────────────────────────────
+async function loadReferenceData() {
   loadingCategories.value = true
   loadingEstudios.value = true
   loadingSeries.value = true
 
-  try {
-    // Fetch categories
-    const cats = await axios.get('http://localhost:8090/Category')
-    categories.value = cats.data
-  } catch (err: any) {
-    console.error('Error al cargar categorías:', err)
-  } finally {
-    loadingCategories.value = false
-  }
+  await Promise.allSettled([
+    axios.get('http://localhost:8090/Category')
+      .then(r => { categories.value = r.data })
+      .catch(err => console.error('Categories failed', err))
+      .finally(() => loadingCategories.value = false),
 
-  try {
-    // Fetch studios
-    const est = await axios.get('http://localhost:8090/Estudi')
-    estudios.value = est.data
-  } catch (err: any) {
-    console.error('Error al cargar estudios:', err)
-  } finally {
-    loadingEstudios.value = false
-  }
+    axios.get('http://localhost:8090/Estudi')
+      .then(r => { estudios.value = r.data })
+      .catch(err => console.error('Estudios failed', err))
+      .finally(() => loadingEstudios.value = false),
 
-  try {
-    // Fetch series
-    const ser = await axios.get('http://localhost:8090/Serie')
-    series.value = ser.data
-  } catch (err: any) {
-    console.error('Error al cargar series:', err)
-  } finally {
-    loadingSeries.value = false
-  }
+    axios.get('http://localhost:8090/Serie')
+      .then(r => { series.value = r.data })
+      .catch(err => console.error('Series failed', err))
+      .finally(() => loadingSeries.value = false)
+  ])
 }
 
-// Add to catalog (placeholder)
-function addCataleg() {
-  console.log('Añadiendo al catálogo:', formData.value)
-  // TODO: Send formData to backend
+
+
+// Connect to WebSocket
+async function connectWebSocket() {
+  ws = new WebSocket('ws://localhost:3000/vid');
+
+  ws.onopen = () => {
+    console.log('WebSocket connected');
+  };
+
+  ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log('Received:', data);
+    switch (data.type) {
+      case 'connection':
+        clientId = data.clientId;
+        console.log('Assigned clientId:', clientId);
+        break;
+      case 'progress':
+        console.log(data)
+        if (data.clientId === clientId) {
+          progressBar.value = data.progress;
+          progressMessage.value = data.message;
+          console.log(`Progress: ${data.progress}% - ${data.message}`);
+        }
+        break;
+      case 'processing-start':
+        console.log('Processing started');
+        break;
+      case 'processing-complete':
+        if (data.clientId === clientId) {
+          progressBar.value = 100;
+          console.log('Video processing complete. URL:', data.playlistUrl);
+          toast.success('Vídeo subido y añadido correctamente', {
+            position: POSITION.TOP_CENTER,
+            timeout: 4000
+          })
+        }
+        break;
+      case 'metadata':
+        if (data.clientId === clientId) {
+          console.log ('Metadata received:', data.videoId, data.duration);
+          form.value.id = data.videoId;
+          form.value.duration = data.duration;
+          console.log('Metadata received:', data);
+        }else{
+          console.log('Metadata for different clientId, ignoring.');
+        }
+        break;
+      case 'error':
+        console.error('Error:', data.error);
+        break;
+    }
+  };
+  ws.onclose = () => {
+    console.log('WebSocket disconnected');
+  };
 }
 
-// Handle file selection
-function handleFileChange(e: any) {
-  const selectedFile = e.target.files?.[0]
-  if (!selectedFile) return
 
-  // Validate file type
-  if (!selectedFile.type.startsWith('video/')) {
-    error.value = 'Solo se permiten archivos de video'
-    return
+function resetForm() {
+  file.value = null
+  previewUrl.value = ''
+  form.value = {
+    id: 0,
+    title: '',
+    description: '',
+    category: [] as Array<{ id: number }>,
+    study: { id: 0 },
+    series: { id: 0 },
+    season: null as number | null,
+    chapter: null as number | null,
+    duration: 0
+
   }
-
-  // Validate file size (max 500MB)
-  if (selectedFile.size > 500 * 1024 * 1024) {
-    error.value = 'El video es demasiado grande (máx 500 MB)'
-    return
-  }
-
-  file.value = selectedFile
-  previewUrl.value = URL.createObjectURL(selectedFile)
   error.value = ''
+  progressBar.value = 0
 }
 
-// Upload video to backend
-async function uploadVideo() {
-  if (!file.value) return
+// ── Video upload + save to catalog ────────────────────────
+async function uploadVideoAndSave() {
+  if (!file.value) return false
 
   uploading.value = true
-  progress.value = 0
   error.value = ''
 
-  const uploadFormData = new FormData()
-  uploadFormData.append('video', file.value)
-
   try {
-    const response = await axios.post('http://localhost:3000/vid', uploadFormData, { 
-      onUploadProgress: (progressEvent: any) => {     
-        if (progressEvent.lengthComputable) {
-          progress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        }
+
+    // Prepare form data
+    const fd = new FormData()
+    fd.append('video', file.value)
+
+    // Upload video to video service
+    await axios.post('http://localhost:3000/vid', fd, {
+      headers: {
+        'X-Client-Id': clientId
       }
-    })
-    
-    if (response.status !== 200) throw new Error('Error al subir')
+    });
 
-    const data = response.data
-    console.log('¡Video subido!', data)
+    // Prepare catalog data
+    form.value.category = []
 
-    // Clear state after upload
-    file.value = null
-    previewUrl.value = ''
-    if (fileInput.value) fileInput.value.value = ''
+    if (category1.value) {
+      form.value.category.push({ id: category1.value })
+    }
+    if (category2.value) {
+      form.value.category.push({ id: category2.value })
+    }
+    if (estudioId.value) {
+      form.value.study = { id: estudioId.value }
+    }
+    if (seriesId.value) {
+      form.value.series = { id: seriesId.value }
+    }
+
+
+    await axios.post('http://localhost:8090/Cataleg', form.value)
+
+    // TODO: Send form data to your catalog/create endpoint
+    // Example:
+    // await axios.post('http://localhost:8090/videos' or similar, form.value)
+
+    return true
 
   } catch (err: any) {
-    error.value = 'Falló la subida: ' + err.message
+    error.value = err.response?.data?.message || 'Error al subir el vídeo'
+    return false
   } finally {
     uploading.value = false
-    progress.value = 0
+    progressBar.value = 0
   }
 }
 
-// Handle save: upload video and add to catalog
+
+
+
+
+
+
 async function handleSave() {
-  await uploadVideo()
-  addCataleg()
-  toast.success('Video subido y añadido al catálogo con éxito!', {
-    position: POSITION.TOP_CENTER,
-    timeout: 3000
-  })
+  const success = await uploadVideoAndSave()
+
+  if (success) {
+    toast.success('Vídeo subido y añadido correctamente', {
+      position: POSITION.TOP_CENTER,
+      timeout: 4000
+    })
+
+    resetForm()
+  }
 }
 
-// Load data when component mounts
-onMounted(getData)
+// ── Lifecycle ─────────────────────────────────────────────
+onMounted(() => {
+  (async () => {
+    await Promise.all([
+      loadReferenceData(),
+      connectWebSocket()
+    ])
+  })()
+})
+
 </script>
 
 <style scoped>
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -582,8 +612,13 @@ button:disabled {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .bottom-actions {

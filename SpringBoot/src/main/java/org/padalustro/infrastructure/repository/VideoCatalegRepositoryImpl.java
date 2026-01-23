@@ -106,7 +106,6 @@ public class VideoCatalegRepositoryImpl implements VideoCatalegRepository {
     
         entity.setTitle(dto.getTitle());
         entity.setDescription(dto.getDescription());
-        entity.setClassification(dto.getClassification());
         entity.setRating(dto.getRating());
         entity.setSeason(dto.getSeason());
         entity.setChapter(dto.getChapter());

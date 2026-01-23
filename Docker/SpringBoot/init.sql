@@ -228,12 +228,11 @@ DROP TABLE IF EXISTS `video_cataleg`;
 CREATE TABLE `video_cataleg` (
   `id_video_cataleg` bigint NOT NULL AUTO_INCREMENT,
   `chapter` int NOT NULL,
-  `date_emission` DATE DEFAULT (CURRENT_DATE),
+  `date_emission` date NOT NULL DEFAULT (curdate()),
   `description` varchar(255) NOT NULL,
   `duration` int NOT NULL,
   `rating` double DEFAULT NULL,
   `season` int DEFAULT NULL,
-  `thumbnail` varchar(255) NOT NULL,
   `title` varchar(255) NOT NULL,
   `serie_id` bigint DEFAULT NULL,
   `estudi_id` bigint NOT NULL,
