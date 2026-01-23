@@ -181,7 +181,7 @@ class VistaPrev extends StatelessWidget {
           // ⬅ Flecha volver
           Positioned(
             top: 40,
-            right: 15,
+            left: 15,
             child: IconButton(
               icon: const Icon(
                 Icons.arrow_back,
