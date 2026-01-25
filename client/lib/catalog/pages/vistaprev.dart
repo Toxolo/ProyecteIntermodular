@@ -1,6 +1,5 @@
 import 'package:client/catalog/widgets/VideoPlayerHLS.dart' show VideoPlayerHLS;
 import 'package:client/catalog/widgets/menu_de_llistes.dart';
-import 'package:client/catalog/widgets/series_episodes_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/local/app_database.dart';
@@ -8,6 +7,7 @@ import '../../services/video_list_service.dart';
 import '../catalog_styles.dart';
 import '../../models/video_mapper.dart';
 import '../../services/video_service.dart';
+import '../widgets/series_episodes_section.dart';
 
 class VistaPrev extends StatelessWidget {
   final int videoId;
@@ -47,145 +47,127 @@ class VistaPrev extends StatelessWidget {
 
               final video = snapshot.data!;
 
-              return Column(
-                children: [
-                  // 🖼 Banner / Thumbnail dinámico
-                  Image.network(
-                    'http://10.0.2.2:3000/static/${video.thumbnail}/thumbnail.jpg',
-                    height: 220,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 🖼 Thumbnail
+                    Image.network(
+                      'http://10.0.2.2:3000/static/${video.thumbnail}/thumbnail.jpg',
                       height: 220,
-                      color: Colors.black,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 220,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            video.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+                    const SizedBox(height: 20),
+                    Text(
+                      video.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VideoPlayerHLS(
+                              url:
+                                  'http://10.0.2.2:3000/static/${video.thumbnail}/index.m3u8',
+                              onBack: () {
+                                SystemChrome.setPreferredOrientations([
+                                  DeviceOrientation.portraitUp,
+                                ]);
+                                Navigator.pop(context);
+                              },
                             ),
                           ),
-
-                          const SizedBox(height: 20),
-
-                          // ▶ Botón reproducir
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => VideoPlayerHLS(
-                                    url:
-                                        'http://10.0.2.2:3000/static/${video.thumbnail}/index.m3u8',
-                                    onBack: () {
-                                      SystemChrome.setPreferredOrientations([
-                                        DeviceOrientation.portraitUp,
-                                      ]);
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('REPRODUCIR'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 30,
-                                vertical: 12,
+                        );
+                      },
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('REPRODUCIR'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) => AddToListBottomSheet(
+                                service: videoListService,
+                                videoId: video.id,
                               ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 25),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // ➕ Añadir a lista
-                              GestureDetector(
-                                onTap: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (_) => AddToListBottomSheet(
-                                      service: videoListService,
-                                      videoId: video.id,
-                                    ),
-                                  );
-                                },
-                                child: Column(
-                                  children: const [
-                                    Icon(Icons.menu,
-                                        color: Colors.yellow, size: 30),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'Añadir a lista',
-                                      style: TextStyle(
-                                          color: Colors.yellow, fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // ⭐ Valoración
-                              Column(
-                                children: const [
-                                  Text(
-                                    '*****',
-                                    style: TextStyle(
-                                        color: Colors.yellow, fontSize: 22),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Valoración',
-                                    style: TextStyle(
-                                        color: Colors.yellow, fontSize: 12),
-                                  ),
-                                ],
+                            );
+                          },
+                          child: Column(
+                            children: const [
+                              Icon(Icons.menu, color: Colors.yellow, size: 30),
+                              SizedBox(height: 4),
+                              Text(
+                                'Añadir a lista',
+                                style: TextStyle(color: Colors.yellow, fontSize: 12),
                               ),
                             ],
                           ),
-
-                          const SizedBox(height: 30),
-
-                          Text(
-                            video.description,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(height: 40),
-                            SeriesEpisodesSection(
-                              seriesId: video.series,   // 👈 clau
-                              serieName: 'Episodis',    // o el nom real si el tens
-                              db: db,
-                            ),
-                        ],
+                        ),
+                        Column(
+                          children: const [
+                            Text('*****',
+                                style: TextStyle(color: Colors.yellow, fontSize: 22)),
+                            SizedBox(height: 4),
+                            Text('Valoración',
+                                style: TextStyle(color: Colors.yellow, fontSize: 12)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        video.description,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+
+                    // ── Llista de la sèrie
+                    SeriesEpisodesSection(
+                      seriesId: video.series,
+                      serieName: 'Episodis',
+                      db: db,
+                      currentVideoId: video.id, // no repetir el vídeo actual
+                    ),
+
+                    const SizedBox(height: 40),
+                  ],
+                ),
               );
             },
           ),
 
-          // ⬅ Flecha volver
+          // ⬅ Tornar enrere
           Positioned(
             top: 40,
             left: 15,

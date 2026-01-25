@@ -8,12 +8,14 @@ class SeriesEpisodesSection extends StatelessWidget {
   final int seriesId;
   final String serieName;
   final AppDatabase db;
+  final int? currentVideoId; // vídeo seleccionat actual
 
   const SeriesEpisodesSection({
     super.key,
     required this.seriesId,
     required this.serieName,
     required this.db,
+    this.currentVideoId,
   });
 
   @override
@@ -35,8 +37,7 @@ class SeriesEpisodesSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 30),
-
-            // 🏷 Nom de la sèrie
+            // Nom de la sèrie
             Text(
               serieName,
               style: const TextStyle(
@@ -45,24 +46,27 @@ class SeriesEpisodesSection extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 12),
 
             ...videos.map((video) {
+              final isCurrent = currentVideoId != null && video.id == currentVideoId;
+
               return InkWell(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => VistaPrev(
-                        videoId: video.id,
-                        db: db,
+                  if (!isCurrent) { // no recarregar si fem tap sobre el mateix vídeo
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => VistaPrev(
+                          videoId: video.id,
+                          db: db,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
                 child: Card(
-                  color: Colors.grey[900],
+                  color: isCurrent ? Colors.yellow[900] : Colors.grey[900], // destacat el vídeo actual
                   margin: const EdgeInsets.symmetric(vertical: 6),
                   child: Padding(
                     padding: const EdgeInsets.all(10),
@@ -83,15 +87,17 @@ class SeriesEpisodesSection extends StatelessWidget {
                             children: [
                               Text(
                                 video.title,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                                style: TextStyle(
+                                  color: isCurrent ? Colors.white : Colors.white,
+                                  fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Temporada ${video.season} · Capítol ${video.chapter}',
-                                style: const TextStyle(color: Colors.white70),
+                                style: TextStyle(
+                                  color: isCurrent ? Colors.white70 : Colors.white54,
+                                ),
                               ),
                             ],
                           ),
