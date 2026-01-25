@@ -26,5 +26,7 @@ class VideoService {
       throw Exception('Error al cargar video $id');// mensaje de error en caso de qu no cargue el video/id
     }
   }
+  
+  
 
 }

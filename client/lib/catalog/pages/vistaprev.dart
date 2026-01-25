@@ -1,5 +1,6 @@
 import 'package:client/catalog/widgets/VideoPlayerHLS.dart' show VideoPlayerHLS;
 import 'package:client/catalog/widgets/menu_de_llistes.dart';
+import 'package:client/catalog/widgets/series_episodes_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/local/app_database.dart';
@@ -169,6 +170,12 @@ class VistaPrev extends StatelessWidget {
                               fontSize: 18,
                             ),
                           ),
+                          const SizedBox(height: 40),
+                            SeriesEpisodesSection(
+                              seriesId: video.series,   // 👈 clau
+                              serieName: 'Episodis',    // o el nom real si el tens
+                              db: db,
+                            ),
                         ],
                       ),
                     ),
