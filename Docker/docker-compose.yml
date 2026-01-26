@@ -7,12 +7,14 @@ services:
     build:
       context: .
       dockerfile: Odoo/Dockerfile
-    restart: always
+    container_name: Odoo
+    restart: unless-stopped
     ports:
       - "8069:8069"
     depends_on:
       - db
     environment:
+      - ODOO_MASTER_PASSWORD=padalustro
       - HOST=db
       - USER=odoo
       - PASSWORD=odoo
@@ -20,10 +22,12 @@ services:
       - odoo-data:/var/lib/odoo
       - ../Odoo/extra-addons:/mnt/extra-addons
       - ../Odoo/config:/etc/odoo
+      - ./Odoo/modulos-zip:/mnt/modulos-zip:ro
   
   db:
     image: postgres:14
-    restart: always
+    container_name: Postgres
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=odoo
       - POSTGRES_PASSWORD=odoo
