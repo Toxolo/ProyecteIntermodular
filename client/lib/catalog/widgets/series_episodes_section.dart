@@ -39,7 +39,7 @@ class SeriesEpisodesSection extends StatelessWidget {
             const SizedBox(height: 30),
             // Nom de la sèrie
             Text(
-              serieName,
+              '$serieName · Episodis',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 22,
@@ -78,7 +78,15 @@ class SeriesEpisodesSection extends StatelessWidget {
                           child: Image.network(
                             'http://10.0.2.2:3000/static/${video.thumbnail}/thumbnail.jpg',
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              // Si la primera falla, carga la segunda
+                              return Image.network(
+                                'https://ih1.redbubble.net/image.1861329650.2941/flat,750x,075,f-pad,750x1000,f8f8f8.jpg',
+                                fit: BoxFit.cover,
+                              );
+                            },
                           ),
+
                         ),
                         const SizedBox(width: 12),
                         Expanded(

@@ -1,5 +1,7 @@
 import 'package:client/catalog/widgets/VideoPlayerHLS.dart' show VideoPlayerHLS;
 import 'package:client/catalog/widgets/menu_de_llistes.dart';
+import 'package:client/models/serie_mapper.dart';
+import 'package:client/services/Serie_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/local/app_database.dart';
@@ -48,8 +50,9 @@ class VistaPrev extends StatelessWidget {
               }
 
               final video = snapshot.data!;
+    
 
-               int ratingInt = video.rating.round();
+              int ratingInt = video.rating.round();
 
               return SingleChildScrollView(
                 child: Column(
@@ -162,12 +165,25 @@ class VistaPrev extends StatelessWidget {
                     ),
 
                     // ── Llista de la sèrie
-                    SeriesEpisodesSection(
-                      seriesId: video.series,
-                      serieName: 'Episodis',
-                      db: db,
-                      currentVideoId: video.id, // no repetir el vídeo actual
-                    ),
+                   FutureBuilder<Serie?>(
+                    future: SerieService.getSerieById(video.series),
+                    builder: (context, serieSnapshot) {
+                      if (!serieSnapshot.hasData) {
+                        return const SizedBox();
+                      }
+
+                      final serie = serieSnapshot.data!;
+
+                      return SeriesEpisodesSection(
+                        seriesId: video.series,
+                        serieName: '    ${serie.name}',
+                        db: db,
+                        currentVideoId: video.id,
+                      );
+                    },
+                  ),
+
+
 
                     const SizedBox(height: 40),
                   ],

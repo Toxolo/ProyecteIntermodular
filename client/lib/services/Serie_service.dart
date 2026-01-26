@@ -33,4 +33,16 @@ class SerieService {
 
     return filtered;
   }
+
+  /// Obté una sèrie pel seu ID
+  static Future<Serie?> getSerieById(int serieId) async {
+    final series = await getCategories();
+
+    try {
+      return series.firstWhere((s) => s.id == serieId);
+    } catch (_) {
+      return null;
+    }
+  }
+
 }
