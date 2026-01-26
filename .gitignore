@@ -1,6 +1,11 @@
 # EXPRESS
 ./Express/node_modules
 
+#ODOO
+Odoo/extra-addons/*
+Odoo/config/*
+Odoo/
+
 # AppAdmin
 ./AppAdmin/.vscode
 
