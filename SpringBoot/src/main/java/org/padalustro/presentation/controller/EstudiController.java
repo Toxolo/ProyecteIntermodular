@@ -5,6 +5,10 @@ import java.util.List;
 import org.padalustro.application.usecase.Estudi.GetAllEstudiUseCase;
 import org.padalustro.infrastructure.DTO.EstudiDTO;
 import org.springframework.http.ResponseEntity;
+<<<<<<< HEAD
+import org.springframework.web.bind.annotation.CrossOrigin;
+=======
+>>>>>>> development
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +31,7 @@ public class EstudiController {
     this.getAllEstudi = getAllEstudi;
 }
 
-
+    @CrossOrigin(origins = "http://localhost:1420")
     @GetMapping("/Estudi")
     public ResponseEntity<List<EstudiDTO>> getAllEstudi() {
         return ResponseEntity.ok(getAllEstudi.execute());
