@@ -147,6 +147,7 @@ DROP TABLE IF EXISTS `serie`;
 CREATE TABLE `serie` (
   `serie_id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `classification` int NOT NULL,
   PRIMARY KEY (`serie_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -157,10 +158,11 @@ CREATE TABLE `serie` (
 
 /*!40000 ALTER TABLE `serie` DISABLE KEYS */;
 set autocommit=0;
-INSERT INTO `serie` VALUES
+INSERT INTO `serie` (serie_id, name) VALUES
 (1,'Sèrie Fantàstica'),
 (2,'Aventura Espacial'),
 (3,'Comedia Urbana');
+
 /*!40000 ALTER TABLE `serie` ENABLE KEYS */;
 commit;
 
@@ -226,8 +228,7 @@ DROP TABLE IF EXISTS `video_cataleg`;
 CREATE TABLE `video_cataleg` (
   `id_video_cataleg` bigint NOT NULL AUTO_INCREMENT,
   `chapter` int NOT NULL,
-  `classification` int NOT NULL,
-  `date_emission` date NOT NULL,
+  `date_emission` DATE DEFAULT (CURRENT_DATE),
   `description` varchar(255) NOT NULL,
   `duration` int NOT NULL,
   `rating` double DEFAULT NULL,
@@ -251,15 +252,15 @@ CREATE TABLE `video_cataleg` (
 /*!40000 ALTER TABLE `video_cataleg` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `video_cataleg` VALUES
-(1,1,3,'2026-01-12','Situacions hilarants i personatges extravagants que et faran riure.',90,4.2,1,'comedia_ciutat.jpg','Comèdia a la Ciutat',3,3),
-(2,1,3,'2026-01-12','Situacions hilarants i personatges extravagants que et faran riure.',90,4.2,1,'comedia_ciutat.jpg','Comèdia a la Ciutat',3,3),
-(3,1,3,'2026-01-12','Situacions hilarants i personatges extravagants que et faran riure.',90,4.2,1,'comedia_ciutat.jpg','Comèdia a la Ciutat',3,3),
-(4,2,1,'2026-01-12','Un drama intens on el destí dels personatges està en joc.',120,4.9,1,'misteri_foscor.jpg','Misteri a la Foscor',1,1),
-(5,2,2,'2026-01-12','Ciència ficció amb descobriments tecnològics i conflictes intergalàctics.',150,4.7,1,'viure_estrelles.jpg','Viure entre Estrelles',2,2),
-(6,2,3,'2026-01-12','Personatges animats en aventures fantàstiques plenes de colors i fantasia.',100,4.6,1,'animacio_magica.jpg','Animació Màgica',3,3),
-(7,3,1,'2026-01-12','Acció sense parar amb batalles èpiques i estratègies sorprenents.',140,4.8,2,'lluita_final.jpg','Lluita Final',1,1),
-(8,3,2,'2026-01-12','Una aventura perillosa amb girs inesperats i intriga contínua.',155,4.9,2,'missio_impossible.jpg','Missió Impossible',2,2),
-(9,3,3,'2026-01-12','Comèdia plena de situacions absurdes que no deixaran de sorprendre.',95,4.4,2,'rialles_sense_fi.jpg','Rialles Sense Fi',3,3);
+(1,1,3,'Situacions hilarants i personatges extravagants que et faran riure.',90,4.2,1,'comedia_ciutat.jpg','Comèdia a la Ciutat',3,3),
+(2,1,3,'Situacions hilarants i personatges extravagants que et faran riure.',90,4.2,1,'comedia_ciutat.jpg','Comèdia a la Ciutat',3,3),
+(3,1,3,'Situacions hilarants i personatges extravagants que et faran riure.',90,4.2,1,'comedia_ciutat.jpg','Comèdia a la Ciutat',3,3),
+(4,2,1,'Un drama intens on el destí dels personatges està en joc.',120,4.9,1,'misteri_foscor.jpg','Misteri a la Foscor',1,1),
+(5,2,2,'Ciència ficció amb descobriments tecnològics i conflictes intergalàctics.',150,4.7,1,'viure_estrelles.jpg','Viure entre Estrelles',2,2),
+(6,2,3,'Personatges animats en aventures fantàstiques plenes de colors i fantasia.',100,4.6,1,'animacio_magica.jpg','Animació Màgica',3,3),
+(7,3,1,'Acció sense parar amb batalles èpiques i estratègies sorprenents.',140,4.8,2,'lluita_final.jpg','Lluita Final',1,1),
+(8,3,2,'Una aventura perillosa amb girs inesperats i intriga contínua.',155,4.9,2,'missio_impossible.jpg','Missió Impossible',2,2),
+(9,3,3,'Comèdia plena de situacions absurdes que no deixaran de sorprendre.',95,4.4,2,'rialles_sense_fi.jpg','Rialles Sense Fi',3,3);
 /*!40000 ALTER TABLE `video_cataleg` ENABLE KEYS */;
 
 commit;

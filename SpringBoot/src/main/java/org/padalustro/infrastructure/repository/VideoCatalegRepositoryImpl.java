@@ -110,8 +110,6 @@ public class VideoCatalegRepositoryImpl implements VideoCatalegRepository {
         entity.setRating(dto.getRating());
         entity.setSeason(dto.getSeason());
         entity.setChapter(dto.getChapter());
-        entity.setDate_emission(dto.getDate_emission());
-        entity.setThumbnail(dto.getThumbnail());
         entity.setDuration(dto.getDuration());
     
         // put para poder actualizar una categoria de una peli

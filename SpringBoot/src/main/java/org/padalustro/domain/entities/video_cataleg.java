@@ -66,11 +66,9 @@ public class video_cataleg {
     @Column(nullable = false)
     private Integer chapter;
 
-    @Column(nullable = false)
+    @Column(name = "date_emission", insertable = false, updatable = false)
     private Date date_emission;
 
-    @Column(nullable = false)
-    private String thumbnail;
 
     @Column(nullable = false)
     private Integer duration;
@@ -79,7 +77,7 @@ public class video_cataleg {
     }
 
     public video_cataleg(String title, String description, Set<categoria> category, Integer classification, estudi study,
-            double rating, Integer season, serie series, Integer chapter, Date date_emission, String thumbnail,
+            double rating, Integer season, serie series, Integer chapter, Date date_emission,
             Integer duration) {
         this.title = title;
         this.description = description;
@@ -91,7 +89,7 @@ public class video_cataleg {
         this.series = series;
         this.chapter = chapter;
         this.date_emission = date_emission;
-        this.thumbnail = thumbnail;
+
         this.duration = duration;
     }
 
@@ -183,13 +181,6 @@ public class video_cataleg {
         this.date_emission = date_emission;
     }
 
-    public String getThumbnail() {
-        return thumbnail;
-    }
-
-    public void setThumbnail(String thumbnail) {
-        this.thumbnail = thumbnail;
-    }
 
     public Integer getDuration() {
         return duration;
