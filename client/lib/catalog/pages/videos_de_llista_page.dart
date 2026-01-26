@@ -78,16 +78,34 @@ class VideosDeLlistaPage extends StatelessWidget {
                         child: Row(
                           children: [
                             // ─── Imatge a l'esquerra ───
-                            SizedBox(
-                              width: 120,
-                              height: 70,
-                              child: video.thumbnail.isNotEmpty
-                                  ? Image.network('http://10.0.2.2:3000/static/${video.thumbnail}/thumbnail.jpg', fit: BoxFit.cover)
-                                  : Container(
-                                      color: Colors.white12,
-                                      child: const Icon(Icons.videocam, color: Colors.white),
-                                    ),
-                            ),
+                           SizedBox(
+                            width: 120,
+                            height: 70,
+                            child: video.thumbnail.isNotEmpty
+                                ? Image.network(
+                                    'http://10.0.2.2:3000/static/${video.thumbnail}/thumbnail.jpg',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      // Si la primera falla, carga esta segunda URL
+                                      return Image.network(
+                                        'https://ih1.redbubble.net/image.1861329650.2941/flat,750x,075,f-pad,750x1000,f8f8f8.jpg',
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          // Si también falla la segunda, mostramos un placeholder
+                                          return Container(
+                                            color: Colors.white12,
+                                            child: const Icon(Icons.videocam, color: Colors.white),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  )
+                                : Container(
+                                    color: Colors.white12,
+                                    child: const Icon(Icons.videocam, color: Colors.white),
+                                  ),
+                          ),
+
                             const SizedBox(width: 12),
 
                             // ─── Info a la dreta ───

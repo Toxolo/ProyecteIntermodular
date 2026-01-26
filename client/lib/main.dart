@@ -1,9 +1,17 @@
 import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // << importante para SystemChrome
 import 'catalog/pages/catalog_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // important per usar async al main
+
+  // Forzar vertical por defecto
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   final db = AppDatabase(); // crea la base de dades
   runApp(MyApp(db: db));   // passem la instància a MyApp
 }

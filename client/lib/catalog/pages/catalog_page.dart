@@ -1,4 +1,5 @@
 
+import 'package:client/catalog/pages/search_page.dart';
 import 'package:client/catalog/widgets/bottom_bar.dart';
 import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
@@ -42,9 +43,17 @@ class CatalogPage extends StatelessWidget {
                       height: 40,
                     ),
                     IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.search, color: Color.fromRGBO(255, 255, 255, 1)), 
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SearchPage(db: db),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.search, color: Colors.white),
                     ),
+
                   ],
                 ),
                 const Spacer(),
