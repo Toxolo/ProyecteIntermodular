@@ -8,6 +8,7 @@ class Video {
   final int chapter;
   final int season;
   final int series;
+  final double rating;
 
   Video({
     required this.id,
@@ -19,6 +20,7 @@ class Video {
     required this.chapter,
     required this.season,
     required this.series,
+    required this.rating
   });
 
   factory Video.fromJson(Map<String, dynamic> json) {
@@ -38,10 +40,11 @@ class Video {
 
       chapter: json['chapter'] ?? 0,
       season: json['season'] ?? 0,
-      
+
       series: json['series'] != null
           ? json['series']['id'] as int
           : 0,
+      rating: json['rating'] ?? 0,
     );
   }
 }

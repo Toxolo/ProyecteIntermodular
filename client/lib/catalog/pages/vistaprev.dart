@@ -12,6 +12,8 @@ import '../widgets/series_episodes_section.dart';
 class VistaPrev extends StatelessWidget {
   final int videoId;
   final AppDatabase db;
+ 
+
 
   const VistaPrev({
     super.key,
@@ -46,6 +48,8 @@ class VistaPrev extends StatelessWidget {
               }
 
               final video = snapshot.data!;
+
+               int ratingInt = video.rating.round();
 
               return SingleChildScrollView(
                 child: Column(
@@ -128,15 +132,20 @@ class VistaPrev extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Column(
-                          children: const [
-                            Text('*****',
-                                style: TextStyle(color: Colors.yellow, fontSize: 22)),
-                            SizedBox(height: 4),
-                            Text('Valoración',
-                                style: TextStyle(color: Colors.yellow, fontSize: 12)),
-                          ],
-                        ),
+                      Column(
+                        children: [
+                          
+                          Text(
+                            '★' * ratingInt,
+                            style: const TextStyle(color: Colors.yellow, fontSize: 22),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Valoración',
+                            style: TextStyle(color: Colors.yellow, fontSize: 12),
+                          ),
+                        ],
+                      )
                       ],
                     ),
                     const SizedBox(height: 30),
