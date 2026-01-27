@@ -1,49 +1,59 @@
 USE CatalegSpring;
 
+-- Borramos datos previos si quieres empezar de cero para evitar errores de duplicados
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE video_categoria;
+TRUNCATE TABLE video_cataleg;
+TRUNCATE TABLE serie;
+TRUNCATE TABLE estudi;
+TRUNCATE TABLE categoria;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- =========================
 -- ESTUDI
 -- =========================
-INSERT INTO estudi (name) VALUES ('Estudi PixelArts');
-INSERT INTO estudi (name) VALUES ('DreamFrame Studios');
-INSERT INTO estudi (name) VALUES ('CineMax Productions');
+INSERT INTO estudi (estudi_id, name) VALUES 
+(1, 'Estudi PixelArts'),
+(2, 'DreamFrame Studios'),
+(3, 'CineMax Productions');
 
 -- =========================
 -- SERIE
 -- =========================
-INSERT INTO serie (name, classification) VALUES ('Sèrie Fantàstica', 1);
-INSERT INTO serie (name, classification) VALUES ('Aventura Espacial', 2);
-INSERT INTO serie (name, classification) VALUES ('Comedia Urbana', 1);
+INSERT INTO serie (serie_id, name, classification) VALUES 
+(1, 'Sèrie Fantàstica', 1),
+(2, 'Aventura Espacial', 2),
+(3, 'Comedia Urbana', 1);
 
 -- =========================
 -- CATEGORIA
 -- =========================
-INSERT INTO categoria (name) VALUES ('Acció');
-INSERT INTO categoria (name) VALUES ('Aventura');
-INSERT INTO categoria (name) VALUES ('Comedia');
-INSERT INTO categoria (name) VALUES ('Drama');
-INSERT INTO categoria (name) VALUES ('Ciència Ficció');
-INSERT INTO categoria (name) VALUES ('Animació');
+INSERT INTO categoria (categoria_id, name) VALUES 
+(1, 'Acció'), (2, 'Aventura'), (3, 'Comedia'), 
+(4, 'Drama'), (5, 'Ciència Ficció'), (6, 'Animació');
 
 -- =========================
 -- VIDEO_CATALEG
+-- Orden: id, chapter, date_emission, description, duration, rating, season, title, serie_id, estudi_id
 -- =========================
-INSERT INTO video_cataleg
-(title, description, chapter, duration, rating, season, thumbnail, serie_id, estudi_id)
+INSERT INTO video_cataleg 
+(id_video_cataleg, chapter, date_emission, description, duration, rating, season, title, serie_id, estudi_id)
 VALUES
-('La Gran Aventura', 'Una expedició èpica travessant mars i muntanyes plenes de misteri.', 1, 130, 4.8, 1, 'gran_aventura.jpg', 1, 1),
-('Risc al Cosmos', 'Exploració espacial amb perills increïbles i encontres inesperats.', 1, 145, 4.5, 1, 'risc_cosmos.jpg', 2, 2),
-('Comèdia a la Ciutat', 'Situacions hilarants i personatges extravagants que et faran riure.', 1, 90, 4.2, 1, 'comedia_ciutat.jpg', 3, 3),
-('Misteri a la Foscor', 'Un drama intens on el destí dels personatges està en joc.', 2, 120, 4.9, 1, 'misteri_foscor.jpg', 1, 1),
-('Viure entre Estrelles', 'Ciència ficció amb descobriments tecnològics i conflictes intergalàctics.', 2, 150, 4.7, 1, 'viure_estrelles.jpg', 2, 2),
-('Animació Màgica', 'Personatges animats en aventures fantàstiques plenes de colors.', 2, 100, 4.6, 1, 'animacio_magica.jpg', 3, 3),
-('Lluita Final', 'Acció sense parar amb batalles èpiques.', 3, 140, 4.8, 2, 'lluita_final.jpg', 1, 1),
-('Missió Impossible', 'Aventura perillosa amb girs inesperats.', 3, 155, 4.9, 2, 'missio_impossible.jpg', 2, 2),
-('Rialles Sense Fi', 'Comèdia plena de situacions absurdes.', 3, 95, 4.4, 2, 'rialles_sense_fi.jpg', 3, 3);
+(1, 1, CURDATE(), 'gran_aventura.jpg', 130, 4.8, 1, 'La Gran Aventura', 1, 1),
+(2, 1, CURDATE(), 'risc_cosmos.jpg', 145, 4.5, 1, 'Risc al Cosmos', 2, 2),
+(3, 1, CURDATE(), 'comedia_ciutat.jpg', 90, 4.2, 1, 'Comèdia a la Ciutat', 3, 3),
+(4, 2, CURDATE(), 'misteri_foscor.jpg', 120, 4.9, 1, 'Misteri a la Foscor', 1, 1),
+(5, 2, CURDATE(), 'viure_estrelles.jpg', 150, 4.7, 1, 'Viure entre Estrelles', 2, 2),
+(6, 2, CURDATE(), 'animacio_magica.jpg', 100, 4.6, 1, 'Animació Màgica', 3, 3),
+(7, 3, CURDATE(), 'lluita_final.jpg', 140, 4.8, 2, 'Lluita Final', 1, 1),
+(8, 3, CURDATE(), 'missio_impossible.jpg', 155, 4.9, 2, 'Missió Impossible', 2, 2),
+(9, 3, CURDATE(), 'rialles_sense_fi.jpg', 95, 4.4, 2, 'Rialles Sense Fi', 3, 3);
 
 -- =========================
 -- VIDEO_CATEGORIA
 -- =========================
-INSERT INTO video_categoria VALUES (1,1),(1,2),(4,1),(4,2),(7,1),(7,2);
-INSERT INTO video_categoria VALUES (2,2),(2,5),(5,2),(5,5),(8,2),(8,5);
-INSERT INTO video_categoria VALUES (3,3),(3,6),(6,3),(6,6),(9,3),(9,6);
-INSERT INTO video_categoria VALUES (4,4);
+INSERT INTO video_categoria (id_video_cataleg, categoria_id) VALUES 
+(1,1),(1,2),(4,1),(4,2),(7,1),(7,2),
+(2,2),(2,5),(5,2),(5,5),(8,2),(8,5),
+(3,3),(3,6),(6,3),(6,6),(9,3),(9,6),
+(4,4);
