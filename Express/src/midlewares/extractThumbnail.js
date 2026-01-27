@@ -4,7 +4,10 @@ import path from 'path';
 import { spawn } from 'child_process';
 
 export async function extractThumbnail(req, res, next) {
+    const { clientId, videoId } = req;
+    const WS = req.app.get('uploadScreenSocket');
     try {
+        WS.sendProgress(clientId, 40, 'Starting thumbnail generation...');
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({ error: 'No file uploaded or buffer missing' });
         }
@@ -25,6 +28,9 @@ export async function extractThumbnail(req, res, next) {
 
         // ── Generate thumbnail directly from buffer ─────────────────────────────
         const thumbnailBuffer = await generateThumbnailFromBuffer(file, name, type);
+        WS.sendProgress(clientId, 70, 'Thumbnail generated successfully', {
+            thumbnailUrl: `/public/${videoId}_thumbnail.png`
+        });
         // Write the resulting JPEG buffer to disk (this is the only file write)
         await fs.writeFile(thumbnailPath, thumbnailBuffer);
 
@@ -32,8 +38,8 @@ export async function extractThumbnail(req, res, next) {
 
         next();
     } catch (error) {
-        console.error('Thumbnail extraction failed:', error);
-        next(error);
+        WS.sendError(clientId, 'Thumbnail generation failed: ' + error.message);
+        return res.status(500).json({ error: error.message });
     }
 }
 

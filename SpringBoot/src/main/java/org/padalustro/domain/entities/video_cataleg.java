@@ -6,8 +6,6 @@ import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -28,7 +26,6 @@ import lombok.Data;
 public class video_cataleg {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_video_cataleg")
     private Long id;
 
@@ -45,9 +42,6 @@ public class video_cataleg {
         inverseJoinColumns = @JoinColumn(name = "categoria_id")
     )
     private Set<categoria> category;
-
-    @Column(nullable = false)
-    private Integer classification;
 
     @ManyToOne
     @JoinColumn(name = "estudi_id", nullable = false)
@@ -66,11 +60,9 @@ public class video_cataleg {
     @Column(nullable = false)
     private Integer chapter;
 
-    @Column(nullable = false)
+    @Column(name = "date_emission", insertable = false, updatable = false)
     private Date date_emission;
 
-    @Column(nullable = false)
-    private String thumbnail;
 
     @Column(nullable = false)
     private Integer duration;
@@ -78,20 +70,19 @@ public class video_cataleg {
     public video_cataleg() {
     }
 
-    public video_cataleg(String title, String description, Set<categoria> category, Integer classification, estudi study,
-            double rating, Integer season, serie series, Integer chapter, Date date_emission, String thumbnail,
+    public video_cataleg(String title, String description, Set<categoria> category, estudi study,
+            double rating, Integer season, serie series, Integer chapter, Date date_emission,
             Integer duration) {
         this.title = title;
         this.description = description;
         this.category = category;
-        this.classification = classification;
         this.study = study;
         this.rating = rating;
         this.season = season;
         this.series = series;
         this.chapter = chapter;
         this.date_emission = date_emission;
-        this.thumbnail = thumbnail;
+
         this.duration = duration;
     }
 
@@ -127,13 +118,6 @@ public class video_cataleg {
         this.category = category;
     }
 
-    public Integer getClassification() {
-        return classification;
-    }
-
-    public void setClassification(Integer classification) {
-        this.classification = classification;
-    }
 
     public estudi getStudy() {
         return study;
@@ -183,13 +167,6 @@ public class video_cataleg {
         this.date_emission = date_emission;
     }
 
-    public String getThumbnail() {
-        return thumbnail;
-    }
-
-    public void setThumbnail(String thumbnail) {
-        this.thumbnail = thumbnail;
-    }
 
     public Integer getDuration() {
         return duration;

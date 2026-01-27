@@ -7,13 +7,22 @@ import cors from 'cors';
 
 app.use(cors({
   origin: [
-    'http://localhost:1420',
-    'http://localhost:5173'
+    'http://localhost:1420'
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization','X-Client-Id'],
   credentials: false,
 }));
+
+
+// WebSocket setup
+import http from "http";
+import {UploadScreenSocket} from "./src/websockets/uploadScreenSocket.js";
+const server = http.createServer(app);
+const uploadScreenSocket = new UploadScreenSocket();
+uploadScreenSocket.initialize(server);
+app.set('uploadScreenSocket', uploadScreenSocket);
+
 
 import Routes from './src/routes/routes.js';
 import path from 'path';
@@ -39,6 +48,6 @@ app.use('/static', express.static('public'));
 
 app.use(Routes);
 
-app.listen(port, ()=> {
-    console.log(`Server is running on http://localhost:${port}`);
+server.listen(port, '0.0.0.0', () => {
+  console.log(`Listening on http://localhost:${port}`);
 });

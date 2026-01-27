@@ -1,12 +1,16 @@
 
+import 'package:client/catalog/pages/search_page.dart';
+import 'package:client/catalog/widgets/bottom_bar.dart';
+import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
 import '../widgets/categorias.dart';
-import 'llistes_page.dart';
-import 'perfil_page.dart';
+
 
 class CatalogPage extends StatelessWidget {
-  const CatalogPage({super.key});
+  final AppDatabase db;
+
+  const CatalogPage({super.key, required this.db});
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +43,17 @@ class CatalogPage extends StatelessWidget {
                       height: 40,
                     ),
                     IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.search, color: Color.fromRGBO(255, 255, 255, 1)), 
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SearchPage(db: db),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.search, color: Colors.white),
                     ),
+
                   ],
                 ),
                 const Spacer(),
@@ -57,9 +69,9 @@ class CatalogPage extends StatelessWidget {
           const SizedBox(height: 10),
           Expanded(
             child: ListView(
-              children: const [
-                CategorySection(), //aqui llamamos a la parte de categorias
-                SizedBox(height: 20),
+              children: [
+                CategorySection(db: db,), //aqui llamamos a la parte de categorias
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -67,46 +79,8 @@ class CatalogPage extends StatelessWidget {
       ),
 
       // barra de menu por abajo
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1, //  catalog seleccionado
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu), //seleccionamos el icono de las 3 lineas
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home), // casita de abajo
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.circle),
-            label: '',
-          ),
-        ],
-        onTap: (index) { 
-          if (index == 0) {
-            // abrir llistes_page
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const LlistesPage(),
-              ),
-            );
-          }
-          if (index == 2) {
-            // abrir perfil_page
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const PerfilPage(),
-              ),
-            );
-          }
-          print(index);},
-      ),
+      bottomNavigationBar: BottomBar(currentIndex: 1, db: db), // catalog
+
     );
   }
 }

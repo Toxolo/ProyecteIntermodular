@@ -5,7 +5,7 @@ import '../models/category.dart';
 class CategoryService {
   // URL para Android Emulator
   static const String categoryUrl = 'http://10.0.2.2:8090/Category';
-
+  // static const String categoryUrl = 'http://localhost:8090/Category';
   /// Devuelve la lista de categorías desde el backend
   static Future<List<Category>> getCategories() async {
     final response = await http.get(Uri.parse(categoryUrl));

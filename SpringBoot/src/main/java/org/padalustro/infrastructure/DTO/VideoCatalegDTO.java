@@ -1,7 +1,6 @@
 package org.padalustro.infrastructure.DTO;
 
 import java.io.Serializable;
-import java.sql.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,8 +25,6 @@ public class VideoCatalegDTO implements Serializable {
 
     private Set<CategoriaIdDTO> category;
 
-    private Integer classification;
-
     private EstudiIdDTO study;
 
     private double rating;
@@ -38,9 +35,6 @@ public class VideoCatalegDTO implements Serializable {
 
     private Integer chapter;
 
-    private Date date_emission;
-
-    private String thumbnail;
 
     private Integer duration;
 
@@ -60,7 +54,6 @@ public class VideoCatalegDTO implements Serializable {
                 .map(c -> new CategoriaIdDTO(c.getId()))
                 .collect(Collectors.toSet()));
         }
-		videoCatalegDTO.setClassification(videoCataleg.getClassification());
 		if (videoCataleg.getStudy() != null) {
             videoCatalegDTO.setStudy(new EstudiIdDTO(videoCataleg.getStudy().getId()));
         }
@@ -71,8 +64,6 @@ public class VideoCatalegDTO implements Serializable {
             videoCatalegDTO.setSeries(new SerieIdDTO(videoCataleg.getSeries().getId()));
         }
         videoCatalegDTO.setChapter(videoCataleg.getChapter());
-        videoCatalegDTO.setDate_emission(videoCataleg.getDate_emission());
-        videoCatalegDTO.setThumbnail(videoCataleg.getThumbnail());
         videoCatalegDTO.setDuration(videoCataleg.getDuration());
 
 		return videoCatalegDTO;
@@ -98,7 +89,6 @@ public class VideoCatalegDTO implements Serializable {
                 .collect(Collectors.toSet())
             );
         }
-        videoCataleg.setClassification(this.getClassification());
 
         if (this.getStudy() != null) {
             estudi study = new estudi();
@@ -113,8 +103,6 @@ public class VideoCatalegDTO implements Serializable {
             videoCataleg.setSeries(series);
         }
         videoCataleg.setChapter(this.getChapter());
-        videoCataleg.setDate_emission(this.getDate_emission());
-        videoCataleg.setThumbnail(this.getThumbnail());
         videoCataleg.setDuration(this.getDuration());
         return videoCataleg;
     }

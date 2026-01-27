@@ -1,162 +1,201 @@
+import 'package:client/catalog/widgets/VideoPlayerHLS.dart' show VideoPlayerHLS;
+import 'package:client/catalog/widgets/menu_de_llistes.dart';
+import 'package:client/models/serie_mapper.dart';
+import 'package:client/services/Serie_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../data/local/app_database.dart';
+import '../../services/video_list_service.dart';
 import '../catalog_styles.dart';
-import 'catalog_page.dart';
-import '../../models/video_mapper.dart'; // modelo del backend
-import '../../services/video_service.dart'; // servicio API REST
+import '../../models/video_mapper.dart';
+import '../../services/video_service.dart';
+import '../widgets/series_episodes_section.dart';
 
 class VistaPrev extends StatelessWidget {
-  final int videoId; // id del video seleccionado
+  final int videoId;
+  final AppDatabase db;
+ 
 
-  const VistaPrev({super.key, required this.videoId}); // recibe id por parámetro
+
+  const VistaPrev({
+    super.key,
+    required this.videoId,
+    required this.db,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final videoListService = VideoListService(db.listsDao);
+
     return Scaffold(
       backgroundColor: CatalogStyles.backgroundBlack,
-      body: Stack( // permite usar widgets encima de otros
+      body: Stack(
         children: [
-          Column(
-            children: [
+          FutureBuilder<Video>(
+            future: VideoService.getVideoById(videoId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                );
+              }
 
-              Container(
-                height: 220, // altura para la imagen
-                width: double.infinity,
-                color: Colors.cyan, // azul (quitar cuando pongamos ya la img)
-                child: const Center(),// Más adelante aquí ira la Imagen
-              ),
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: Text(
+                    'No se pudo cargar el video',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                );
+              }
 
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: FutureBuilder<Video>( // carga datos del video
-                    future: VideoService.getVideoById(videoId), // llamada por id
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        );
-                      }
+              final video = snapshot.data!;
+    
 
-                      if (!snapshot.hasData) {
-                        return const Center(
-                          child: Text(
-                            'No se pudo cargar el video',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        );
-                      }
+              int ratingInt = video.rating.round();
 
-                      final video = snapshot.data!; // datos obtenidos API
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-
-                          // titulo
-                          Text(
-                            video.title, // titulo desde backend
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 🖼 Thumbnail
+                    Image.network(
+                      'http://10.0.2.2:3000/static/${video.thumbnail}/thumbnail.jpg',
+                      height: 220,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 220,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      video.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VideoPlayerHLS(
+                              url:
+                                  'http://10.0.2.2:3000/static/${video.thumbnail}/index.m3u8',
+                              onBack: () {
+                                SystemChrome.setPreferredOrientations([
+                                  DeviceOrientation.portraitUp,
+                                ]);
+                                Navigator.pop(context);
+                              },
                             ),
                           ),
-
-                          const SizedBox(height: 20),
-
-                          // boton de reproducir
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // poner la direccion para reproducir video
-                            },
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('REPRODUCIR'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 30,
-                                vertical: 12,
+                        );
+                      },
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('REPRODUCIR'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 30,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) => AddToListBottomSheet(
+                                service: videoListService,
+                                videoId: video.id,
                               ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 25),
-
-                          // los botones de añadir a lista y valoración
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-
-                              //  boton lists
-                              Column(
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      // hay que hacer que añada a la lista aún
-                                    },
-                                    icon: const Icon(
-                                      Icons.menu,
-                                      color: Colors.yellow,
-                                      size: 30,
-                                    ),
-                                  ),
-                                  const Text(
-                                    'Añadir a lista',
-                                    style: TextStyle(
-                                      color: Colors.yellow,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              // texto de valoración
-                              Column(
-                                children: const [
-                                  Text(
-                                    '*****',
-                                    style: TextStyle(
-                                      color: Colors.yellow,
-                                      fontSize: 22,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Valoración',
-                                    style: TextStyle(
-                                      color: Colors.yellow,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
+                            );
+                          },
+                          child: Column(
+                            children: const [
+                              Icon(Icons.menu, color: Colors.yellow, size: 30),
+                              SizedBox(height: 4),
+                              Text(
+                                'Añadir a lista',
+                                style: TextStyle(color: Colors.yellow, fontSize: 12),
                               ),
                             ],
                           ),
-
-                          const SizedBox(height: 30),
-
-                          //  descripción del video
+                        ),
+                      Column(
+                        children: [
+                          
                           Text(
-                            video.description, // descripcion desde backend
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                            ),
+                            '★' * ratingInt,
+                            style: const TextStyle(color: Colors.yellow, fontSize: 22),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Valoración',
+                            style: TextStyle(color: Colors.yellow, fontSize: 12),
                           ),
                         ],
+                      )
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        video.description,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+
+                    // ── Llista de la sèrie
+                   FutureBuilder<Serie?>(
+                    future: SerieService.getSerieById(video.series),
+                    builder: (context, serieSnapshot) {
+                      if (!serieSnapshot.hasData) {
+                        return const SizedBox();
+                      }
+
+                      final serie = serieSnapshot.data!;
+
+                      return SeriesEpisodesSection(
+                        seriesId: video.series,
+                        serieName: '    ${serie.name}',
+                        db: db,
+                        currentVideoId: video.id,
                       );
                     },
                   ),
+
+
+
+                    const SizedBox(height: 40),
+                  ],
                 ),
-              ),
-            ],
+              );
+            },
           ),
 
+          // ⬅ Tornar enrere
           Positioned(
             top: 40,
-            right: 15,
+            left: 15,
             child: IconButton(
               icon: const Icon(
                 Icons.arrow_back,
@@ -164,7 +203,7 @@ class VistaPrev extends StatelessWidget {
                 size: 30,
               ),
               onPressed: () {
-                Navigator.pop(context); // volver a pantalla anterior
+                Navigator.pop(context);
               },
             ),
           ),
