@@ -1,10 +1,13 @@
+import 'package:client/catalog/widgets/bottom_bar.dart';
+import 'package:client/data/local/app_database.dart';
 import 'package:flutter/material.dart';
 import '../catalog_styles.dart';
-import 'catalog_page.dart';
-import 'llistes_page.dart';
+
 
 class PerfilPage extends StatelessWidget {
-  const PerfilPage({super.key});
+  final AppDatabase db;
+
+  const PerfilPage({super.key, required this.db});
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +77,7 @@ class PerfilPage extends StatelessWidget {
                   onChanged: (value) {
                     //  switch preparar para cambiar a modo infantil
                   },
-                  activeColor: const Color(0xFFD4AF37),
+                  activeThumbColor: const Color(0xFFD4AF37),
                 ),
               ],
             ),
@@ -140,40 +143,8 @@ class PerfilPage extends StatelessWidget {
       ),
 
       // la barra de listas y catalogo
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.circle),
-            label: '',
-          ),
-        ],
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LlistesPage()),
-            );
-          }
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CatalogPage()),
-            );
-          }
-        },
-      ),
+      bottomNavigationBar: BottomBar(currentIndex: 2, db: db), // perfil
+
     );
   }
 }
