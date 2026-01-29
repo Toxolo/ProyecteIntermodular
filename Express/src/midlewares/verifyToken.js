@@ -1,47 +1,35 @@
-export function verifyToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
+import jwt from 'jsonwebtoken';
+import fs from 'fs';
+import path from 'path';
 
-    // No hay token
-    if (!authHeader) {
-        return res.status(403).json({
-            error: 'No hay tocken'
-        });
+// Ruta ABSOLUTA a la clave pública
+const publicKey = fs.readFileSync(
+  path.resolve('keys/public.pem'),
+  'utf8'
+);
+
+export default function verifyToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+
+  if (!authHeader) {
+    return res.status(401).json({ message: 'Token no proporcionado' });
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  jwt.verify(
+    token,
+    publicKey,
+    { algorithms: ['RS256'] },
+    (err, decoded) => {
+        if (err) {
+        return res.status(403).json({ message: 'Token inválido' });
     }
 
-    const [type, token] = authHeader.split(' ');
+      // para usarlo en el controlador de la peticion de video.
+    req.user = decoded;
 
-    if (type !== 'Bearer' || !token) {
-        return res.status(403).json({
-            error: 'Formato de token incorrecto'
-        });
+      next();
     }
-
-    // Comprobar que es un JWT
-    const parts = token.split('.');
-    if (parts.length !== 3) {
-        return res.status(401).json({
-            error: 'Token inválido'
-        });
-    }
-
-    // Decodificar SOLO payload (sin verificar firma)
-    try {
-        const payload = JSON.parse(
-            Buffer.from(parts[1], 'base64').toString()
-        );
-
-        // Comprobar expiración si existe
-        if (payload.exp && Date.now() / 1000 > payload.exp) {
-            return res.status(401).json({
-                error: 'Token expirado'
-            });
-        }
-
-        req.user = payload;
-        next();
-    } catch (err) {
-        return res.status(401).json({
-            error: 'Token inválido'
-        });
-    }
+  );
 }

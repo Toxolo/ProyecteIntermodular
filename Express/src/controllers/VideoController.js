@@ -31,6 +31,41 @@ export const getVideos = async (req, res) => {
         });
     }
 };
+export const getVideoById = async (req, res) => {
+    try {
+        if (!db) {
+            throw new Error("DB not initialized");
+        }
+
+        const { id } = req.params;
+        const userId = req.user.user_id; // para la peticion autenticada
+
+        if (!id) {
+            return res.status(400).json({ error: "Falta id del video" });
+        }
+
+        console.log(`Usuario ${userId} pide el vídeo ${id}`);
+
+        const [rows] = await db.query(
+            'SELECT url FROM video WHERE id = ?',
+            [id]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: "Video no encontrado" });
+        }
+
+        res.status(200).json({
+            videoUrl: rows[0].url
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            error: "Failed to fetch video",
+            details: err.message
+        });
+    }
+};
 
 const memoryUpload = multer({
     storage: multer.memoryStorage(),
