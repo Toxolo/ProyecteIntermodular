@@ -23,7 +23,7 @@ dependencies:
   # Arxius i path
   path_provider: ^2.1.5
   path: ^1.9.1
-
+  cached_network_image: ^3.3.1
   # HTTP
   http: ^1.1.0
 
