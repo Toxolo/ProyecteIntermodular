@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-
-
-
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
 @RequestMapping("/Cataleg")
@@ -33,13 +33,11 @@ public class VideoCatalegController {
     private final GetVideoCatalegByIdUseCase getVideoCatalegById;
     private final DeleteVideoCatalegUseCase deleteVideoCataleg;
 
-    
     public VideoCatalegController(
             GetAllVideoCatalegUseCase getAllVideoCataleg,
             GetVideoCatalegByIdUseCase getVideoCatalegById,
             DeleteVideoCatalegUseCase deleteVideoCataleg,
-            SaveVideoCatalegUseCase postVideoCataleg
-        ) {
+            SaveVideoCatalegUseCase postVideoCataleg) {
 
         this.getAllVideoCataleg = getAllVideoCataleg;
         this.getVideoCatalegById = getVideoCatalegById;
@@ -52,7 +50,6 @@ public class VideoCatalegController {
         return "Benvinguts al Cataleg";
     }
 
-   
     @GetMapping
     public ResponseEntity<List<VideoCatalegDTO>> getAll() {
         return ResponseEntity.ok(getAllVideoCataleg.execute());
@@ -63,30 +60,31 @@ public class VideoCatalegController {
         return ResponseEntity.ok(getVideoCatalegById.execute(id));
     }
 
-    
-    
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @CrossOrigin(origins = "*")
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
         deleteVideoCataleg.execute(id);
         return ResponseEntity.noContent().build(); // 204
     }
 
-
     @PostMapping
-    public ResponseEntity<Void> createVideo(@RequestBody VideoCatalegDTO video) {
+    @CrossOrigin(origins = "*")
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> createVideo(@RequestBody VideoCatalegDTO video, @AuthenticationPrincipal Jwt jwt) {
         postVideoCataleg.execute(video);
         return ResponseEntity.status(201).build();
     }
 
-
-
     // to-do:
     // cambiar a use case
     @PutMapping("/{id}")
+    @CrossOrigin(origins = "*")
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
     public ResponseEntity<Void> updateVideo(
             @PathVariable Long id,
-            @RequestBody VideoCatalegDTO video
-    ) {
+            @RequestBody VideoCatalegDTO video,
+            @AuthenticationPrincipal Jwt jwt) {
         if (!videoCatalegRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
@@ -94,6 +92,5 @@ public class VideoCatalegController {
         videoCatalegRepository.updateVideoCataleg(id, video);
         return ResponseEntity.ok().build();
     }
-
 
 }
