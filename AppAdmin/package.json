@@ -14,14 +14,17 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "axios": "^1.13.2",
+    "jwt-decode": "^3.1.2",
     "vue": "^3.5.13",
+    "vue-router": "^4.6.4",
     "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
+    "@types/jwt-decode": "^2.2.1",
     "@vitejs/plugin-vue": "^5.2.1",
     "typescript": "~5.6.2",
-    "vite": "^6.0.3",
+    "vite": "^6.4.1",
     "vue-tsc": "^2.1.10"
   }
 }

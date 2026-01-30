@@ -2,6 +2,18 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import axios from 'axios'
 import VideoCard from './VideoCard.vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+// Función que se llama al hacer click en ✏️
+function goToEdit(videoId: number) {
+  console.log('router:', router)
+  router.push(`/videos/edit/${videoId}`)
+}
+
+
+
 
 // Interface for video data structure
 interface Video {
@@ -133,6 +145,8 @@ defineExpose({
         v-for="video in filteredVideos" 
         :key="video.id"
         :video="video"
+        @edit="goToEdit"
+
       />
     </div>
   </div>

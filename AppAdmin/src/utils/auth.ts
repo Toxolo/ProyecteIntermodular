@@ -1,0 +1,88 @@
+// src/services/auth.ts
+import jwt_decode, { JwtPayload } from 'jwt-decode';
+
+/* Interfaces per tipatge */
+interface LoginResponse {
+  jsonrpc: string
+  id: number
+  result: {
+    token?: string
+    user_id?: number
+    is_admin?: boolean
+    short_term_token_span?: number
+    error?: string
+  }
+}
+
+interface TokenPayload extends JwtPayload {
+  user_id: number
+  is_admin: boolean
+}
+
+interface LoginResult {
+  success: boolean
+  token?: string
+  error?: string
+}
+
+/**
+ * loginUser: Fa POST al servidor i retorna informació de l'usuari
+ * @param email Email de l'usuari
+ * @param password Contrasenya de l'usuari
+ * @returns LoginResult
+ */
+export async function loginUser(email: string, password: string): Promise<LoginResult> {
+  try {
+    const response = await fetch("/api/authenticate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", 
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "call",
+        params: {
+          db: "Padalustro",
+          login: email,
+          password: password
+        },
+        id: 1
+      })
+    })
+
+    const data: LoginResponse = await response.json()
+
+    // Error del servidor
+    if (data.result.error) return { success: false, error: data.result.error }
+
+    // Token no retornat
+    if (!data.result.token) return { success: false, error: "Token no retornat" }
+
+    // Decodificar JWT per verificar admin
+    const payload: TokenPayload = jwt_decode<TokenPayload>(data.result.token)
+    if (!payload.is_admin) return { success: false, error: "No tens permisos d'admin" }
+
+    // Guardar cookie amb temps d'expiració
+    document.cookie = `token=${data.result.token}; path=/; max-age=${data.result.short_term_token_span || 3600}`
+
+    return { success: true, token: data.result.token }
+
+  } catch (err) {
+    console.error(err)
+    return { success: false, error: "Error de connexió" }
+  }
+}
+
+/**
+ * getTokenFromCookie: Retorna el token guardat a les cookies
+ */
+export function getTokenFromCookie(): string | null {
+  const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'))
+  return match ? match[2] : null
+}
+
+/**
+ * logoutUser: Elimina la cookie de token
+ */
+export function logoutUser() {
+  document.cookie = 'token=; path=/; max-age=0'
+} 
