@@ -40,9 +40,11 @@ class ApiAuth(http.Controller):
             has_subscription = self._user_has_active_subscription(uid)
 
             # Generar tokens
+            is_admin = 4 in user.groups_id.ids
             access_token = JwtToken.generate_token(uid, extra_payload={
                 'user_id': uid,
-                'has_subscription': has_subscription
+                'has_subscription': has_subscription,
+                'is_admin': is_admin
             })
             refresh_token = JwtToken.create_refresh_token(request, uid)
             rotation_period = JwtToken.REFRESH_TOKEN_SECONDS * 3/4
@@ -52,14 +54,7 @@ class ApiAuth(http.Controller):
                 'token': access_token,
                 'user_id': uid,
                 'long_term_token_span': JwtToken.REFRESH_TOKEN_SECONDS,
-                'short_term_token_span': JwtToken.ACCESS_TOKEN_SECONDS,
-                'user': {
-                    'id': uid,
-                    'nom': user.name,
-                    'email': user.login,
-                    'active': user.active,
-                    'has_subscription': has_subscription
-                }
+                'short_term_token_span': JwtToken.ACCESS_TOKEN_SECONDS
             }
 
             # Verificar si es navegador
@@ -119,9 +114,11 @@ class ApiAuth(http.Controller):
             has_subscription = self._user_has_active_subscription(user_id)
             
             # Generar nuevo access token con los mismos datos extra
+            is_admin = 4 in user.groups_id.ids
             new_token = JwtToken.generate_token(user_id, extra_payload={
                 'has_subscription': has_subscription,
-                'is_active': user.active
+                'is_active': user.active,
+                'is_admin': is_admin
             })
             
             return {'access_token': new_token}
