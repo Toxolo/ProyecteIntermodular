@@ -6,114 +6,139 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// Función que se llama al hacer click en ✏️
 function goToEdit(videoId: number) {
-  console.log('router:', router)
   router.push(`/videos/edit/${videoId}`)
 }
 
+// --- Interfaces ---
+interface Category { id: number; name: string }
+interface Series { id: number; name: string }
+interface Study { id: number; name: string }
 
-
-
-// Interface for video data structure
 interface Video {
   id: number
-  titol: string
-  duracio: number
-  codec: string
-  resolucio: string
-  pes: number
+  title: string
+  description: string
+  duration: number
+  season: number
+  chapter: number
+  rating: number
+  category: Category[]
+  series: Series
+  study: Study
 }
 
-// Props from parent component
+// --- Props ---
 const props = defineProps<{
   searchQuery: string
   searchType: number
-  refreshInterval?: number // Optional refresh interval in milliseconds (default: 30000ms = 30s)
+  refreshInterval?: number
 }>()
 
-// State variables
+// --- State ---
 const videos = ref<Video[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const lastRefreshTime = ref<Date | null>(null)
 let refreshTimer: ReturnType<typeof setInterval> | null = null
 
-// Fetch videos from backend
-async function fetchVideos() {
+// --- Datos de referencia ---
+const categoriesList = ref<Category[]>([])
+const seriesList = ref<Series[]>([])
+const studyList = ref<Study[]>([])
+
+// --- Función de fetch ---
+async function fetchAllData() {
   try {
+    loading.value = true
     error.value = null
-    const response = await axios.get('http://localhost:3000')
-    videos.value = response.data
+
+    // Fetch videos
+    const videosRes = await axios.get('http://localhost:8090/Cataleg')
+    const videosData = videosRes.data
+
+    // Fetch categorías, series y estudios
+    const [catRes, serRes, estRes] = await Promise.all([
+      axios.get('http://localhost:8090/Category'),
+      axios.get('http://localhost:8090/Serie'),
+      axios.get('http://localhost:8090/Estudi')
+    ])
+    categoriesList.value = catRes.data
+    seriesList.value = serRes.data
+    studyList.value = estRes.data
+
+    // Mapear IDs a nombres
+    videos.value = videosData.map((v: any) => ({
+      id: v.id,
+      title: v.title || v.titol || 'Sin título',
+      description: v.description || '',
+      duration: v.duration || v.duracio || 0,
+      season: v.season || 1,
+      chapter: v.chapter || 1,
+      rating: v.rating || 0,
+      category: v.category?.map((c: any) => {
+        const cat = categoriesList.value.find(cat => cat.id === c.id)
+        return { id: c.id, name: cat?.name || `#${c.id}` }
+      }) || [],
+      series: (() => {
+        const s = seriesList.value.find(s => s.id === v.series?.id)
+        return { id: v.series?.id || 0, name: s?.name || `#${v.series?.id}` }
+      })(),
+      study: (() => {
+        const s = studyList.value.find(s => s.id === v.study?.id)
+        return { id: v.study?.id || 0, name: s?.name || `#${v.study?.id}` }
+      })()
+    }))
+
     lastRefreshTime.value = new Date()
+
   } catch (err) {
-    console.error('Error al cargar vídeos:', err)
+    console.error(err)
     error.value = "No s'han pogut carregar els vídeos"
   } finally {
     loading.value = false
   }
 }
 
-// Setup auto-refresh with interval
+// --- Auto-refresh ---
 function setupAutoRefresh() {
-  const interval = props.refreshInterval || 30000 // Default 30 seconds
-  
-  refreshTimer = setInterval(() => {
-    console.log('Auto-refreshing video list...')
-    fetchVideos()
-  }, interval)
+  const interval = props.refreshInterval || 30000
+  refreshTimer = setInterval(fetchAllData, interval)
 }
 
-// Computed property: filter videos based on search query
+// --- Filtrado ---
 const filteredVideos = computed(() => {
-  if (!props.searchQuery.trim()) {
-    return videos.value
-  }
-
+  if (!props.searchQuery.trim()) return videos.value
   const query = props.searchQuery.toLowerCase().trim()
- 
-  // Filter by ID
   if (props.searchType === 1) {
-    return videos.value.filter(video =>
-      video.id.toString().includes(query)
-    )
+    return videos.value.filter(v => v.id.toString().includes(query))
   } else {
-    // Filter by title
-    return videos.value.filter(video =>
-      video.titol.toLowerCase().includes(query)
-    )
+    return videos.value.filter(v => v.title.toLowerCase().includes(query))
   }
 })
 
-// Format last refresh time for display
+// --- Última actualización ---
 const formattedRefreshTime = computed(() => {
   if (!lastRefreshTime.value) return ''
-  
   const now = new Date()
   const diff = Math.floor((now.getTime() - lastRefreshTime.value.getTime()) / 1000)
-  
   if (diff < 60) return `hace ${diff}s`
   if (diff < 3600) return `hace ${Math.floor(diff / 60)}m`
   return lastRefreshTime.value.toLocaleTimeString()
 })
 
-// Initialize on mount
+// --- Lifecycle ---
 onMounted(() => {
-  fetchVideos()
+  fetchAllData()
   setupAutoRefresh()
 })
 
-// Cleanup on unmount
 onUnmounted(() => {
-  if (refreshTimer) {
-    clearInterval(refreshTimer)
-  }
+  if (refreshTimer) clearInterval(refreshTimer)
 })
 
-// Expose refresh function to parent if needed
-defineExpose({
-  fetchVideos
-})
+// --- Expose ---
+defineExpose({ fetchAllData })
 </script>
 
 <template>
@@ -124,16 +149,12 @@ defineExpose({
       Última actualización: {{ formattedRefreshTime }}
     </div>
 
-    <!-- Loading state -->
+    <!-- Loading / Error / Empty -->
     <div v-if="loading" class="status">
       <div class="spinner"></div>
       <p>Carregant...</p>
     </div>
-    
-    <!-- Error state -->
     <div v-else-if="error" class="status error">{{ error }}</div>
-    
-    <!-- Empty state -->
     <div v-else-if="filteredVideos.length === 0" class="status">
       <span v-if="searchQuery">No s'ha trobat cap vídeo amb "{{ searchQuery }}"</span>
       <span v-else>No hi ha vídeos</span>
@@ -142,102 +163,41 @@ defineExpose({
     <!-- Video list -->
     <div v-else class="video-list">
       <VideoCard
-        v-for="video in filteredVideos" 
+        v-for="video in filteredVideos"
         :key="video.id"
         :video="video"
         @edit="goToEdit"
-
       />
     </div>
   </div>
 </template>
 
 <style scoped>
-.video-list-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
+/* Igual que tu estilo anterior */
+.video-list-container { max-width: 1200px; margin: 0 auto; }
 
-/* Refresh indicator */
 .refresh-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 16px;
-  padding: 8px 12px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  width: fit-content;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; color: #666;
+  margin-bottom: 16px; padding: 8px 12px;
+  background: #f8f9fa; border-radius: 8px; width: fit-content;
 }
 
 .refresh-dot {
-  width: 8px;
-  height: 8px;
-  background: #27ae60;
-  border-radius: 50%;
+  width: 8px; height: 8px; background: #27ae60; border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(0.8);
-  }
-}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);} }
 
-/* Video List */
-.video-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+.video-list { display: flex; flex-direction: column; gap: 16px; }
 
-/* Status Messages */
-.status {
-  text-align: center;
-  padding: 80px 20px;
-  font-size: 1.1rem;
-  color: #666;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
+.status { text-align: center; padding: 80px 20px; font-size: 1.1rem; color: #666; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.error { color: #e74c3c; font-weight: 500; }
 
-.error {
-  color: #e74c3c;
-  font-weight: 500;
-}
+.spinner { width: 48px; height: 48px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
 
-/* Loading Spinner */
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
+@keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .video-list {
-    gap: 12px;
-  }
-  
-  .refresh-indicator {
-    font-size: 0.8rem;
-  }
-}
+@media (max-width: 768px) { .video-list { gap: 12px; } .refresh-indicator { font-size: 0.8rem; } }
 </style>

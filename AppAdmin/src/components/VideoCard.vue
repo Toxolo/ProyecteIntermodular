@@ -1,165 +1,250 @@
 <script setup lang="ts">
+interface Category {
+  id: number
+  name?: string
+}
 
-// Define component props interface
-defineProps<{
-  video: {
-    id: number
-    titol: string
-    duracio: number
-    codec: string
-    resolucio: string
-    pes: number
-  }
-}>()
+interface Series {
+  id: number
+  name?: string
+}
 
-// Define emits for events to parent
+interface Study {
+  id: number
+  name?: string
+}
+
+interface Video {
+  id: number
+  title: string
+  description: string
+  duration: number
+  season: number
+  chapter: number
+  rating: number
+  category: Category[]
+  series: Series
+  study: Study
+  resolucio?: string | null
+  codec?: string | null
+  pes?: number | null
+}
+
+const props = defineProps<{ video: Video }>()
+
 const emit = defineEmits<{
   (e: 'edit', videoId: number): void
 }>()
 
-// Format duration from seconds to MM:SS
+const handleEdit = () => emit('edit', props.video.id)
+
 const formatDuration = (seconds: number) => {
   const mins = Math.floor(seconds / 60)
-  const secs = Math.floor(seconds % 60)
+  const secs = seconds % 60
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-// Format file size from KB to readable format
-const formatSize = (kb: number) => {
+const formatSize = (kb: number | null | undefined) => {
+  if (kb == null) return 'N/A'
   if (kb < 1024) return `${kb} KB`
-  const mb = kb / 1024
-  return `${mb.toFixed(1)} MB`
+  return `${(kb / 1024).toFixed(1)} MB`
 }
 
-
-// Emit edit event to parent
-const handleEdit = (videoId: number) => {
-  emit('edit', videoId)
-}
+const thumbnailUrl = `http://localhost:3000/static/${props.video.id}/thumbnail.jpg`
 </script>
 
 <template>
   <div class="video-card">
-    <!-- Card content -->
-    <div class="card-content">
-      <!-- Video title -->
-      <h3 class="title">{{ video.titol }}</h3>
+    <!-- Header -->
+    <div class="card-header">
+      <h3 class="title">{{ props.video.title }}</h3>
 
-      <!-- Video metadata -->
-      <div class="meta">
-        <div>ID: {{ video.id }}</div>
-        <div>Resolució: {{ video.resolucio }}</div>
-        <div>Còdec: {{ video.codec }}</div>
-        <div>Pes: {{ formatSize(video.pes) }}</div>
-        <div>Duracio : {{ formatDuration(video.duracio) }}</div>
+      <button class="edit-btn" @click="handleEdit" title="Editar vídeo">
+        ✏️
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Description + Image -->
+    <div class="top-content">
+      <div class="description">
+        {{ props.video.description }}
+      </div>
+
+      <div class="thumbnail">
+        <img
+          :src="thumbnailUrl"
+          alt="thumbnail"
+          @error="($event.target as HTMLImageElement).style.display='none'"
+        />
       </div>
     </div>
-    
-    <!-- Action buttons container -->
-    <div class="actions">
-      <!-- Edit button -->
-      <button 
-        class="edit-btn" 
-        @click="handleEdit(video.id)"
-        title="Editar video"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-        </svg>
-      </button>
+
+    <!-- Info blocks -->
+    <div class="meta-grid">
+      <!-- Left -->
+      <div class="meta-box">
+        <div><strong>ID:</strong> {{ props.video.id }}</div>
+        <div><strong>Duració:</strong> {{ formatDuration(props.video.duration) }}</div>
+        <div><strong>Còdec:</strong> {{ props.video.codec ?? 'N/A' }}</div>
+        <div><strong>Resolució:</strong> {{ props.video.resolucio ?? 'N/A' }}</div>
+        <div><strong>Pes:</strong> {{ formatSize(props.video.pes) }}</div>
+      </div>
+
+      <!-- Right -->
+      <div class="meta-box">
+        <div><strong>Temporada:</strong> {{ props.video.season }}</div>
+        <div><strong>Capítol:</strong> {{ props.video.chapter }}</div>
+        <div><strong>Valoració:</strong> {{ props.video.rating }}</div>
+
+        <div class="categories">
+          <strong>Categories:</strong>
+          <span v-for="c in props.video.category" :key="c.id" class="chip">
+            {{ c.name || `#${c.id}` }}
+          </span>
+        </div>
+
+        <div><strong>Sèrie:</strong> {{ props.video.series.name || `#${props.video.series.id}` }}</div>
+        <div><strong>Estudi:</strong> {{ props.video.study.name || `#${props.video.study.id}` }}</div>
+      </div>
     </div>
   </div>
 </template>
 
+
 <style scoped>
 .video-card {
   background: white;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-  transition: all 0.18s ease;
+  border-radius: 12px;
   border: 1px solid #e0e0e0;
-  margin: 10px 5px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* HEADER */
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-right: 16px;
-}
-
-.video-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.14);
-}
-
-.card-content {
-  flex: 1;
-  padding: 14px 16px;
 }
 
 .title {
-  margin: 0 0 10px 0;
-  font-size: 1.05rem;
-  line-height: 1.3;
+  margin: 0;
+  font-size: 1.1rem;
   color: #111;
 }
 
-.meta {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 0.84rem;
-  color: #555;
-}
-
-.meta div {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Actions container */
-.actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-/* Edit button */
+/* EDIT BUTTON */
 .edit-btn {
-  padding: 12px;
   border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
   background: #f39c12;
   color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .edit-btn:hover {
   background: #e67e22;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
 }
 
-.edit-btn:active {
-  transform: translateY(0);
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: #ddd;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* DESCRIPTION + IMAGE */
+.top-content {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 12px;
+  align-items: stretch;
+}
+
+/* Description fixed height ≈ 255 chars */
+.description {
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.4;
+  max-height: 120px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  padding-right: 6px;
+}
+
+/* Thumbnail fixed size */
+.thumbnail {
+  width: 180px;
+  height: 120px;
+  background: #f3f3f3;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* META BLOCKS */
+.meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.meta-box {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* CATEGORIES */
+.categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  background: #f1f1f1;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+}
+
+/* RESPONSIVE */
+@media (min-width: 900px) {
   .video-card {
-    flex-direction: column;
-    align-items: stretch;
-    padding-right: 0;
-  }
-  
-  .actions {
-    padding: 0 16px 14px 16px;
-    justify-content: flex-end;
+    max-width: calc(50% - 10px); /* 2 cards por fila */
   }
 }
+
+@media (max-width: 768px) {
+  .top-content {
+    grid-template-columns: 1fr;
+  }
+
+  .thumbnail {
+    width: 100%;
+    height: 160px;
+  }
+
+  .meta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 </style>
