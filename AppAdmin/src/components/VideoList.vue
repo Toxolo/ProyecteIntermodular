@@ -190,7 +190,13 @@ defineExpose({ fetchAllData })
 
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);} }
 
-.video-list { display: flex; flex-direction: column; gap: 16px; }
+.video-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
 
 .status { text-align: center; padding: 80px 20px; font-size: 1.1rem; color: #666; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .error { color: #e74c3c; font-weight: 500; }

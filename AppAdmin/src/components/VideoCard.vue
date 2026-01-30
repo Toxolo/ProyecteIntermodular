@@ -55,44 +55,32 @@ const thumbnailUrl = `http://localhost:3000/static/${props.video.id}/thumbnail.j
 
 <template>
   <div class="video-card">
-    <!-- Header -->
+    <!-- HEADER -->
     <div class="card-header">
       <h3 class="title">{{ props.video.title }}</h3>
-
-      <button class="edit-btn" @click="handleEdit" title="Editar vídeo">
-        ✏️
-      </button>
+      <button class="edit-btn" @click="handleEdit">✏️</button>
     </div>
 
     <div class="divider"></div>
 
-    <!-- Description + Image -->
+    <!-- IMAGE + DESCRIPTION -->
     <div class="top-content">
-      <div class="description">
-        {{ props.video.description }}
-      </div>
-
       <div class="thumbnail">
         <img
           :src="thumbnailUrl"
           alt="thumbnail"
-          @error="($event.target as HTMLImageElement).style.display='none'"
+          @error="($event.target as HTMLImageElement).style.display = 'none'"
         />
+      </div>
+
+      <div class="description">
+        {{ props.video.description }}
       </div>
     </div>
 
-    <!-- Info blocks -->
+    <!-- INFO BLOCKS -->
     <div class="meta-grid">
-      <!-- Left -->
-      <div class="meta-box">
-        <div><strong>ID:</strong> {{ props.video.id }}</div>
-        <div><strong>Duració:</strong> {{ formatDuration(props.video.duration) }}</div>
-        <div><strong>Còdec:</strong> {{ props.video.codec ?? 'N/A' }}</div>
-        <div><strong>Resolució:</strong> {{ props.video.resolucio ?? 'N/A' }}</div>
-        <div><strong>Pes:</strong> {{ formatSize(props.video.pes) }}</div>
-      </div>
-
-      <!-- Right -->
+      <!-- IZQUIERDA -->
       <div class="meta-box">
         <div><strong>Temporada:</strong> {{ props.video.season }}</div>
         <div><strong>Capítol:</strong> {{ props.video.chapter }}</div>
@@ -100,7 +88,11 @@ const thumbnailUrl = `http://localhost:3000/static/${props.video.id}/thumbnail.j
 
         <div class="categories">
           <strong>Categories:</strong>
-          <span v-for="c in props.video.category" :key="c.id" class="chip">
+          <span
+            v-for="c in props.video.category"
+            :key="c.id"
+            class="chip"
+          >
             {{ c.name || `#${c.id}` }}
           </span>
         </div>
@@ -108,10 +100,18 @@ const thumbnailUrl = `http://localhost:3000/static/${props.video.id}/thumbnail.j
         <div><strong>Sèrie:</strong> {{ props.video.series.name || `#${props.video.series.id}` }}</div>
         <div><strong>Estudi:</strong> {{ props.video.study.name || `#${props.video.study.id}` }}</div>
       </div>
+
+      <!-- DERECHA -->
+      <div class="meta-box">
+        <div><strong>ID:</strong> {{ props.video.id }}</div>
+        <div><strong>Duració:</strong> {{ formatDuration(props.video.duration) }}</div>
+        <div><strong>Còdec:</strong> {{ props.video.codec ?? 'N/A' }}</div>
+        <div><strong>Resolució:</strong> {{ props.video.resolucio ?? 'N/A' }}</div>
+        <div><strong>Pes:</strong> {{ formatSize(props.video.pes) }}</div>
+      </div>
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .video-card {
@@ -136,13 +136,12 @@ const thumbnailUrl = `http://localhost:3000/static/${props.video.id}/thumbnail.j
 .title {
   margin: 0;
   font-size: 1.1rem;
-  color: #111;
 }
 
-/* EDIT BUTTON */
+/* BUTTON */
 .edit-btn {
-  border: none;
   background: #f39c12;
+  border: none;
   color: white;
   padding: 8px 10px;
   border-radius: 8px;
@@ -159,39 +158,33 @@ const thumbnailUrl = `http://localhost:3000/static/${props.video.id}/thumbnail.j
   background: #ddd;
 }
 
-/* DESCRIPTION + IMAGE */
+/* IMAGE + DESCRIPTION */
 .top-content {
   display: grid;
-  grid-template-columns: 1fr 180px;
+  grid-template-columns: 180px 1fr;
   gap: 12px;
-  align-items: stretch;
 }
 
-/* Description fixed height ≈ 255 chars */
-.description {
-  font-size: 0.9rem;
-  color: #444;
-  line-height: 1.4;
-  max-height: 120px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  padding-right: 6px;
-}
-
-/* Thumbnail fixed size */
 .thumbnail {
   width: 180px;
   height: 120px;
   background: #f3f3f3;
   border-radius: 8px;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .thumbnail img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.description {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  max-height: 120px;
+  overflow-y: auto;
+  white-space: pre-wrap;
 }
 
 /* META BLOCKS */
@@ -225,13 +218,14 @@ const thumbnailUrl = `http://localhost:3000/static/${props.video.id}/thumbnail.j
   font-size: 0.75rem;
 }
 
-/* RESPONSIVE */
+/* 2 CARDS PER ROW */
 @media (min-width: 900px) {
   .video-card {
-    max-width: calc(50% - 10px); /* 2 cards por fila */
+    max-width: calc(90% - 10px);
   }
 }
 
+/* MOBILE */
 @media (max-width: 768px) {
   .top-content {
     grid-template-columns: 1fr;
@@ -246,5 +240,4 @@ const thumbnailUrl = `http://localhost:3000/static/${props.video.id}/thumbnail.j
     grid-template-columns: 1fr;
   }
 }
-
 </style>
