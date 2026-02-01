@@ -6,10 +6,13 @@ import org.padalustro.application.usecase.Cataleg.DeleteVideoCatalegUseCase;
 import org.padalustro.application.usecase.Cataleg.GetAllVideoCatalegUseCase;
 import org.padalustro.application.usecase.Cataleg.GetVideoCatalegByIdUseCase;
 import org.padalustro.application.usecase.Cataleg.SaveVideoCatalegUseCase;
-import org.padalustro.domain.repository.VideoCatalegRepository;
+import org.padalustro.application.usecase.Cataleg.UpdateVideoCatalegUseCase;
 import org.padalustro.infrastructure.DTO.VideoCatalegDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,16 +21,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
 @RequestMapping("/Cataleg")
 public class VideoCatalegController {
-    @Autowired
-    private VideoCatalegRepository videoCatalegRepository;
+
+    private final UpdateVideoCatalegUseCase putVideoCataleg;
     private final SaveVideoCatalegUseCase postVideoCataleg;
     private final GetAllVideoCatalegUseCase getAllVideoCataleg;
     private final GetVideoCatalegByIdUseCase getVideoCatalegById;
@@ -37,13 +36,17 @@ public class VideoCatalegController {
             GetAllVideoCatalegUseCase getAllVideoCataleg,
             GetVideoCatalegByIdUseCase getVideoCatalegById,
             DeleteVideoCatalegUseCase deleteVideoCataleg,
-            SaveVideoCatalegUseCase postVideoCataleg) {
+            SaveVideoCatalegUseCase postVideoCataleg,
+            UpdateVideoCatalegUseCase putVideoCataleg) {
 
         this.getAllVideoCataleg = getAllVideoCataleg;
         this.getVideoCatalegById = getVideoCatalegById;
         this.deleteVideoCataleg = deleteVideoCataleg;
         this.postVideoCataleg = postVideoCataleg;
+        this.putVideoCataleg = putVideoCataleg;
     }
+
+
 
     @GetMapping("/")
     public String helloWorld() {
@@ -76,8 +79,6 @@ public class VideoCatalegController {
         return ResponseEntity.status(201).build();
     }
 
-    // to-do:
-    // cambiar a use case
     @PutMapping("/{id}")
     @CrossOrigin(origins = "*")
     @PreAuthorize("#jwt.claims['is_admin'] == true")
@@ -85,12 +86,15 @@ public class VideoCatalegController {
             @PathVariable Long id,
             @RequestBody VideoCatalegDTO video,
             @AuthenticationPrincipal Jwt jwt) {
-        if (!videoCatalegRepository.existsById(id)) {
+
+        boolean updated = putVideoCataleg.execute(id, video);
+
+        if (!updated) {
             return ResponseEntity.notFound().build();
         }
 
-        videoCatalegRepository.updateVideoCataleg(id, video);
         return ResponseEntity.ok().build();
     }
+
 
 }

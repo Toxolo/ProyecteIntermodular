@@ -32,3 +32,5 @@ public interface VideoCatalegRepository {
     void updateVideoCataleg(Long id, VideoCatalegDTO dto);
     
 }
+
+

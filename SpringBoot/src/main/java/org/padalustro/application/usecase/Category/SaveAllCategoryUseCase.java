@@ -4,8 +4,9 @@ import java.util.List;
 
 import org.padalustro.domain.repository.CategoriaRepository;
 import org.padalustro.infrastructure.DTO.CategoriaDTO;
+import org.springframework.stereotype.Component;
 
-
+@Component
 public class SaveAllCategoryUseCase {
 
     private final CategoriaRepository categoryRepository;
