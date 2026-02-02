@@ -1,21 +1,21 @@
+// src/services/api.ts
 import axios from 'axios'
-import { getToken } from '../utils/auth'
+import { getTokenFromCookie } from '../utils/auth'  // Assegura’t que és la funció correcta
 
 const api = axios.create({
   baseURL: 'http://localhost:8090'
 })
 
-// Interceptor de request
+// Interceptor per afegir el token automàticament
 api.interceptors.request.use(config => {
-  const token = getToken()
+  const token = getTokenFromCookie() // obté token de les cookies
   if (token) {
-    // Aquí usamos la función oficial de Axios para asegurarnos de que headers es AxiosHeaders
-    config.headers = config.headers ?? {} // si headers es undefined, lo inicializamos
+    config.headers = config.headers ?? {}
     if ('set' in config.headers) {
-      // Si ya es AxiosHeaders
+      // Si ja és AxiosHeaders
       config.headers.set('Authorization', `Bearer ${token}`)
     } else {
-      // Si es objeto literal
+      // Si és un object literal
       (config.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`
     }
   }

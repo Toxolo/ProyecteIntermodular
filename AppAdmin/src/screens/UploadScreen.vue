@@ -138,176 +138,180 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '../services/api' // ← importem el axios amb token automàtic
 import { useToast, POSITION } from 'vue-toastification'
 
 const toast = useToast()
 
-// ── File & Preview ────────────────────────────────────────
+// ── File & Preview ─────────────────────────
 const file = ref<File | null>(null)
 const previewUrl = ref<string>('')
 const fileInput = ref<HTMLInputElement | null>(null)
 
-// ── Progress & Status ─────────────────────────────────────
+// ── Progress & Status ─────────────────────
 const progressBar = ref(0)
 const progressMessage = ref('')
 const uploading = ref(false)
 const error = ref('')
 
-// ── Form Data ─────────────────────────────────────────────
+// ── Form Data ─────────────────────────────
 const form = ref({
   id: 0,
   title: '',
   description: '',
-  category: [
-    {
-      id: 0
-    },
-    {
-      id: 0
-    }
-  ],
+  category: [] as Array<{ id: number }>,
   study: { id: 0 },
-  series: { id: 0},
+  series: { id: 0 },
   season: null as number | null,
   chapter: null as number | null,
   duration: 0
-
 })
 const category1 = ref<number | null>(null)
 const category2 = ref<number | null>(null)
 const estudioId = ref<number | null>(null)
 const seriesId = ref<number | null>(null)
 
-// ── Backend Data (dropdowns) ──────────────────────────────
-const categories = ref<Array<{ id?: string; name: string }>>([])
-const estudios = ref<Array<{ id?: string; name: string }>>([])
-const series = ref<Array<{ id?: string; name: string }>>([])
+// ── Backend Data (dropdowns) ─────────────
+const categories = ref<Array<{ id: number; name: string }>>([])
+const estudios = ref<Array<{ id: number; name: string }>>([])
+const series = ref<Array<{ id: number; name: string }>>([])
 
 const loadingCategories = ref(false)
 const loadingEstudios = ref(false)
 const loadingSeries = ref(false)
 
-const emit = defineEmits(['close'])
+let ws: WebSocket
+let clientId: string
 
-let ws;
-let clientId: string;
-
-// ── Helpers ───────────────────────────────────────────────
+// ── Helpers ───────────────────────────────
 function formatFileSize(bytes?: number): string {
   if (!bytes) return '0.0'
   return (bytes / 1024 / 1024).toFixed(1)
 }
 
-// ── File selection ────────────────────────────────────────
 function handleFileChange(e: Event) {
   const input = e.target as HTMLInputElement
   const selected = input.files?.[0]
   if (!selected) return
-
   if (!selected.type.startsWith('video/')) {
     error.value = 'Solo se permiten archivos de vídeo'
     return
   }
-
   if (selected.size > 500 * 1024 * 1024) {
     error.value = 'El vídeo es demasiado grande (máx. 500 MB)'
     return
   }
-
   file.value = selected
   previewUrl.value = URL.createObjectURL(selected)
   error.value = ''
-  setName()
+  form.value.title = selected.name.replace(/\.[^/.]+$/, "")
 }
 
-function setName(){
-  if (file.value){
-    form.value.title = file.value.name.replace(/\.[^/.]+$/, "")
-  }
-}
-
-// ── Load dropdown data ─────────────────────────────────────
+// ── Load dropdowns ─────────────────────────
 async function loadReferenceData() {
   loadingCategories.value = true
   loadingEstudios.value = true
   loadingSeries.value = true
 
-  await Promise.allSettled([
-    axios.get('http://localhost:8090/Category')
-      .then(r => { categories.value = r.data })
-      .catch(err => console.error('Categories failed', err))
-      .finally(() => loadingCategories.value = false),
-
-    axios.get('http://localhost:8090/Estudi')
-      .then(r => { estudios.value = r.data })
-      .catch(err => console.error('Estudios failed', err))
-      .finally(() => loadingEstudios.value = false),
-
-    axios.get('http://localhost:8090/Serie')
-      .then(r => { series.value = r.data })
-      .catch(err => console.error('Series failed', err))
-      .finally(() => loadingSeries.value = false)
-  ])
+  try {
+    const [catRes, estRes, serRes] = await Promise.all([
+      api.get('/Category'),
+      api.get('/Estudi'),
+      api.get('/Serie')
+    ])
+    categories.value = catRes.data
+    estudios.value = estRes.data
+    series.value = serRes.data
+  } catch (err) {
+    console.error('Error cargando datos de referencia', err)
+  } finally {
+    loadingCategories.value = false
+    loadingEstudios.value = false
+    loadingSeries.value = false
+  }
 }
 
-
-
-// Connect to WebSocket
+// ── WebSocket ─────────────────────────────
 async function connectWebSocket() {
-  ws = new WebSocket('ws://localhost:3000/vid');
+  ws = new WebSocket('ws://localhost:3000/vid')
 
-  ws.onopen = () => {
-    console.log('WebSocket connected');
-  };
+  ws.onopen = () => console.log('WebSocket connected')
 
   ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    console.log('Received:', data);
+    const data = JSON.parse(event.data)
     switch (data.type) {
       case 'connection':
-        clientId = data.clientId;
-        console.log('Assigned clientId:', clientId);
-        break;
+        clientId = data.clientId
+        break
       case 'progress':
-        console.log(data)
         if (data.clientId === clientId) {
-          progressBar.value = data.progress;
-          progressMessage.value = data.message;
-          console.log(`Progress: ${data.progress}% - ${data.message}`);
+          progressBar.value = data.progress
+          progressMessage.value = data.message
         }
-        break;
-      case 'processing-start':
-        console.log('Processing started');
-        break;
-      case 'processing-complete':
-        if (data.clientId === clientId) {
-          progressBar.value = 100;
-          console.log('Video processing complete. URL:', data.playlistUrl);
-          toast.success('Vídeo subido y añadido correctamente', {
-            position: POSITION.TOP_CENTER,
-            timeout: 4000
-          })
-        }
-        break;
+        break
       case 'metadata':
         if (data.clientId === clientId) {
-          console.log ('Metadata received:', data.videoId, data.duration);
-          form.value.id = data.videoId;
-          form.value.duration = data.duration;
-          console.log('Metadata received:', data);
-        }else{
-          console.log('Metadata for different clientId, ignoring.');
+          form.value.id = data.videoId
+          form.value.duration = data.duration
         }
-        break;
-      case 'error':
-        console.error('Error:', data.error);
-        break;
+        break
     }
-  };
-  ws.onclose = () => {
-    console.log('WebSocket disconnected');
-  };
+  }
+  ws.onclose = () => console.log('WebSocket disconnected')
+}
+
+// ── Upload video + save ───────────────────
+async function uploadVideoAndSave() {
+  if (!file.value) return false
+  uploading.value = true
+  error.value = ''
+
+  try {
+    // 1️⃣ Upload video to video service
+    const fd = new FormData()
+    fd.append('video', file.value)
+    await api.post('http://localhost:3000/vid', fd, { headers: { 'X-Client-Id': clientId } })
+
+    // 2️⃣ Prepare payload EXACTO como lo espera el backend
+    const payload = {
+      id: Number(form.value.id) || Date.now(), // ejemplo de id único si no tienes uno
+      title: form.value.title || 'Sin título',
+      description: form.value.description || '',
+      duration: Number(form.value.duration) || 0,
+      chapter: Number(form.value.chapter) || 1,
+      season: Number(form.value.season) || 1,
+      rating: 0.0, // default si no tienes rating
+      thumbnail: '', // o asigna la thumbnail si la tienes
+      category: [] as Array<{ id: number }>,
+      study: { id: estudioId.value || 0 },
+      series: { id: seriesId.value || 0 }
+    }
+
+    // Añadir categorías
+    if (category1.value) payload.category.push({ id: Number(category1.value) })
+    if (category2.value) payload.category.push({ id: Number(category2.value) })
+
+    // Evitar array vacío
+    if (payload.category.length === 0) payload.category.push({ id: 0 })
+
+    console.log('Payload enviado:', payload) // para depuración
+
+    // 3️⃣ POST al backend con token automático via api
+    await api.post('/Cataleg', payload)
+
+    toast.success('Vídeo subido y añadido correctamente', { position: POSITION.TOP_CENTER, timeout: 4000 })
+    resetForm()
+    return true
+
+  } catch (err: any) {
+    console.error('Error al guardar el vídeo:', err)
+    error.value = err.response?.data?.message || 'Error al guardar el vídeo'
+    return false
+
+  } finally {
+    uploading.value = false
+    progressBar.value = 0
+  }
 }
 
 
@@ -318,102 +322,32 @@ function resetForm() {
     id: 0,
     title: '',
     description: '',
-    category: [] as Array<{ id: number }>,
+    category: [],
     study: { id: 0 },
     series: { id: 0 },
-    season: null as number | null,
-    chapter: null as number | null,
+    season: null,
+    chapter: null,
     duration: 0
-
   }
-  error.value = ''
-  progressBar.value = 0
+  category1.value = null
+  category2.value = null
+  estudioId.value = null
+  seriesId.value = null
 }
 
-// ── Video upload + save to catalog ────────────────────────
-async function uploadVideoAndSave() {
-  if (!file.value) return false
-
-  uploading.value = true
-  error.value = ''
-
-  try {
-
-    // Prepare form data
-    const fd = new FormData()
-    fd.append('video', file.value)
-
-    // Upload video to video service
-    await axios.post('http://localhost:3000/vid', fd, {
-      headers: {
-        'X-Client-Id': clientId
-      }
-    });
-
-    // Prepare catalog data
-    form.value.category = []
-
-    if (category1.value) {
-      form.value.category.push({ id: category1.value })
-    }
-    if (category2.value) {
-      form.value.category.push({ id: category2.value })
-    }
-    if (estudioId.value) {
-      form.value.study = { id: estudioId.value }
-    }
-    if (seriesId.value) {
-      form.value.series = { id: seriesId.value }
-    }
-
-
-    await axios.post('http://localhost:8090/Cataleg', form.value)
-
-    // TODO: Send form data to your catalog/create endpoint
-    // Example:
-    // await axios.post('http://localhost:8090/videos' or similar, form.value)
-
-    return true
-
-  } catch (err: any) {
-    error.value = err.response?.data?.message || 'Error al subir el vídeo'
-    return false
-  } finally {
-    uploading.value = false
-    progressBar.value = 0
-  }
-}
-
-
-
-
-
-
-
+// ── Save button ──────────────────────────
 async function handleSave() {
-  const success = await uploadVideoAndSave()
-
-  if (success) {
-    toast.success('Vídeo subido y añadido correctamente', {
-      position: POSITION.TOP_CENTER,
-      timeout: 4000
-    })
-
-    resetForm()
-  }
+  await uploadVideoAndSave()
 }
 
-// ── Lifecycle ─────────────────────────────────────────────
+// ── Lifecycle ────────────────────────────
 onMounted(() => {
-  (async () => {
-    await Promise.all([
-      loadReferenceData(),
-      connectWebSocket()
-    ])
-  })()
+  loadReferenceData()
+  connectWebSocket()
 })
-
 </script>
+
+
 
 <style scoped>
 html,
