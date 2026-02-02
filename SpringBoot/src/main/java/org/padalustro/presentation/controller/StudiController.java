@@ -2,17 +2,12 @@ package org.padalustro.presentation.controller;
 
 import java.util.List;
 
-import org.padalustro.application.usecase.Category.DeleteCategoryUseCase;
-import org.padalustro.application.usecase.Category.GetAllCategoryUseCase;
-import org.padalustro.application.usecase.Category.SaveAllCategoryUseCase;
-import org.padalustro.application.usecase.Category.SaveCategoryUseCase;
-import org.padalustro.application.usecase.Category.UpdateCategoryUseCase;
+
 import org.padalustro.application.usecase.Estudi.DeleteStudiUseCase;
 import org.padalustro.application.usecase.Estudi.GetAllStudiUseCase;
 import org.padalustro.application.usecase.Estudi.SaveAllStudiUseCase;
 import org.padalustro.application.usecase.Estudi.SaveStudiUseCase;
 import org.padalustro.application.usecase.Estudi.UpdateStudiUseCase;
-import org.padalustro.infrastructure.DTO.CategoriaDTO;
 import org.padalustro.infrastructure.DTO.EstudiDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

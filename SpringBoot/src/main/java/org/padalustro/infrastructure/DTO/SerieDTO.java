@@ -1,5 +1,4 @@
-package org.padalustro.infrastructure.DTO
-;
+package org.padalustro.infrastructure.DTO;
 
 import java.io.Serializable;
 
@@ -9,29 +8,32 @@ import lombok.Data;
 
 @Data
 public class SerieDTO implements Serializable {
+
     private Long id;
     private String name;
+    private String classification;
 
     public SerieDTO() {}
 
-    public SerieDTO(Long id, String name) {
+    public SerieDTO(Long id, String name, String classification) {
         this.id = id;
         this.name = name;
+        this.classification = classification;
     }
 
     public static SerieDTO convertToDTO(serie serie) {
-        SerieDTO SerieDTO = new SerieDTO();
-        SerieDTO.setId(serie.getId());
-        SerieDTO.setName(serie.getName());
-        return SerieDTO;
+        SerieDTO dto = new SerieDTO();
+        dto.setId(serie.getId());
+        dto.setName(serie.getName());
+        dto.setClassification(serie.getClassification());
+        return dto;
     }
 
     public serie toEntity() {
         serie serie = new serie();
         serie.setId(this.id);
         serie.setName(this.name);
+        serie.setClassification(this.classification);
         return serie;
     }
-
-    
 }

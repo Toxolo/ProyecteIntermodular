@@ -3,6 +3,7 @@ package org.padalustro.infrastructure.repository;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.padalustro.domain.entities.serie;
 import org.padalustro.domain.repository.SerieRepository;
 import org.padalustro.infrastructure.DTO.SerieDTO;
 import org.padalustro.infrastructure.repository.jpa.SerieJpaRepository;
@@ -29,18 +30,40 @@ public class SerieRepositoryImpl implements SerieRepository {
         return listAllSeries();
     }
 
-    @Override
-    public void saveAll(List<SerieDTO> Series) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'saveAll'");
-    }
+    
     @Override
     public List<SerieDTO> findByType(String type) {
         return jpaRepository.findByNameIgnoreCase(type)
             .stream()
             .map(SerieDTO::convertToDTO)
             .toList();
-}
+    }
+
+    @Override
+    public void saveAll(List<SerieDTO> series) {
+        List<serie> entities = series.stream()
+                .map(SerieDTO::toEntity)
+                .collect(Collectors.toList());
+        jpaRepository.saveAll(entities);
+    }
+
+    @Override
+    public void save(SerieDTO serieDTO) {
+        jpaRepository.save(serieDTO.toEntity());
+    }
+
+    @Override
+    public void updateById(Long id, SerieDTO dto) {
+        jpaRepository.findById(id).ifPresent(entity -> {
+            entity.setName(dto.getName()); 
+            jpaRepository.save(entity);
+        });
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        jpaRepository.deleteById(id);
+    }
 
 
 }

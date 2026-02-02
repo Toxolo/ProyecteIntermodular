@@ -12,7 +12,11 @@ public interface SerieRepository {
     List<SerieDTO> listAllSeries();
     List<SerieDTO> findAllDTO();
     void saveAll(List<SerieDTO> serie);
-    
     List<SerieDTO> findByType(String type);
+
+
+    void save(SerieDTO serie);
+    void updateById(Long id, SerieDTO dto);
+    void deleteById(Long id);
 
 }

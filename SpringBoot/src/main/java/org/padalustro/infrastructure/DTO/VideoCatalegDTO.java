@@ -23,8 +23,6 @@ public class VideoCatalegDTO implements Serializable {
 
     private String description;
 
-    private Integer classification;
-
     private String thumbnail;
 
     private Set<CategoriaIdDTO> category;
@@ -52,7 +50,6 @@ public class VideoCatalegDTO implements Serializable {
         videoCatalegDTO.setId(videoCataleg.getId());
         videoCatalegDTO.setTitle(videoCataleg.getTitle());
         videoCatalegDTO.setDescription(videoCataleg.getDescription());
-        videoCatalegDTO.setClassification(videoCataleg.getClassification());
         videoCatalegDTO.setThumbnail(videoCataleg.getThumbnail());
         if (videoCataleg.getCategory() != null) {
             videoCatalegDTO.setCategory(videoCataleg.getCategory().stream()
@@ -80,7 +77,6 @@ public class VideoCatalegDTO implements Serializable {
         videoCataleg.setId(this.getId());
         videoCataleg.setTitle(this.getTitle());
         videoCataleg.setDescription(this.getDescription());
-        videoCataleg.setClassification(this.getClassification());
         videoCataleg.setThumbnail(this.getThumbnail());
 
         if (this.getCategory() != null) {

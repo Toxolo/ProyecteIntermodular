@@ -32,8 +32,6 @@ public class video_cataleg {
     @Column(nullable = false)
     private String description;
 
-    @Column(nullable = false)
-    private Integer classification;
 
     @ManyToMany
     @JoinTable(name = "video_categoria", joinColumns = @JoinColumn(name = "id_video_cataleg"), inverseJoinColumns = @JoinColumn(name = "categoria_id"))
@@ -75,7 +73,6 @@ public class video_cataleg {
             Integer duration) {
         this.title = title;
         this.description = description;
-        this.classification = classification;
         this.thumbnail = thumbnail;
         this.category = category;
         this.study = study;
