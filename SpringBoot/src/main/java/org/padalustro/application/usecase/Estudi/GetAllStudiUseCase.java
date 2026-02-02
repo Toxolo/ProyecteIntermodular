@@ -6,11 +6,11 @@ import org.padalustro.domain.repository.EstudiRepository;
 import org.padalustro.infrastructure.DTO.EstudiDTO;
 import org.springframework.stereotype.Service;
 @Service
-public class GetAllEstudiUseCase {
+public class GetAllStudiUseCase {
 
     private final EstudiRepository EstudiRepository;
 
-    public GetAllEstudiUseCase(EstudiRepository EstudiRepository) {
+    public GetAllStudiUseCase(EstudiRepository EstudiRepository) {
         this.EstudiRepository = EstudiRepository;
     }
 

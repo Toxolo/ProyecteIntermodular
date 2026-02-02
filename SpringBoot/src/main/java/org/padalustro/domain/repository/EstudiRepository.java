@@ -11,8 +11,14 @@ public interface EstudiRepository {
 
     List<EstudiDTO> listAllEstudis();
     List<EstudiDTO> findAllDTO();
-    void saveAll(List<EstudiDTO> estudi);
-    
+    void saveAll(List<EstudiDTO> estudis);
     List<EstudiDTO> findByType(String type);
+
+
+
+
+    void save(EstudiDTO estudi);
+    void updateById(Long id, EstudiDTO dto);
+    void deleteById(Long id);
 
 }
