@@ -54,11 +54,12 @@ export const getVideoById = async (req, res) => {
         if (rows.length === 0) {
             return res.status(404).json({ error: "Video no encontrado" });
         }
+        const playlistPath = path.join(process.cwd(), rows[0].url);
 
-        res.status(200).json({
-            videoUrl: rows[0].url
-        });
-
+            if (!fs.existsSync(playlistPath)) {
+                return res.status(404).json({ error: "Archivo no encontrado" });
+            }
+            res.sendFile(playlistPath);
     } catch (err) {
         res.status(500).json({
             error: "Failed to fetch video",
@@ -119,8 +120,7 @@ export const processVideo = (req, res) => {
             if (code === 0) {
 
                 WS.sendProgress(clientId, 100, 'Video processing completed');
-                req.processedVideoPath = `/public/${videoId}/index.m3u8`;
-                // Complete processing
+                req.processedVideoPath = `${videoId}/index.m3u8`;
                 WS.completeProcessing(clientId, {
                     videoId,
                     videoUrl: req.processedVideoPath,

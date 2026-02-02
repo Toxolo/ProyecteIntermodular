@@ -43,7 +43,6 @@ app.use(express.static('public'))
 export const publicPath = path.join(__dirname, 'public');
 console.log(publicPath);
 
-app.use('/static', express.static('public'));
 
 
 app.use(Routes);
