@@ -1,6 +1,5 @@
 package org.padalustro.domain.entities;
 
-
 import java.sql.Date;
 import java.util.Set;
 
@@ -13,8 +12,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-
-
 
 // many to one serie
 // many to one estudi
@@ -35,12 +32,11 @@ public class video_cataleg {
     @Column(nullable = false)
     private String description;
 
+    @Column(nullable = false)
+    private Integer classification;
+
     @ManyToMany
-    @JoinTable(
-        name = "video_categoria",
-        joinColumns = @JoinColumn(name = "id_video_cataleg"),
-        inverseJoinColumns = @JoinColumn(name = "categoria_id")
-    )
+    @JoinTable(name = "video_categoria", joinColumns = @JoinColumn(name = "id_video_cataleg"), inverseJoinColumns = @JoinColumn(name = "categoria_id"))
     private Set<categoria> category;
 
     @ManyToOne
@@ -49,7 +45,7 @@ public class video_cataleg {
 
     @Column(nullable = true)
     private double rating;
-    
+
     @Column(nullable = true)
     private Integer season;
 
@@ -60,9 +56,11 @@ public class video_cataleg {
     @Column(nullable = false)
     private Integer chapter;
 
-    @Column(name = "date_emission", insertable = false, updatable = false)
-    private Date date_emission;
+    @Column(name = "date_emission", nullable = false)
+    private Date date_emission = new Date(System.currentTimeMillis());
 
+    @Column(nullable = false)
+    private String thumbnail;
 
     @Column(nullable = false)
     private Integer duration;
@@ -70,18 +68,24 @@ public class video_cataleg {
     public video_cataleg() {
     }
 
-    public video_cataleg(String title, String description, Set<categoria> category, estudi study,
+    public video_cataleg(String title, String description, Integer classification, String thumbnail,
+            Set<categoria> category,
+            estudi study,
             double rating, Integer season, serie series, Integer chapter, Date date_emission,
             Integer duration) {
         this.title = title;
         this.description = description;
+        this.classification = classification;
+        this.thumbnail = thumbnail;
         this.category = category;
         this.study = study;
         this.rating = rating;
         this.season = season;
         this.series = series;
         this.chapter = chapter;
-        this.date_emission = date_emission;
+        if (date_emission != null) {
+            this.date_emission = date_emission;
+        }
 
         this.duration = duration;
     }
@@ -117,7 +121,6 @@ public class video_cataleg {
     public void setCategory(Set<categoria> category) {
         this.category = category;
     }
-
 
     public estudi getStudy() {
         return study;
@@ -167,7 +170,6 @@ public class video_cataleg {
         this.date_emission = date_emission;
     }
 
-
     public Integer getDuration() {
         return duration;
     }
@@ -176,6 +178,4 @@ public class video_cataleg {
         this.duration = duration;
     }
 
-
-    
 }
