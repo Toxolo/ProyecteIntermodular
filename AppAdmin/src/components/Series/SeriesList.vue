@@ -3,11 +3,13 @@
 import { ref, onMounted, computed } from 'vue'
 import api from '../../services/api'
 
-import CategoriesCard from './CategoriesCard.vue'
+import SeriesCard from './SeriesCard.vue'
 
-interface Category {
+interface Serie {
   id: number
   name: string
+  classification: number
+  
 }
 
 const props = defineProps<{
@@ -16,49 +18,55 @@ const props = defineProps<{
   refreshInterval?: number
 }>()
 
-const categories = ref<Category[]>([])
+const series = ref<Serie[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
 const token = localStorage.getItem('token')
 
-async function fetchCategories() {
+async function fetchSeries() {
   try {
     loading.value = true
     error.value = null
 
-    const res = await api.get('http://localhost:8090/Category', {
+    const res = await api.get('http://localhost:8090/Serie', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
 
-    categories.value = res.data
+    series.value = res.data
   } catch (e) {
     console.error(e)
-    error.value = 'No s’han pogut carregar les categories'
+    error.value = 'No s’han pogut carregar les series'
   } finally {
     loading.value = false
   }
 }
 
-const filteredCategories = computed(() => {
-  if (!props.searchQuery.trim()) return categories.value
+const filteredSeries = computed(() => {
+  if (!props.searchQuery.trim()) return series.value
 
   const q = props.searchQuery.toLowerCase()
 
   if (props.searchType === 1) {
-    return categories.value.filter(c =>
+    return series.value.filter(c =>
       c.id.toString().includes(q)
     )
   }
 
-  return categories.value.filter(c =>
+  if (props.searchType === 2) {
+    return series.value.filter(c =>
+      c.classification.toString().includes(q)
+    )
+  }
+
+  return series.value.filter(c =>
     c.name.toLowerCase().includes(q)
   )
 })
 
-onMounted(fetchCategories)
+onMounted(fetchSeries)
 </script>
 
 <template>
@@ -69,15 +77,15 @@ onMounted(fetchCategories)
       {{ error }}
     </div>
 
-    <div v-else-if="filteredCategories.length === 0" class="categories-status">
-      No hi ha categories
+    <div v-else-if="filteredSeries.length === 0" class="categories-status">
+      No hi han series
     </div>
 
     <div v-else class="categories-list">
-      <CategoriesCard
-        v-for="cat in filteredCategories"
+      <SeriesCard
+        v-for="cat in filteredSeries"
         :key="cat.id"
-        :category="cat"
+        :serie="cat"
       />
     </div>
   </div>

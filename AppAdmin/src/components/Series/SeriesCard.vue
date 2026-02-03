@@ -1,9 +1,32 @@
+<script setup lang="ts">
+interface Serie {
+  id: number
+  name: string
+  classification: number
+}
+
+defineProps<{
+  serie: Serie
+}>()
+</script>
+
+<template>  
+  <div v-if="serie" class="category-card">
+    <strong>{{ serie.name }}</strong>
+    <span>Clasificació: {{ serie.classification }}</span>
+    <span>id:{{ serie.id }}</span>
+  </div>
+</template>
+
+
+<style scoped>
+
 .category-card {
   background: white;
   border-radius: 12px;
   border: 1px solid #e0e0e0;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  padding: 6px;
+  padding: 15px 6px; /* 10px dalt i baix, 6px esquerra i dreta */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -28,3 +51,6 @@ strong, span {
   white-space: nowrap;
   padding-left: 15px;
 }
+
+
+</style>

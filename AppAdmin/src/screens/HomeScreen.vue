@@ -3,6 +3,8 @@
 import { ref } from 'vue'
 import VideoList from '../components/VideoList.vue'
 import CategoriesList from '../components/Categories/CategoriesList.vue'
+import SeriesList from '../components/Series/SeriesList.vue'
+import EstudisList from '../components/Estudis/EstudiList.vue'
 import UploadScreen from '../screens/UploadScreen.vue'
 import TopBar from '../components/TopBar.vue'
 
@@ -114,15 +116,82 @@ function handleEditVideo(videoId: number) {
     </div>
 
     <!-- ================= SERIES ================= -->
-    <div v-else-if="activeSection === 'series'">
-      <p>Gestió de sèries (per crear després)</p>
+     <div v-else-if="activeSection === 'series'">
+      <div class="filters-wrapper">
+        <select v-model="selected">
+          <option
+            v-for="type in tipoBuscador"
+            :key="type.id"
+            :value="type.id"
+            
+
+          >
+            {{ type.name }}
+          </option>
+        </select>
+
+        <div class="search-container">
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Buscar Series..."
+            class="search-input"
+          />
+          <span
+            v-if="searchQuery"
+            class="clear-btn"
+            @click="searchQuery = ''"
+          >
+            ×
+          </span>
+        </div>
+      </div>
+
+      <SeriesList
+        :search-query="searchQuery"
+        :search-type="selected"
+        :refresh-interval="refreshInterval"
+      />
     </div>
 
+  
     <!-- ================= STUDIOS ================= -->
-    <div v-else-if="activeSection === 'studios'">
-      <p>Gestió d’estudis (per crear després)</p>
+      <div v-else-if="activeSection === 'studios'">
+        <div class="filters-wrapper">
+          <select v-model="selected">
+            <option
+              v-for="type in tipoBuscador"
+              :key="type.id"
+              :value="type.id"
+            >
+              {{ type.name }}
+            </option>
+          </select>
+
+          <div class="search-container">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Buscar estudi..."
+              class="search-input"
+            />
+            <span
+              v-if="searchQuery"
+              class="clear-btn"
+              @click="searchQuery = ''"
+            >
+              ×
+            </span>
+          </div>
+        </div>
+
+        <EstudisList
+          :search-query="searchQuery"
+          :search-type="selected"
+          :refresh-interval="refreshInterval"
+        />
+      </div>
     </div>
-  </div>
 </template>
 
 <style src="../assets/css/home.css"></style>

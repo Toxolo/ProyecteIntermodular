@@ -1,18 +1,18 @@
 <script setup lang="ts">
-interface Category {
+interface Estudi {
   id: number
   name: string
 }
 
 defineProps<{
-  category: Category
+  estudi: Estudi
 }>()
 </script>
 
 <template>
-  <div v-if="category" class="category-card">
-    <strong>{{ category.name }}</strong>
-    <span>id:{{ category.id }}</span>
+  <div v-if="estudi" class="category-card">
+    <strong>{{ estudi.name }}</strong>
+    <span>id:{{ estudi.id }}</span>
   </div>
 </template>
 

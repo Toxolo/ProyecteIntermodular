@@ -3,9 +3,9 @@
 import { ref, onMounted, computed } from 'vue'
 import api from '../../services/api'
 
-import CategoriesCard from './CategoriesCard.vue'
+import EstudiCard from './EstudiCard.vue'
 
-interface Category {
+interface Estudi {
   id: number
   name: string
 }
@@ -16,49 +16,49 @@ const props = defineProps<{
   refreshInterval?: number
 }>()
 
-const categories = ref<Category[]>([])
+const estudis = ref<Estudi[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
 const token = localStorage.getItem('token')
 
-async function fetchCategories() {
+async function fetchEstudis() {
   try {
     loading.value = true
     error.value = null
 
-    const res = await api.get('http://localhost:8090/Category', {
+    const res = await api.get('http://localhost:8090/Estudi', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
 
-    categories.value = res.data
+    estudis.value = res.data
   } catch (e) {
     console.error(e)
-    error.value = 'No s’han pogut carregar les categories'
+    error.value = 'No s’han pogut carregar els studis'
   } finally {
     loading.value = false
   }
 }
 
-const filteredCategories = computed(() => {
-  if (!props.searchQuery.trim()) return categories.value
+const filteredEstudis = computed(() => {
+  if (!props.searchQuery.trim()) return estudis.value
 
   const q = props.searchQuery.toLowerCase()
 
   if (props.searchType === 1) {
-    return categories.value.filter(c =>
+    return estudis.value.filter(c =>
       c.id.toString().includes(q)
     )
   }
 
-  return categories.value.filter(c =>
+  return estudis.value.filter(c =>
     c.name.toLowerCase().includes(q)
   )
 })
 
-onMounted(fetchCategories)
+onMounted(fetchEstudis)
 </script>
 
 <template>
@@ -69,15 +69,15 @@ onMounted(fetchCategories)
       {{ error }}
     </div>
 
-    <div v-else-if="filteredCategories.length === 0" class="categories-status">
-      No hi ha categories
+    <div v-else-if="filteredEstudis.length === 0" class="categories-status">
+      No hi han estudis
     </div>
 
     <div v-else class="categories-list">
-      <CategoriesCard
-        v-for="cat in filteredCategories"
+      <EstudiCard
+        v-for="cat in filteredEstudis"
         :key="cat.id"
-        :category="cat"
+        :estudi="cat"
       />
     </div>
   </div>
