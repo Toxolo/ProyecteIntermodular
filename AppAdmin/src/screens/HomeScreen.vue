@@ -7,6 +7,8 @@ import SeriesList from '../components/Series/SeriesList.vue'
 import EstudisList from '../components/Estudis/EstudiList.vue'
 import UploadScreen from '../screens/UploadScreen.vue'
 import UploadSeriesScreen from '../components/Series/UploadSeriesScreen.vue'
+import UploadEstudiScreen from '../components/Estudis/UploadEstudisScreen.vue'
+import UploadCategoriesScreen from '../components/Categories/UploadCategoriesScreen.vue'
 import TopBar from '../components/TopBar.vue'
 
 // ================== Secció activa ==================
@@ -15,6 +17,8 @@ const activeSection = ref<'videos' | 'series' | 'categories' | 'studios'>('video
 // ================== Modals Upload ==================
 const showUploadVideoScreen = ref(false)
 const showUploadSeriesScreen = ref(false)
+const showUploadEstudiScreen = ref(false)
+const showUploadCategoriesScreen = ref(false)
 
 // ================== Buscador ==================
 const tipoBuscador = [
@@ -42,6 +46,16 @@ function handleEditVideo(videoId: number) {
   <UploadSeriesScreen
     v-if="showUploadSeriesScreen"
     @close="showUploadSeriesScreen = false"
+  />
+
+  <UploadEstudiScreen
+    v-if="showUploadEstudiScreen"
+    @close="showUploadEstudiScreen = false"
+  />
+
+  <UploadCategoriesScreen
+    v-if="showUploadCategoriesScreen"
+    @close="showUploadCategoriesScreen = false"
   />
 
   <!-- ================= CONTINGUT PRINCIPAL ================= -->
@@ -88,6 +102,9 @@ function handleEditVideo(videoId: number) {
           <input v-model="searchQuery" type="text" placeholder="Buscar categoria..." class="search-input" />
           <span v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">×</span>
         </div>
+        <button class="upload-btn" @click="showUploadCategoriesScreen = true">
+          Afegir categoria
+        </button>
       </div>
 
       <CategoriesList
@@ -136,6 +153,10 @@ function handleEditVideo(videoId: number) {
           <input v-model="searchQuery" type="text" placeholder="Buscar estudi..." class="search-input" />
           <span v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">×</span>
         </div>
+
+        <button class="upload-btn" @click="showUploadEstudiScreen = true">
+          Afegir estudi
+        </button>
       </div>
 
       <EstudisList
