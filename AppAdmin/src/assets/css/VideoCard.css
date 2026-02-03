@@ -1,4 +1,5 @@
 .video-card {
+  position: relative; /* Important per al botó absolut */
   background: white;
   border-radius: 12px;
   border: 1px solid #e0e0e0;
@@ -24,12 +25,33 @@
 
 /* BUTTON */
 .edit-btn {
+  position: absolute;    /* es fixa dins de la targeta */
+  top: 12px;             /* distància superior */
+  right: 12px;           /* distància dreta */
+  width: 32px;           /* mida fixa */
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  padding: 0;            /* sense padding extra */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #f39c12;
-  border: none;
   color: white;
-  padding: 8px 10px;
-  border-radius: 8px;
+  border: none;
+  border-radius: 50%;
   cursor: pointer;
+  z-index: 10;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+/* HEADER (ara només per al títol) */
+.title {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 .edit-btn:hover {

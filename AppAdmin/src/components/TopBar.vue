@@ -1,6 +1,6 @@
 <!-- src/components/TopBar.vue -->
 <template>
-  <nav class="top-bar">
+  <div class="top-buttons">
     <!-- Esquerra -->
     <div class="left-buttons">
       <button 
@@ -37,75 +37,68 @@
         Estudios
       </button>
     </div>
-  </nav>
+  </div>
 </template>
 
 <script setup lang="ts">
-// Props per posar la secció inicial activa
+import { ref } from 'vue'
+
 const props = defineProps<{
   activeSection?: 'videos' | 'series' | 'categories' | 'studios'
 }>()
 
-// Emissió d'esdeveniments per canviar secció
 const emit = defineEmits<{
   (e: 'update:activeSection', section: 'videos' | 'series' | 'categories' | 'studios'): void
 }>()
 
-import { ref } from 'vue'
-
-// Estat intern de la barra
 const active = ref(props.activeSection || 'videos')
 
-// Canviar secció
-function changeSection(section: 'videos' | 'series' | 'categories' | 'studios') {
+function changeSection(section: typeof active.value) {
   active.value = section
   emit('update:activeSection', section)
 }
 </script>
 
 <style scoped>
-.top-bar {
+.top-buttons {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #667eea;
-  padding: 12px 24px;
-  color: white;
-  font-weight: 600;
-  border-radius: 0 0 12px 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  margin-bottom: 20px;
+  /* Sense fons ni ombra */
 }
 
 .left-buttons,
 .right-buttons {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 button {
   background: transparent;
-  border: 2px solid rgba(255,255,255,0.7);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 8px;
+  border: 1px solid #999;
+  color: #333;
+  padding: 6px 14px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
   transition: all 0.2s ease;
 }
 
 button.active {
-  background: white;
-  color: #667eea;
-  border-color: white;
+  background: #333;
+  color: white;
+  border-color: #333;
 }
 
 button:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.1);
 }
 
 .title {
-  font-size: 1.6rem;
-  font-weight: 700;
   text-align: center;
+  font-weight: 700;
+  font-size: 1.5rem;
   flex: 1;
 }
 </style>
