@@ -6,12 +6,17 @@ import CategoriesList from '../components/Categories/CategoriesList.vue'
 import SeriesList from '../components/Series/SeriesList.vue'
 import EstudisList from '../components/Estudis/EstudiList.vue'
 import UploadScreen from '../screens/UploadScreen.vue'
+import UploadSeriesScreen from '../components/Series/UploadSeriesScreen.vue'
 import TopBar from '../components/TopBar.vue'
 
+// ================== Secció activa ==================
 const activeSection = ref<'videos' | 'series' | 'categories' | 'studios'>('videos')
 
-const showUploadScreen = ref(false)
+// ================== Modals Upload ==================
+const showUploadVideoScreen = ref(false)
+const showUploadSeriesScreen = ref(false)
 
+// ================== Buscador ==================
 const tipoBuscador = [
   { id: 1, name: 'ID' },
   { id: 2, name: 'Nom' }
@@ -21,18 +26,25 @@ const searchQuery = ref('')
 const selected = ref(2)
 const refreshInterval = 30000
 
+// ================== Funcions ==================
 function handleEditVideo(videoId: number) {
   alert(`Editing video ID: ${videoId}`)
 }
 </script>
 
 <template>
-  <!-- Upload -->
+  <!-- ================= MODALS ================= -->
   <UploadScreen
-    v-if="showUploadScreen"
-    @close="showUploadScreen = false"
+    v-if="showUploadVideoScreen"
+    @close="showUploadVideoScreen = false"
   />
 
+  <UploadSeriesScreen
+    v-if="showUploadSeriesScreen"
+    @close="showUploadSeriesScreen = false"
+  />
+
+  <!-- ================= CONTINGUT PRINCIPAL ================= -->
   <div v-else class="container">
     <TopBar v-model:activeSection="activeSection" />
 
@@ -40,33 +52,18 @@ function handleEditVideo(videoId: number) {
     <div v-if="activeSection === 'videos'">
       <div class="filters-wrapper">
         <select v-model="selected">
-          <option
-            v-for="type in tipoBuscador"
-            :key="type.id"
-            :value="type.id"
-          >
+          <option v-for="type in tipoBuscador" :key="type.id" :value="type.id">
             {{ type.name }}
           </option>
         </select>
 
         <div class="search-container">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Buscar vídeo..."
-            class="search-input"
-          />
-          <span
-            v-if="searchQuery"
-            class="clear-btn"
-            @click="searchQuery = ''"
-          >
-            ×
-          </span>
+          <input v-model="searchQuery" type="text" placeholder="Buscar vídeo..." class="search-input" />
+          <span v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">×</span>
         </div>
 
-        <button class="upload-btn" @click="showUploadScreen = true">
-          Pujar
+        <button class="upload-btn" @click="showUploadVideoScreen = true">
+          Pujar vídeo
         </button>
       </div>
 
@@ -82,29 +79,14 @@ function handleEditVideo(videoId: number) {
     <div v-else-if="activeSection === 'categories'">
       <div class="filters-wrapper">
         <select v-model="selected">
-          <option
-            v-for="type in tipoBuscador"
-            :key="type.id"
-            :value="type.id"
-          >
+          <option v-for="type in tipoBuscador" :key="type.id" :value="type.id">
             {{ type.name }}
           </option>
         </select>
 
         <div class="search-container">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Buscar categoria..."
-            class="search-input"
-          />
-          <span
-            v-if="searchQuery"
-            class="clear-btn"
-            @click="searchQuery = ''"
-          >
-            ×
-          </span>
+          <input v-model="searchQuery" type="text" placeholder="Buscar categoria..." class="search-input" />
+          <span v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">×</span>
         </div>
       </div>
 
@@ -116,35 +98,22 @@ function handleEditVideo(videoId: number) {
     </div>
 
     <!-- ================= SERIES ================= -->
-     <div v-else-if="activeSection === 'series'">
+    <div v-else-if="activeSection === 'series'">
       <div class="filters-wrapper">
         <select v-model="selected">
-          <option
-            v-for="type in tipoBuscador"
-            :key="type.id"
-            :value="type.id"
-            
-
-          >
+          <option v-for="type in tipoBuscador" :key="type.id" :value="type.id">
             {{ type.name }}
           </option>
         </select>
 
         <div class="search-container">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Buscar Series..."
-            class="search-input"
-          />
-          <span
-            v-if="searchQuery"
-            class="clear-btn"
-            @click="searchQuery = ''"
-          >
-            ×
-          </span>
+          <input v-model="searchQuery" type="text" placeholder="Buscar Series..." class="search-input" />
+          <span v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">×</span>
         </div>
+
+        <button class="upload-btn" @click="showUploadSeriesScreen = true">
+          Afegir sèrie
+        </button>
       </div>
 
       <SeriesList
@@ -154,44 +123,28 @@ function handleEditVideo(videoId: number) {
       />
     </div>
 
-  
     <!-- ================= STUDIOS ================= -->
-      <div v-else-if="activeSection === 'studios'">
-        <div class="filters-wrapper">
-          <select v-model="selected">
-            <option
-              v-for="type in tipoBuscador"
-              :key="type.id"
-              :value="type.id"
-            >
-              {{ type.name }}
-            </option>
-          </select>
+    <div v-else-if="activeSection === 'studios'">
+      <div class="filters-wrapper">
+        <select v-model="selected">
+          <option v-for="type in tipoBuscador" :key="type.id" :value="type.id">
+            {{ type.name }}
+          </option>
+        </select>
 
-          <div class="search-container">
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Buscar estudi..."
-              class="search-input"
-            />
-            <span
-              v-if="searchQuery"
-              class="clear-btn"
-              @click="searchQuery = ''"
-            >
-              ×
-            </span>
-          </div>
+        <div class="search-container">
+          <input v-model="searchQuery" type="text" placeholder="Buscar estudi..." class="search-input" />
+          <span v-if="searchQuery" class="clear-btn" @click="searchQuery = ''">×</span>
         </div>
-
-        <EstudisList
-          :search-query="searchQuery"
-          :search-type="selected"
-          :refresh-interval="refreshInterval"
-        />
       </div>
+
+      <EstudisList
+        :search-query="searchQuery"
+        :search-type="selected"
+        :refresh-interval="refreshInterval"
+      />
     </div>
+  </div>
 </template>
 
 <style src="../assets/css/home.css"></style>
