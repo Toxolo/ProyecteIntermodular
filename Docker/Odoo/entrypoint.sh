@@ -12,10 +12,11 @@ if [ -d /mnt/modulos-zip ]; then
   ls -la /mnt/modulos-zip/
   
   if ls /mnt/modulos-zip/*.zip 1> /dev/null 2>&1; then
-    echo "📦 Descomprimiendo módulos..."
+    echo "📦 Descomprimiendo módulos (sin sobrescribir existing files)..."
     for zipfile in /mnt/modulos-zip/*.zip; do
-      echo "  Descomprimiendo: $(basename $zipfile)"
-      unzip -o "$zipfile" -d /mnt/extra-addons
+      echo "  Procesando: $(basename $zipfile)"
+      # -n asegura que NO sobrescriba archivos que ya existen en el host
+      unzip -n "$zipfile" -d /mnt/extra-addons
     done
   else
     echo "⚠️ No se encontraron archivos .zip"
@@ -39,9 +40,6 @@ db_user = odoo
 db_password = odoo
 admin_passwd = padalustro
 EOF
-
-echo "📄 Contenido de odoo.conf:"
-cat /etc/odoo/odoo.conf
 
 echo "▶️ Arrancando Odoo..."
 
