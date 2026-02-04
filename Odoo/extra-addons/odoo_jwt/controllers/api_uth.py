@@ -2,6 +2,7 @@ from odoo import http
 from odoo.http import request
 from ..setup.jwt_token import JwtToken
 import logging
+import json
 
 _logger = logging.getLogger(__name__)
 
@@ -37,7 +38,6 @@ class ApiAuth(http.Controller):
             is_admin = 4 in user.groups_id.ids
             access_token = JwtToken.generate_token(uid, extra_payload={
                 'user_id': uid,
-                'user_name': user.name,
                 'has_subscription': has_subscription,
                 'is_admin': is_admin
             })
@@ -68,6 +68,7 @@ class ApiAuth(http.Controller):
 
     @http.route('/api/update/access-token', type='json', auth='none', methods=['POST'], csrf=False)
     def updated_short_term_token(self, **kwargs):
+        # 1. Extraer user_id (muy robusto)
         params = {}
         if hasattr(request, 'jsonrequest') and request.jsonrequest:
             params = request.jsonrequest.get('params', request.jsonrequest)
@@ -76,12 +77,16 @@ class ApiAuth(http.Controller):
         
         user_id = params.get('user_id')
         if not user_id:
+            _logger.error("DEBUG - No user_id found in params: %s", params)
             return {'error': 'User id not given'}
         
         user_id = int(user_id)
+        
+        # 2. Obtener refresh token (muy robusto)
         long_term_token = self.get_refresh_token(request)
         
         if not long_term_token:
+            _logger.error("Refresh token MISSING in request body/headers/cookies")
             return {'error': 'Refresh token not provided'}
 
         try:
@@ -90,13 +95,13 @@ class ApiAuth(http.Controller):
             has_subscription = self._user_has_active_subscription(user_id)
             is_admin = 4 in user.groups_id.ids
             new_token = JwtToken.generate_token(user_id, extra_payload={
-                'user_name': user.name,
                 'has_subscription': has_subscription,
                 'is_active': user.active,
                 'is_admin': is_admin
             })
             return {'access_token': new_token}
         except Exception as e:
+            _logger.error("Refresh failed: %s", str(e))
             return {'error': str(e)}
 
     @classmethod
@@ -105,26 +110,43 @@ class ApiAuth(http.Controller):
         http_req = req_obj.httprequest
         token = None
         
-        # 1. Intentar desde request.params
+        _logger.info("=== DEBUG TOKEN RETRIEVAL START ===")
+        
+        # 1. Intentar desde request.params (Odoo parseado)
         if hasattr(req_obj, 'params') and req_obj.params:
             p = req_obj.params
             token = p.get('refreshToken') or p.get('refresh_token') or p.get(key_name)
+            if token:
+                _logger.info("Token found in request.params")
 
         # 2. Intentar desde el JSON body crudo
         if not token and hasattr(req_obj, 'jsonrequest') and req_obj.jsonrequest:
             jr = req_obj.jsonrequest
             token = jr.get('refreshToken') or jr.get('refresh_token') or jr.get(key_name)
-            if not token and 'params' in jr:
+            if token:
+                _logger.info("Token found in JSON body directly")
+            elif 'params' in jr:
                 token = jr['params'].get('refreshToken') or jr['params'].get('refresh_token')
+                if token:
+                    _logger.info("Token found in JSON body -> params")
 
         # 3. Intentar desde headers
         if not token:
             token = http_req.headers.get('Authorization-Refresh') or \
                     http_req.headers.get('refreshToken') or \
                     http_req.headers.get('refresh-token')
+            if token:
+                _logger.info("Token found in headers (WARNING: might be old!)")
         
         # 4. Intentar desde cookies
         if not token:
             token = http_req.cookies.get(key_name) or http_req.cookies.get('refreshToken')
+            if token:
+                _logger.info("Token found in cookies")
+        
+        if token:
+            _logger.info("Final token detected (length: %s)", len(token))
+        else:
+            _logger.warning("NO REFRESH TOKEN FOUND ANYWHERE")
             
         return token

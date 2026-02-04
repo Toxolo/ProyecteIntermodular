@@ -1,3 +1,4 @@
+import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Serie.dart';
 import 'package:client/domain/entities/Video.dart';
 import 'package:client/presentation/widgets/VideoPlayerHLS.dart';
@@ -32,7 +33,7 @@ class _VistaPrevState extends State<VistaPrev> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService('http://10.0.2.2:8090');
+    _api = ApiService(baseUrl);
     _listService = VideoListService(widget.db.listsDao);
     _loadVideoDetails();
   }
@@ -150,7 +151,7 @@ class _VistaPrevState extends State<VistaPrev> {
         children: [
           // Thumbnail
           Image.network(
-            'http://10.0.2.2:3000/static/${video.id}/thumbnail.jpg',
+            '$baseUrl:3000/static/${video.id}/thumbnail.jpg',
             height: 220,
             width: double.infinity,
             fit: BoxFit.cover,
@@ -184,7 +185,7 @@ class _VistaPrevState extends State<VistaPrev> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => VideoPlayerHLS(
-                    url: 'http://10.0.2.2:3000/static/${video.id}/index.m3u8',
+                    url: '$baseUrl:3000/static/${video.id}/index.m3u8',
                     onBack: () {
                       SystemChrome.setPreferredOrientations([
                         DeviceOrientation.portraitUp,

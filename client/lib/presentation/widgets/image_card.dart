@@ -1,3 +1,4 @@
+import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Video.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -35,8 +36,7 @@ class ImageCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
-                imageUrl:
-                    'http://10.0.2.2:3000/static/${video.id}/thumbnail.jpg',
+                imageUrl: '$baseUrl:3000/static/${video.id}/thumbnail.jpg',
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: Colors.grey[800],

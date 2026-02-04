@@ -21,20 +21,20 @@ router.beforeEach((to, _from, next) => {
 
   const token = getTokenFromCookie()
   if (!token) {
-    next('/login')
+    router.push('/login')
     return
   }
 
   try {
     const payload: { is_admin: boolean } = jwt_decode(token)
     if (!payload.is_admin) {
-      next('/login')
+      router.push('/login')
       return
     }
     next() // és admin → deixar passar
   } catch (err) {
     console.error("Token invàlid", err)
-    next('/login')
+    router.push('/login')
   }
 })
 

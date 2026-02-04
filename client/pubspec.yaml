@@ -26,6 +26,9 @@ dependencies:
   cached_network_image: ^3.3.1
   # HTTP
   http: ^1.1.0
+  jwt_decoder: ^2.0.1
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
 
 dev_dependencies:
   flutter_test:
@@ -35,7 +38,7 @@ dev_dependencies:
 
   # Generació Drift
   drift_dev: ^2.30.1
-  build_runner: ^2.4.0
+  build_runner: ^2.10.5
 
 flutter:
   uses-material-design: true

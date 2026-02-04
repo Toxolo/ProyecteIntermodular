@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Categoria.dart';
 import 'package:client/domain/entities/Serie.dart';
 import 'package:client/domain/entities/Video.dart';
@@ -25,7 +26,7 @@ class _CategorySectionState extends State<CategorySection> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService('http://10.0.2.2:8090');
+    _api = ApiService(baseUrl);
   }
 
   @override
@@ -224,7 +225,7 @@ class _CategorySectionState extends State<CategorySection> {
                 borderRadius: BorderRadius.circular(8),
                 child: CachedNetworkImage(
                   imageUrl:
-                      'http://10.0.2.2:3000/static/${firstVideo.id}/thumbnail.jpg',
+                      '$baseUrl:3000/static/${firstVideo.id}/thumbnail.jpg',
                   fit: BoxFit.cover,
                   width: double.infinity,
                   placeholder: (context, url) => Container(

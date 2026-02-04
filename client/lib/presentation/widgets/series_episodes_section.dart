@@ -1,3 +1,4 @@
+import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Video.dart';
 import 'package:client/infrastructure/data_sources/ApiService.dart';
 import 'package:client/infrastructure/mappers/VideoMapper.dart';
@@ -33,7 +34,7 @@ class _SeriesEpisodesSectionState extends State<SeriesEpisodesSection> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService('http://10.0.2.2:8090');
+    _api = ApiService(baseUrl);
     _loadEpisodes();
   }
 
@@ -167,7 +168,7 @@ class _SeriesEpisodesSectionState extends State<SeriesEpisodesSection> {
                   height: 65,
                   child: CachedNetworkImage(
                     imageUrl:
-                        'http://10.0.2.2:3000/static/${episode.id}/thumbnail.jpg',
+                        '$baseUrl:3000/static/${episode.id}/thumbnail.jpg',
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       color: Colors.grey[800],

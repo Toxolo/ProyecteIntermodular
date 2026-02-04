@@ -22,12 +22,12 @@ public class serie {
     private String name;
 
     @Column(nullable = false)
-    private String classification;
+    private int classification;
 
     public serie() {
     }
 
-    public serie(String name, String classification) {
+    public serie(String name, int classification) {
         this.name = name;
         this.classification = classification;
     }
@@ -49,11 +49,11 @@ public class serie {
         this.name = name;
     }
 
-    public String getClassification() {
+    public int getClassification() {
         return classification;
     }
 
-    public void setClassification(String classification) {
+    public void setClassification(int classification) {
         this.classification = classification;
     }
 }

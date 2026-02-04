@@ -6,7 +6,7 @@ interface LoginResponse {
   jsonrpc: string
   id: number
   result: {
-    token?: string
+    access_token?: string
     user_id?: number
     is_admin?: boolean
     short_term_token_span?: number
@@ -55,16 +55,16 @@ export async function loginUser(email: string, password: string): Promise<LoginR
     if (data.result.error) return { success: false, error: data.result.error }
 
     // Token no retornat
-    if (!data.result.token) return { success: false, error: "Token no retornat" }
+    if (!data.result.access_token) return { success: false, error: "Token no retornat" }
 
     // Decodificar JWT per verificar admin
-    const payload: TokenPayload = jwt_decode<TokenPayload>(data.result.token)
+    const payload: TokenPayload = jwt_decode<TokenPayload>(data.result.access_token)
     if (!payload.is_admin) return { success: false, error: "No tens permisos d'admin" }
 
     // Guardar cookie amb temps d'expiració
-    document.cookie = `token=${data.result.token}; path=/; max-age=${data.result.short_term_token_span || 3600}`
+    document.cookie = `token=${data.result.access_token}; path=/; max-age=${data.result.short_term_token_span || 3600}`
 
-    return { success: true, token: data.result.token }
+    return { success: true, token: data.result.access_token }
 
   } catch (err) {
     console.error(err)

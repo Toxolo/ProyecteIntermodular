@@ -1,3 +1,4 @@
+import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Video.dart';
 import 'package:client/infrastructure/data_sources/ApiService.dart';
 import 'package:client/infrastructure/mappers/VideoMapper.dart';
@@ -28,7 +29,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService('http://10.0.2.2:8090');
+    _api = ApiService(baseUrl);
     _loadVideos();
   }
 
@@ -175,7 +176,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
                   width: 120,
                   height: 70,
                   child: Image.network(
-                    'http://10.0.2.2:3000/static/${video.id}/thumbnail.jpg',
+                    '$baseUrl:3000/static/${video.id}/thumbnail.jpg',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: Colors.grey[800],
