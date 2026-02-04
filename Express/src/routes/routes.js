@@ -10,6 +10,7 @@ const Routes = express.Router();
 Routes.post('/vid',uploadVideo.single('video'), metadata, saveDB, extractThumbnail, processVideo);
 Routes.get('/', getVideos);
 Routes.get('/video/:id', verifyToken, getVideoById);
+Routes.get('/static/:id', verifyToken);
 
 
 export default Routes;
