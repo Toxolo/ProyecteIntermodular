@@ -1,5 +1,11 @@
 package org.padalustro.security;
 
+import java.io.InputStream;
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,12 +18,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.FileCopyUtils;
-
-import java.io.InputStream;
-import java.security.KeyFactory;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 
 @Configuration
 @EnableMethodSecurity
@@ -37,8 +37,10 @@ public class SecurityConfig {
             CustomAccessDeniedHandler accessDeniedHandler) throws Exception {
 
         http
+                .cors(cors -> {})   
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
@@ -50,6 +52,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 
     @Bean
     public JwtDecoder jwtDecoder(
