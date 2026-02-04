@@ -4,11 +4,11 @@ import java.util.List;
 
 import org.padalustro.application.usecase.Serie.DeleteSerieUseCase;
 import org.padalustro.application.usecase.Serie.GetAllSerieUseCase;
+import org.padalustro.application.usecase.Serie.GetSerieByIdUseCase;
 import org.padalustro.application.usecase.Serie.SaveAllSerieUseCase;
 import org.padalustro.application.usecase.Serie.SaveSerieUseCase;
 import org.padalustro.application.usecase.Serie.UpdateSerieUseCase;
 import org.padalustro.infrastructure.DTO.SerieDTO;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,19 +29,22 @@ public class SerieController {
     private final SaveAllSerieUseCase saveAllSerie;
     private final UpdateSerieUseCase updateSerie;
     private final DeleteSerieUseCase deleteSerie;
+    private final GetSerieByIdUseCase getSerieById;
 
     public SerieController(
             GetAllSerieUseCase getAllSerie,
             SaveSerieUseCase saveSerie,
             SaveAllSerieUseCase saveAllSerie,
             UpdateSerieUseCase updateSerie,
-            DeleteSerieUseCase deleteSerie) {
+            DeleteSerieUseCase deleteSerie,
+            GetSerieByIdUseCase getSerieById) {
 
         this.getAllSerie = getAllSerie;
         this.saveSerie = saveSerie;
         this.saveAllSerie = saveAllSerie;
         this.updateSerie = updateSerie;
         this.deleteSerie = deleteSerie;
+        this.getSerieById = getSerieById;
     }
 
     @CrossOrigin(origins = "*")
@@ -82,5 +85,10 @@ public class SerieController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteSerie.execute(id);
         return ResponseEntity.noContent().build();
+    }
+
+     @GetMapping("/{id}")
+    public ResponseEntity<SerieDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(getSerieById.execute(id));
     }
 }

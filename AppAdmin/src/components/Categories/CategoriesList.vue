@@ -4,6 +4,7 @@ import { ref, onMounted, computed } from 'vue'
 import api from '../../services/api'
 
 import CategoriesCard from './CategoriesCard.vue'
+import router from '../../router'
 
 interface Category {
   id: number
@@ -59,6 +60,12 @@ const filteredCategories = computed(() => {
 })
 
 onMounted(fetchCategories)
+
+function goToEditCategory(id: number) {
+  router.push(`/categories/edit/${id}`)
+}
+
+
 </script>
 
 <template>
@@ -78,6 +85,7 @@ onMounted(fetchCategories)
         v-for="cat in filteredCategories"
         :key="cat.id"
         :category="cat"
+        @edit="goToEditCategory"
       />
     </div>
   </div>

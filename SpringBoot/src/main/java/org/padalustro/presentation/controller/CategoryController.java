@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.padalustro.application.usecase.Category.DeleteCategoryUseCase;
 import org.padalustro.application.usecase.Category.GetAllCategoryUseCase;
+import org.padalustro.application.usecase.Category.GetCategoryByIdUseCase;
 import org.padalustro.application.usecase.Category.SaveAllCategoryUseCase;
 import org.padalustro.application.usecase.Category.SaveCategoryUseCase;
 import org.padalustro.application.usecase.Category.UpdateCategoryUseCase;
@@ -32,19 +33,22 @@ public class CategoryController {
     private final SaveAllCategoryUseCase saveAllCategory;
     private final UpdateCategoryUseCase updateCategory;
     private final DeleteCategoryUseCase deleteCategory;
-
+    private final GetCategoryByIdUseCase getCategoryById;
+    
     public CategoryController(
             GetAllCategoryUseCase getAllCategory,
             SaveCategoryUseCase saveCategory,
             SaveAllCategoryUseCase saveAllCategory,
             UpdateCategoryUseCase updateCategory,
-            DeleteCategoryUseCase deleteCategory) {
+            DeleteCategoryUseCase deleteCategory,
+            GetCategoryByIdUseCase getCategoryById) {
 
         this.getAllCategory = getAllCategory;
         this.saveCategory = saveCategory;
         this.saveAllCategory = saveAllCategory;
         this.updateCategory = updateCategory;
         this.deleteCategory = deleteCategory;
+        this.getCategoryById = getCategoryById;
     }
 
     @CrossOrigin(origins = "*")
@@ -82,5 +86,11 @@ public class CategoryController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteCategory.execute(id);
         return ResponseEntity.noContent().build();
+    }
+
+
+     @GetMapping("/{id}")
+    public ResponseEntity<CategoriaDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(getCategoryById.execute(id));
     }
 }

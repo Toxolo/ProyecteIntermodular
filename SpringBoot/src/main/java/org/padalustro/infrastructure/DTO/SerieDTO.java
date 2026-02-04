@@ -11,11 +11,11 @@ public class SerieDTO implements Serializable {
 
     private Long id;
     private String name;
-    private String classification;
+    private int classification;
 
     public SerieDTO() {}
 
-    public SerieDTO(Long id, String name, String classification) {
+    public SerieDTO(Long id, String name, int classification) {
         this.id = id;
         this.name = name;
         this.classification = classification;

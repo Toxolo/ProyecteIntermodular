@@ -1,6 +1,7 @@
 package org.padalustro.infrastructure.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.padalustro.domain.entities.categoria;
@@ -65,6 +66,11 @@ public class EstudiRepositoryImpl implements EstudiRepository {
     @Override
     public void deleteById(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+    @Override
+    public Optional<EstudiDTO> findByIdDTO(Long id) {
+        return jpaRepository.findById(id).map(EstudiDTO::convertToDTO);
     }
 
 

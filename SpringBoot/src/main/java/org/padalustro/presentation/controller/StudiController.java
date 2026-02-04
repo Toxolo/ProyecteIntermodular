@@ -2,12 +2,14 @@ package org.padalustro.presentation.controller;
 
 import java.util.List;
 
-
+import org.padalustro.application.usecase.Category.GetCategoryByIdUseCase;
 import org.padalustro.application.usecase.Estudi.DeleteStudiUseCase;
 import org.padalustro.application.usecase.Estudi.GetAllStudiUseCase;
+import org.padalustro.application.usecase.Estudi.GetStudiByIdUseCase;
 import org.padalustro.application.usecase.Estudi.SaveAllStudiUseCase;
 import org.padalustro.application.usecase.Estudi.SaveStudiUseCase;
 import org.padalustro.application.usecase.Estudi.UpdateStudiUseCase;
+import org.padalustro.infrastructure.DTO.CategoriaDTO;
 import org.padalustro.infrastructure.DTO.EstudiDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -33,19 +35,23 @@ public class StudiController {
     private final SaveAllStudiUseCase saveAllStudi;
     private final UpdateStudiUseCase updateStudi;
     private final DeleteStudiUseCase deleteStudi;
+    private final GetStudiByIdUseCase getStudiById;
+
 
     public StudiController(
             GetAllStudiUseCase getAllStudi,
             SaveStudiUseCase saveStudi,
             SaveAllStudiUseCase saveAllStudi,
             UpdateStudiUseCase updateStudi,
-            DeleteStudiUseCase deleteStudi) {
+            DeleteStudiUseCase deleteStudi,
+            GetStudiByIdUseCase getStudiById) {
 
         this.getAllStudi = getAllStudi;
         this.saveStudi = saveStudi;
         this.saveAllStudi = saveAllStudi;
         this.updateStudi = updateStudi;
         this.deleteStudi = deleteStudi;
+        this.getStudiById = getStudiById;
     }
 
     
@@ -87,5 +93,10 @@ public class StudiController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         deleteStudi.execute(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<EstudiDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(getStudiById.execute(id));
     }
 }

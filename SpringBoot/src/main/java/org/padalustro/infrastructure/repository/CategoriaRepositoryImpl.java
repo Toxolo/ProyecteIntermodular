@@ -1,11 +1,12 @@
 package org.padalustro.infrastructure.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.padalustro.domain.entities.categoria;
 import org.padalustro.domain.repository.CategoriaRepository;
 import org.padalustro.infrastructure.DTO.CategoriaDTO;
-import org.padalustro.domain.entities.categoria;
 import org.padalustro.infrastructure.repository.jpa.CategoriaJpaRepository;
 import org.springframework.stereotype.Service;
 
@@ -50,5 +51,10 @@ public class CategoriaRepositoryImpl implements CategoriaRepository {
                 .map(CategoriaDTO::toEntity)
                 .collect(Collectors.toList());
         jpaRepository.saveAll(entities);
+    }
+
+    @Override
+    public Optional<CategoriaDTO> findByIdDTO(Long id) {
+        return jpaRepository.findById(id).map(CategoriaDTO::convertToDTO);
     }
 }

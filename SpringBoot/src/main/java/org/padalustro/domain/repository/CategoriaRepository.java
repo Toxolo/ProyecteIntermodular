@@ -1,6 +1,8 @@
 package org.padalustro.domain.repository;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.padalustro.infrastructure.DTO.CategoriaDTO;
 
 public interface CategoriaRepository {
@@ -20,4 +22,6 @@ public interface CategoriaRepository {
 
     // Guarda una llista de categories
     void saveAll(List<CategoriaDTO> categories);
+
+    Optional<CategoriaDTO> findByIdDTO(Long id);
 }

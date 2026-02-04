@@ -233,7 +233,7 @@ async function loadReferenceData() {
 
 // ── WebSocket ─────────────────────────────
 async function connectWebSocket() {
-  ws = new WebSocket('ws://localhost:3000/vid')
+  ws = new WebSocket('wss://localhost:3000/vid')
 
   ws.onopen = () => console.log('WebSocket connected')
 
