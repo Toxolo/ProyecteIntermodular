@@ -87,7 +87,10 @@ async function fetchAllData() {
       study: (() => {
         const s = studyList.value.find(s => s.id === v.study?.id)
         return { id: v.study?.id || 0, name: s?.name || `#${v.study?.id}` }
-      })()
+      })(),
+       codec: v.codec || v.code || 'N/A',
+        resolucio: v.resolucio || v.resolution || 'N/A',
+        pes: v.pes || v.size || 0
     }))
 
     lastRefreshTime.value = new Date()
