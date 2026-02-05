@@ -58,22 +58,18 @@ public class video_cataleg {
     private Date date_emission = new Date(System.currentTimeMillis());
 
     @Column(nullable = false)
-    private String thumbnail;
-
-    @Column(nullable = false)
     private Integer duration;
 
     public video_cataleg() {
     }
 
-    public video_cataleg(String title, String description, Integer classification, String thumbnail,
+    public video_cataleg(String title, String description, 
             Set<categoria> category,
             estudi study,
             double rating, Integer season, serie series, Integer chapter, Date date_emission,
             Integer duration) {
         this.title = title;
         this.description = description;
-        this.thumbnail = thumbnail;
         this.category = category;
         this.study = study;
         this.rating = rating;
