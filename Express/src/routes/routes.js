@@ -11,6 +11,5 @@ Routes.post('/vid',uploadVideo.single('video'), metadata, saveDB, extractThumbna
 Routes.get('/', getVideos);
 Routes.get('/video/:id', verifyToken, getVideoById);
 
-
 export default Routes;
 
