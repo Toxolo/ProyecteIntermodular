@@ -31,6 +31,8 @@ dependencies:
   riverpod_annotation: ^2.6.1
   dio: ^5.9.1
 
+  axios: ^1.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
