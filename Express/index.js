@@ -43,7 +43,7 @@ await initDb();
 
 app.use(express.json());
 
-app.use(express.static('public'))
+app.use('/static', express.static(path.join(__dirname, 'public')));
 
 
 export const publicPath = path.join(__dirname, 'public');

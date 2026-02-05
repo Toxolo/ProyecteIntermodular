@@ -28,6 +28,7 @@ public class serie {
     }
 
     public serie(String name, int classification) {
+    public serie(String name, int classification) {
         this.name = name;
         this.classification = classification;
     }
@@ -50,9 +51,11 @@ public class serie {
     }
 
     public int getClassification() {
+    public int getClassification() {
         return classification;
     }
 
+    public void setClassification(int classification) {
     public void setClassification(int classification) {
         this.classification = classification;
     }

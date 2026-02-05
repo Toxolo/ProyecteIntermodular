@@ -1,13 +1,16 @@
-import 'package:client/infrastructure/data_sources/ApiService.dart';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
 import 'package:client/presentation/screens/HomeScreen.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
+import 'package:client/presentation/screens/LoginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:client/config/GlobalVariables.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // important per usar async al main
 
-  final api = ApiService('http://10.0.2.2:8090');
+  final api = ApiService(baseUrl);
 
   // Forzar vertical por defecto
   await SystemChrome.setPreferredOrientations([
@@ -16,7 +19,9 @@ void main() async {
   ]);
 
   final db = AppDatabase(); // crea la base de dades
-  runApp(MyApp(db: db)); // passem la instància a MyApp
+  runApp(
+    ProviderScope(child: MyApp(db: db)), // passem la instància a MyApp
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -28,7 +33,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(db: db), // passem la db a CatalogPage
+      initialRoute: '/',
+      routes: {
+        '/': (context) => LoginScreen(),
+        '/home': (context) => HomeScreen(db: db),
+      },
     );
   }
 }

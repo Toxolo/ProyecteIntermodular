@@ -1,5 +1,6 @@
+import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Video.dart';
-import 'package:client/infrastructure/data_sources/ApiService.dart';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
 import 'package:client/infrastructure/mappers/VideoMapper.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +57,7 @@ class _SingleCategory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Use singleton instance
-    final api = ApiService('http://10.0.2.2:8090');
+    final api = ApiService(baseUrl);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
