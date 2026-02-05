@@ -113,6 +113,9 @@ class ApiService {
   Future<dynamic> getSerieById(int serieId) async {
     final series = await getSeries();
 
+    // ignore: avoid_print
+    print(series);
+
     try {
       return series.firstWhere((s) => s['id'] == serieId);
     } catch (_) {

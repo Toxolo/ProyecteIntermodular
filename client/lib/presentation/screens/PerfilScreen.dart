@@ -1,12 +1,17 @@
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
+import 'package:client/presentation/providers/UserNotifier.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../catalog_styles.dart';
 
-class PerfilScreen extends StatelessWidget {
-  final AppDatabase db;
+class PerfilScreen extends ConsumerStatefulWidget {
+  const PerfilScreen({super.key, db});
 
-  const PerfilScreen({super.key, required this.db});
+  @override
+  ConsumerState<PerfilScreen> createState() => _PerfilScreenState();
+}
 
+class _PerfilScreenState extends ConsumerState<PerfilScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,8 +41,8 @@ class PerfilScreen extends StatelessWidget {
 
                 Row(
                   children: [
-                    const Text(
-                      'Messi',
+                    Text(
+                      ref.read(userProvider).getName(),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 22,

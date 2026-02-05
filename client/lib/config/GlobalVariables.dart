@@ -1,4 +1,4 @@
-const ip = '10.173.195.80';
+const ip = '10.173.195.70';
 
 const String baseUrl = 'http://$ip:8090';
 
