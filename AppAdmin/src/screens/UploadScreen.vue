@@ -270,7 +270,7 @@ async function uploadVideoAndSave() {
     // 1️⃣ Upload video to video service
     const fd = new FormData()
     fd.append('video', file.value)
-    await api.post('http://localhost:3000/vid', fd, { headers: { 'X-Client-Id': clientId } })
+    await api.post('https://localhost:3000/vid', fd, { headers: { 'X-Client-Id': clientId } })
 
     // 2️⃣ Prepare payload EXACTO como lo espera el backend
     const payload = {
