@@ -188,12 +188,8 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => VideoPlayerHLS(
-<<<<<<< HEAD
                     url: '$expressUrl/static/${video.id}/index.m3u8',
                     authToken: user.accesToken, // Pass it
-=======
-                    url: '$baseUrl:3000/static/${video.id}/index.m3u8',
->>>>>>> ccd756f (login creat user Provider)
                     onBack: () {
                       /* ... */
                     },

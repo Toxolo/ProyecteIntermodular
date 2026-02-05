@@ -176,11 +176,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
                   width: 120,
                   height: 70,
                   child: Image.network(
-<<<<<<< HEAD
                     '$expressUrl/static/${video.id}/thumbnail.jpg',
-=======
-                    '$baseUrl:3000/static/${video.id}/thumbnail.jpg',
->>>>>>> ccd756f (login creat user Provider)
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: Colors.grey[800],
