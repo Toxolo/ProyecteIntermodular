@@ -1,6 +1,6 @@
 import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Video.dart';
-import 'package:client/infrastructure/data_sources/ApiService.dart';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
 import 'package:client/infrastructure/mappers/VideoMapper.dart';
 import 'package:flutter/material.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
@@ -176,7 +176,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
                   width: 120,
                   height: 70,
                   child: Image.network(
-                    '$baseUrl:3000/static/${video.id}/thumbnail.jpg',
+                    '$expressUrl/static/${video.id}/thumbnail.jpg',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: Colors.grey[800],

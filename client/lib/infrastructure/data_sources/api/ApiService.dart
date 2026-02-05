@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:client/domain/entities/Video.dart';
 import 'package:client/infrastructure/mappers/VideoMapper.dart';
+import 'package:client/presentation/providers/UserNotifier.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:client/infrastructure/data_sources/local/daos/lists_dao.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
@@ -9,12 +12,49 @@ import 'package:client/infrastructure/data_sources/local/app_database.dart';
 /// Unified API Service containing all remote and local data sources
 class ApiService {
   String urlBase;
+  late final Dio _dio;
 
   // Singleton pattern
   static ApiService? _instance;
 
   // Private constructor
-  ApiService._internal(this.urlBase);
+  ApiService._internal(this.urlBase) {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: urlBase,
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          final container = ProviderContainer(); // temporary if no context/ref
+          final user = container.read(userProvider);
+          container.dispose(); // clean up
+
+          final token = user.getAccesToken();
+
+          if (token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+
+          handler.next(options);
+        },
+
+        // Optional: global error handling (e.g. 401 → logout)
+        onError: (DioException err, handler) {
+          if (err.response?.statusCode == 401) {}
+          handler.next(err);
+        },
+      ),
+    );
+  }
 
   // Factory constructor that returns the singleton instance
   factory ApiService(String urlBase) {
@@ -32,8 +72,25 @@ class ApiService {
     return _instance!;
   }
 
+  // ── Helper: perform GET and return JSON list ───────────────────────────────
+  Future<List<dynamic>> _getList(String path) async {
+    try {
+      final response = await _dio.get(path);
+      if (response.statusCode == HttpStatus.ok) {
+        return response.data as List<dynamic>;
+      }
+      return [];
+    } on DioException catch (e) {
+      // You can log or handle specific errors here
+      return [];
+    }
+  }
+
   // ==================== CATEGORIA API ====================
 
+  Future<List<dynamic>> getCategories() => _getList('/Category');
+
+  /*
   /// Devuelve la lista de categorías desde el backend
   Future<List<dynamic>> getCategories() async {
     String url = "$urlBase/Category";
@@ -46,19 +103,20 @@ class ApiService {
       return [];
     }
   }
+  */
 
   // ==================== SERIE API ====================
 
-  /// Obtiene todas las series
-  Future<List<dynamic>> getSeries() async {
-    String url = "$urlBase/Serie";
-    http.Response data = await http.get(Uri.parse(url));
-    if (data.statusCode == HttpStatus.ok) {
-      String body = utf8.decode(data.bodyBytes);
-      final bodyJSON = jsonDecode(body);
-      return bodyJSON as List;
-    } else {
-      return [];
+  Future<List<dynamic>> getSeries() => _getList('/Serie');
+
+  /// Obtiene una serie por su ID
+  Future<dynamic> getSerieById(int serieId) async {
+    final series = await getSeries();
+
+    try {
+      return series.firstWhere((s) => s['id'] == serieId);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -77,19 +135,38 @@ class ApiService {
     return filtered;
   }
 
-  /// Obtiene una serie por su ID
-  Future<dynamic> getSerieById(int serieId) async {
-    final series = await getSeries();
+  /*
+  /// Obtiene todas las series
+  Future<List<dynamic>> getSeries() async {
+    String url = "$urlBase/Serie";
+    http.Response data = await http.get(Uri.parse(url));
+    if (data.statusCode == HttpStatus.ok) {
+      String body = utf8.decode(data.bodyBytes);
+      final bodyJSON = jsonDecode(body);
+      return bodyJSON as List;
+    } else {
+      return [];
+    }
+  }
+  */
 
+  // ==================== VIDEO API ====================
+
+  Future<List<dynamic>> getVideos() => _getList('/Cataleg');
+
+  Future<dynamic> getVideoById(int id) async {
     try {
-      return series.firstWhere((s) => s['id'] == serieId);
-    } catch (_) {
+      final response = await _dio.get('/Cataleg/$id');
+      if (response.statusCode == HttpStatus.ok) {
+        return response.data;
+      }
+      return null;
+    } on DioException {
       return null;
     }
   }
 
-  // ==================== VIDEO API ====================
-
+  /*
   /// Obtiene todos los vídeos
   Future<List<dynamic>> getVideos() async {
     String url = "$urlBase/Cataleg";
@@ -115,6 +192,7 @@ class ApiService {
       return null;
     }
   }
+  */
 }
 
 /// Service for managing video lists (local database operations)

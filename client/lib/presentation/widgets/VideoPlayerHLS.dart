@@ -6,8 +6,13 @@ import 'package:flutter/services.dart';
 class VideoPlayerHLS extends StatefulWidget {
   final String url;
   final VoidCallback onBack;
+  final String? authToken; // Add this
 
-  const VideoPlayerHLS({super.key, required this.url, required this.onBack});
+  const VideoPlayerHLS({
+    required this.url,
+    this.authToken,
+    required this.onBack,
+  });
 
   @override
   State<VideoPlayerHLS> createState() => _VideoPlayerHLSState();
@@ -22,18 +27,25 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
   void initState() {
     super.initState();
 
-    // Forcem landscape
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    final headers = <String, String>{};
+    if (widget.authToken != null) {
+      headers['Authorization'] = 'Bearer ${widget.authToken}';
+    }
 
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) {
-        setState(() {});
-        _controller.play();
-        _startHideTimer();
-      });
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+
+    Future<void> _initializePlayer() async {
+      try {
+        await _controller.initialize();
+        if (mounted) {
+          setState(() {});
+          _controller.play();
+          _startHideTimer();
+        }
+      } catch (error) {}
+    }
+
+    _initializePlayer(); // Call async method separately
   }
 
   void _startHideTimer() {
