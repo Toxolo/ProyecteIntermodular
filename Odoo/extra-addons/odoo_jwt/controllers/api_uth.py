@@ -14,19 +14,11 @@ class ApiAuth(http.Controller):
         request.session.logout()
         
         # Extraer parámetros - Odoo puede enviarlos de varias formas
-        # Forzar cierre de sesión previo para limpieza total (especialmente en Postman)
-        request.session.logout()
-        
-        # Extraer parámetros - Odoo puede enviarlos de varias formas
         params = {}
-        
-        # Intentar obtener de jsonrequest primero
         
         # Intentar obtener de jsonrequest primero
         if hasattr(request, 'jsonrequest') and request.jsonrequest:
             params = request.jsonrequest.get('params', request.jsonrequest)
-        
-        # Si no hay params, intentar desde kwargs
         
         # Si no hay params, intentar desde kwargs
         if not params:
@@ -50,8 +42,6 @@ class ApiAuth(http.Controller):
             user = request.env['res.users'].browse(uid)
             has_subscription = self._user_has_active_subscription(uid)
 
-            # Generar tokens
-            is_admin = user.has_group('base.group_system')
             # Generar tokens
             is_admin = user.has_group('base.group_system')
             access_token = JwtToken.generate_token(uid, extra_payload={
@@ -79,8 +69,6 @@ class ApiAuth(http.Controller):
             return False
 
         has_subscription = bool(
-
-        has_subscription = bool(
             request.env['subscription.subscription']
             .sudo()
             .search([
@@ -89,24 +77,18 @@ class ApiAuth(http.Controller):
             ], limit=1)
         )
         return has_subscription
-        return has_subscription
 
     @http.route('/api/update/access-token', type='json', auth='none', methods=['POST'], csrf=False)
     def updated_short_term_token(self, **kwargs):
-        # Extraer parámetros - compatible con múltiples formatos
         # Extraer parámetros - compatible con múltiples formatos
         params = {}
         if hasattr(request, 'jsonrequest') and request.jsonrequest:
             params = request.jsonrequest.get('params', request.jsonrequest)
         if not params:
             params = kwargs
-            params = kwargs
         
         user_id = params.get('user_id')
         
-        user_id = int(user_id) if user_id else None
-
-        # Obtener refresh token desde cookies, headers o body
         user_id = int(user_id) if user_id else None
 
         # Obtener refresh token desde cookies, headers o body
@@ -120,14 +102,8 @@ class ApiAuth(http.Controller):
             user_id = JwtToken.verify_refresh_token(request, long_term_token, uid=user_id)
             
             # Obtener datos del usuario para incluir en el nuevo token
-            # Verificar el refresh token
-            user_id = JwtToken.verify_refresh_token(request, long_term_token, uid=user_id)
-            
-            # Obtener datos del usuario para incluir en el nuevo token
             user = request.env['res.users'].sudo().browse(user_id)
             has_subscription = self._user_has_active_subscription(user_id)
-            
-            # Generar nuevo access token con los mismos datos extra
             
             # Generar nuevo access token con los mismos datos extra
             is_admin = 4 in user.groups_id.ids
@@ -136,7 +112,6 @@ class ApiAuth(http.Controller):
                 'is_active': user.active,
                 'is_admin': is_admin
             })
-            
             
             return {'access_token': new_token}
         except Exception as e:
