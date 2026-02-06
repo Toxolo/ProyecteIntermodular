@@ -17,6 +17,14 @@ import lombok.Data;
 // many to one estudi
 // many to many categoria
 
+
+
+// TO-DO
+// eliminar  thumnail
+// Còdec: N/A
+// Resolució: N/A
+// Pes: N/A
+
 @Data
 @Entity
 @Table(name = "video_cataleg")
@@ -60,14 +68,23 @@ public class video_cataleg {
     @Column(nullable = false)
     private Integer duration;
 
+    @Column(nullable = false)
+    private String codec;
+
+    @Column(nullable = false)
+    private String resolucio;
+
+    @Column(nullable = false)
+    private long  pes;
+
     public video_cataleg() {
     }
 
-    public video_cataleg(String title, String description, 
+    public video_cataleg(String title, String description,
             Set<categoria> category,
             estudi study,
             double rating, Integer season, serie series, Integer chapter, Date date_emission,
-            Integer duration) {
+            Integer duration,String codec, String resolucio, long pes) {
         this.title = title;
         this.description = description;
         this.category = category;
@@ -81,6 +98,9 @@ public class video_cataleg {
         }
 
         this.duration = duration;
+        this.codec = codec;
+        this.resolucio = resolucio;
+        this.pes = pes;
     }
 
     public Long getId() {
@@ -170,5 +190,30 @@ public class video_cataleg {
     public void setDuration(Integer duration) {
         this.duration = duration;
     }
+
+    public String getCodec() {
+        return codec;
+    }
+
+    public void setCodec(String codec) {
+        this.codec = codec;
+    }
+
+    public String getResolucio() {
+        return resolucio;
+    }
+
+    public void setResolucio(String resolucio) {
+        this.resolucio = resolucio;
+    }
+
+    public long getPes() {
+        return pes;
+    }
+
+    public void setPes(long pes) {
+        this.pes = pes;
+    }
+
 
 }

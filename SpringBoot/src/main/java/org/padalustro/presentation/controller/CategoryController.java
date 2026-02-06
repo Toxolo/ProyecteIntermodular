@@ -10,6 +10,9 @@ import org.padalustro.application.usecase.Category.SaveCategoryUseCase;
 import org.padalustro.application.usecase.Category.UpdateCategoryUseCase;
 import org.padalustro.infrastructure.DTO.CategoriaDTO;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,21 +62,24 @@ public class CategoryController {
 
     @CrossOrigin(origins = "*")
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody CategoriaDTO categoria) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> create(@RequestBody CategoriaDTO categoria, @AuthenticationPrincipal Jwt jwt) {
         saveCategory.execute(categoria);
         return ResponseEntity.status(201).build();
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/varios")
-    public ResponseEntity<Void> createAll(@RequestBody List<CategoriaDTO> categories) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> createAll(@RequestBody List<CategoriaDTO> categories, @AuthenticationPrincipal Jwt jwt) {
         saveAllCategory.execute(categories);
         return ResponseEntity.status(201).build();
     }
 
     @CrossOrigin(origins = "*")
     @PutMapping("/{id}")
-    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody CategoriaDTO categoria) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody CategoriaDTO categoria, @AuthenticationPrincipal Jwt jwt) {
         boolean updated = updateCategory.execute(id, categoria);
         if (!updated) {
             return ResponseEntity.notFound().build();
@@ -83,7 +89,8 @@ public class CategoryController {
 
     @CrossOrigin(origins = "*")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
         deleteCategory.execute(id);
         return ResponseEntity.noContent().build();
     }

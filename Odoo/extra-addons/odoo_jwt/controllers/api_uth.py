@@ -14,11 +14,19 @@ class ApiAuth(http.Controller):
         request.session.logout()
         
         # Extraer parámetros - Odoo puede enviarlos de varias formas
+        # Forzar cierre de sesión previo para limpieza total (especialmente en Postman)
+        request.session.logout()
+        
+        # Extraer parámetros - Odoo puede enviarlos de varias formas
         params = {}
+        
+        # Intentar obtener de jsonrequest primero
         
         # Intentar obtener de jsonrequest primero
         if hasattr(request, 'jsonrequest') and request.jsonrequest:
             params = request.jsonrequest.get('params', request.jsonrequest)
+        
+        # Si no hay params, intentar desde kwargs
         
         # Si no hay params, intentar desde kwargs
         if not params:
@@ -42,6 +50,8 @@ class ApiAuth(http.Controller):
             user = request.env['res.users'].browse(uid)
             has_subscription = self._user_has_active_subscription(uid)
 
+            # Generar tokens
+            is_admin = user.has_group('base.group_system')
             # Generar tokens
             is_admin = user.has_group('base.group_system')
             access_token = JwtToken.generate_token(uid, extra_payload={
@@ -69,6 +79,8 @@ class ApiAuth(http.Controller):
             return False
 
         has_subscription = bool(
+
+        has_subscription = bool(
             request.env['subscription.subscription']
             .sudo()
             .search([
@@ -77,18 +89,24 @@ class ApiAuth(http.Controller):
             ], limit=1)
         )
         return has_subscription
+        return has_subscription
 
     @http.route('/api/update/access-token', type='json', auth='none', methods=['POST'], csrf=False)
     def updated_short_term_token(self, **kwargs):
+        # Extraer parámetros - compatible con múltiples formatos
         # Extraer parámetros - compatible con múltiples formatos
         params = {}
         if hasattr(request, 'jsonrequest') and request.jsonrequest:
             params = request.jsonrequest.get('params', request.jsonrequest)
         if not params:
             params = kwargs
+            params = kwargs
         
         user_id = params.get('user_id')
         
+        user_id = int(user_id) if user_id else None
+
+        # Obtener refresh token desde cookies, headers o body
         user_id = int(user_id) if user_id else None
 
         # Obtener refresh token desde cookies, headers o body
@@ -102,8 +120,14 @@ class ApiAuth(http.Controller):
             user_id = JwtToken.verify_refresh_token(request, long_term_token, uid=user_id)
             
             # Obtener datos del usuario para incluir en el nuevo token
+            # Verificar el refresh token
+            user_id = JwtToken.verify_refresh_token(request, long_term_token, uid=user_id)
+            
+            # Obtener datos del usuario para incluir en el nuevo token
             user = request.env['res.users'].sudo().browse(user_id)
             has_subscription = self._user_has_active_subscription(user_id)
+            
+            # Generar nuevo access token con los mismos datos extra
             
             # Generar nuevo access token con los mismos datos extra
             is_admin = 4 in user.groups_id.ids
@@ -112,6 +136,7 @@ class ApiAuth(http.Controller):
                 'is_active': user.active,
                 'is_admin': is_admin
             })
+            
             
             return {'access_token': new_token}
         except Exception as e:
@@ -211,6 +236,25 @@ class ApiAuth(http.Controller):
             'has_subscription': has_subscription
         }
 
+    @http.route('/api/protected/test', type='json', auth='jwt', methods=['POST'], csrf=False)
+    def protected_users_json(self):
+        uob = request.env.user
+        users = [{'id': 1, 'name': 'test_user'}]
+        user_data = [{'id': user['id'], 'name': user['name']} for user in users]
+        return {'uid': uob.id, 'data': user_data}
+
+    @http.route('/api/me', type='json', auth='jwt', methods=['POST'], csrf=False)
+    def api_me(self):
+        uob = request.env.user
+        has_subscription = self._user_has_active_subscription(uob.id)
+        return {
+            'id': uob.id,
+            'nom': uob.name,
+            'email': uob.login,
+            'active': uob.active,
+            'has_subscription': has_subscription
+        }
+
     @classmethod
     def get_refresh_token(cls, req_obj):
         key_name = 'refresh_token'
@@ -220,7 +264,19 @@ class ApiAuth(http.Controller):
         # 1. Intentar desde cookies
         token = http_req.cookies.get(key_name)
         if token: _logger.info("Found token in cookies")
+        # 1. Intentar desde cookies
+        token = http_req.cookies.get(key_name)
+        if token: _logger.info("Found token in cookies")
         
+        # 2. Intentar desde headers
+        if not token:
+            token = http_req.headers.get(key_name) or \
+                    http_req.headers.get('Authorization-Refresh') or \
+                    http_req.headers.get('refresh-token')
+            if token: _logger.info("Found token in headers")
+        
+        # 3. Intentar desde el body (JSON)
+        # Odoo 16: req_obj.jsonrequest suele ser el contenido de "params"
         # 2. Intentar desde headers
         if not token:
             token = http_req.headers.get(key_name) or \
@@ -239,7 +295,18 @@ class ApiAuth(http.Controller):
                 token = jr['params'].get(key_name) or jr['params'].get('refresh_token')
             
             if token: _logger.info("Found token in JSON body")
+            token = jr.get(key_name) or jr.get('refresh_token')
+            
+            # Si no está ahí, quizás esté anidado dentro de otro "params" (redundante pero posible en Postman)
+            if not token and 'params' in jr:
+                token = jr['params'].get(key_name) or jr['params'].get('refresh_token')
+            
+            if token: _logger.info("Found token in JSON body")
 
+        # 4. Intentar desde request.params (Odoo parseado)
+        if not token and hasattr(req_obj, 'params') and req_obj.params:
+            token = req_obj.params.get(key_name) or req_obj.params.get('refresh_token')
+            if token: _logger.info("Found token in request.params")
         # 4. Intentar desde request.params (Odoo parseado)
         if not token and hasattr(req_obj, 'params') and req_obj.params:
             token = req_obj.params.get(key_name) or req_obj.params.get('refresh_token')
