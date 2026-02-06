@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:client/infrastructure/data_sources/local/daos/lists_dao.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
 
+
 /// Unified API Service containing all remote and local data sources
 class ApiService {
   String _urlBase;
@@ -239,7 +240,7 @@ class VideoListService {
 
       final response = await http.post(
         Uri.parse(
-          '$/auth/refresh',
+          '$baseUrl/auth/refresh',
         ), // ← ajusta esta ruta a tu endpoint real
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh_token': refreshToken}),
