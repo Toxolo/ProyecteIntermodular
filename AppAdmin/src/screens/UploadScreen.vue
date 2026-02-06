@@ -233,7 +233,7 @@ async function loadReferenceData() {
 
 // ── WebSocket ─────────────────────────────
 async function connectWebSocket() {
-  ws = new WebSocket('wss://localhost:3000/vid')
+  ws = new WebSocket('ws://localhost:3000/vid')
 
   ws.onopen = () => console.log('WebSocket connected')
 
@@ -270,7 +270,7 @@ async function uploadVideoAndSave() {
     // 1️⃣ Upload video to video service
     const fd = new FormData()
     fd.append('video', file.value)
-    await api.post('https://localhost:3000/vid', fd, { headers: { 'X-Client-Id': clientId } })
+    await api.post('http://localhost:3000/vid', fd, { headers: { 'X-Client-Id': clientId } })
 
     // 2️⃣ Prepare payload EXACTO como lo espera el backend
     const payload = {

@@ -50,7 +50,7 @@ const formatSize = (kb: number | null | undefined) => {
   return `${(kb / 1024).toFixed(1)} MB`
 }
 
-const thumbnailUrl = `https://localhost:3000/static/${props.video.id}/thumbnail.jpg`
+const thumbnailUrl = `http://localhost:3000/static/${props.video.id}/thumbnail.jpg`
 </script>
 
 <template>

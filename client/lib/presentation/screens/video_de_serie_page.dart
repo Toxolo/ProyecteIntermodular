@@ -29,7 +29,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService(baseUrl);
+    _api = ApiService.instance;
     _loadVideos();
   }
 
