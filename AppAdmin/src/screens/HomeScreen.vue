@@ -10,6 +10,8 @@ import UploadSeriesScreen from '../components/Series/UploadSeriesScreen.vue'
 import UploadEstudiScreen from '../components/Estudis/UploadEstudisScreen.vue'
 import UploadCategoriesScreen from '../components/Categories/UploadCategoriesScreen.vue'
 import TopBar from '../components/TopBar.vue'
+import LogoutButton from '../components/logoutButton.vue'
+
 
 // ================== Secció activa ==================
 const activeSection = ref<'videos' | 'series' | 'categories' | 'studios'>('videos')
@@ -65,6 +67,7 @@ function handleEditVideo(videoId: number) {
     <!-- ================= VIDEOS ================= -->
     <div v-if="activeSection === 'videos'">
       <div class="filters-wrapper">
+        <LogoutButton />
         <select v-model="selected">
           <option v-for="type in tipoBuscador" :key="type.id" :value="type.id">
             {{ type.name }}
@@ -92,6 +95,7 @@ function handleEditVideo(videoId: number) {
     <!-- ================= CATEGORIES ================= -->
     <div v-else-if="activeSection === 'categories'">
       <div class="filters-wrapper">
+        <LogoutButton />
         <select v-model="selected">
           <option v-for="type in tipoBuscador" :key="type.id" :value="type.id">
             {{ type.name }}
@@ -117,6 +121,7 @@ function handleEditVideo(videoId: number) {
     <!-- ================= SERIES ================= -->
     <div v-else-if="activeSection === 'series'">
       <div class="filters-wrapper">
+        <LogoutButton />
         <select v-model="selected">
           <option v-for="type in tipoBuscador" :key="type.id" :value="type.id">
             {{ type.name }}
@@ -143,6 +148,7 @@ function handleEditVideo(videoId: number) {
     <!-- ================= STUDIOS ================= -->
     <div v-else-if="activeSection === 'studios'">
       <div class="filters-wrapper">
+        <LogoutButton />
         <select v-model="selected">
           <option v-for="type in tipoBuscador" :key="type.id" :value="type.id">
             {{ type.name }}

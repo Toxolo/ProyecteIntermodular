@@ -2,16 +2,17 @@ package org.padalustro.presentation.controller;
 
 import java.util.List;
 
-import org.padalustro.application.usecase.Category.GetCategoryByIdUseCase;
 import org.padalustro.application.usecase.Estudi.DeleteStudiUseCase;
 import org.padalustro.application.usecase.Estudi.GetAllStudiUseCase;
 import org.padalustro.application.usecase.Estudi.GetStudiByIdUseCase;
 import org.padalustro.application.usecase.Estudi.SaveAllStudiUseCase;
 import org.padalustro.application.usecase.Estudi.SaveStudiUseCase;
 import org.padalustro.application.usecase.Estudi.UpdateStudiUseCase;
-import org.padalustro.infrastructure.DTO.CategoriaDTO;
 import org.padalustro.infrastructure.DTO.EstudiDTO;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,23 +64,27 @@ public class StudiController {
 
     @CrossOrigin(origins = "*")
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody EstudiDTO studi) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> create(@RequestBody EstudiDTO studi, @AuthenticationPrincipal Jwt jwt) {
         saveStudi.execute(studi);
         return ResponseEntity.status(201).build();
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/varios")
-    public ResponseEntity<Void> createAll(@RequestBody List<EstudiDTO> estudis) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> createAll(@RequestBody List<EstudiDTO> estudis, @AuthenticationPrincipal Jwt jwt) {
         saveAllStudi.execute(estudis);
         return ResponseEntity.status(201).build();
     }
 
     @CrossOrigin(origins = "*")
     @PutMapping("/{id}")
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
     public ResponseEntity<Void> update(
             @PathVariable Long id,
-            @RequestBody EstudiDTO studi) {
+            @RequestBody EstudiDTO studi,
+            @AuthenticationPrincipal Jwt jwt) {
 
         boolean updated = updateStudi.execute(id, studi);
         if (!updated) {
@@ -90,7 +95,8 @@ public class StudiController {
 
     @CrossOrigin(origins = "*")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
         deleteStudi.execute(id);
         return ResponseEntity.noContent().build();
     }

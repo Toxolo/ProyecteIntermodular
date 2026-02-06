@@ -54,7 +54,8 @@ public class VideoCatalegController {
     }
 
     @GetMapping
-    public ResponseEntity<List<VideoCatalegDTO>> getAll() {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<VideoCatalegDTO>> getAll(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(getAllVideoCataleg.execute());
     }
 
