@@ -25,6 +25,13 @@ export default function verifyToken(req, res, next) {
         if (err) {
         return res.status(403).json({ message: 'Token inválido' });
     }
+    // comprobar suscripción
+    if (!decoded.has_subscription) {
+      return res.status(403).json({
+        message: 'Existe usuario pero no tiene suscripción',
+      });
+    }
+
 
       // para usarlo en el controlador de la peticion de video.
     req.user = decoded;
