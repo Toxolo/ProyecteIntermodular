@@ -10,6 +10,9 @@ import org.padalustro.application.usecase.Serie.SaveSerieUseCase;
 import org.padalustro.application.usecase.Serie.UpdateSerieUseCase;
 import org.padalustro.infrastructure.DTO.SerieDTO;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,23 +58,27 @@ public class SerieController {
 
     @CrossOrigin(origins = "*")
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody SerieDTO serie) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> create(@RequestBody SerieDTO serie, @AuthenticationPrincipal Jwt jwt) {
         saveSerie.execute(serie);
         return ResponseEntity.status(201).build();
     }
 
     @CrossOrigin(origins = "*")
     @PostMapping("/varios")
-    public ResponseEntity<Void> createAll(@RequestBody List<SerieDTO> series) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> createAll(@RequestBody List<SerieDTO> series, @AuthenticationPrincipal Jwt jwt) {
         saveAllSerie.execute(series);
         return ResponseEntity.status(201).build();
     }
 
     @CrossOrigin(origins = "*")
     @PutMapping("/{id}")
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
     public ResponseEntity<Void> update(
             @PathVariable Long id,
-            @RequestBody SerieDTO serie) {
+            @RequestBody SerieDTO serie,
+            @AuthenticationPrincipal Jwt jwt) {
 
         boolean updated = updateSerie.execute(id, serie);
         if (!updated) {
@@ -82,12 +89,13 @@ public class SerieController {
 
     @CrossOrigin(origins = "*")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    @PreAuthorize("#jwt.claims['is_admin'] == true")
+    public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
         deleteSerie.execute(id);
         return ResponseEntity.noContent().build();
     }
 
-     @GetMapping("/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<SerieDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(getSerieById.execute(id));
     }

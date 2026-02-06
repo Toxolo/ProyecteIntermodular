@@ -69,12 +69,6 @@
         </select>
       </div>
 
-      <!-- PEGI 
-      <div class="form-group">
-        <label class="form-label">Classificación</label>
-        <input type="text" class="form-input" v-model="form.classification" placeholder="p. ej. 7, 12, 16..." />
-      </div>
-      -->
 
       <!-- Studio -->
       <div class="form-group">
@@ -164,7 +158,10 @@ const form = ref({
   series: { id: 0 },
   season: null as number | null,
   chapter: null as number | null,
-  duration: 0
+  duration: 0,
+  codec: 'N/A',
+  resolucio: 'N/A',
+  pes: 0
 })
 const category1 = ref<number | null>(null)
 const category2 = ref<number | null>(null)
@@ -205,6 +202,7 @@ function handleFileChange(e: Event) {
   previewUrl.value = URL.createObjectURL(selected)
   error.value = ''
   form.value.title = selected.name.replace(/\.[^/.]+$/, "")
+  form.value.pes = selected.size
 }
 
 // ── Load dropdowns ─────────────────────────
@@ -253,6 +251,9 @@ async function connectWebSocket() {
         if (data.clientId === clientId) {
           form.value.id = data.videoId
           form.value.duration = data.duration
+          form.value.codec = data.codec || ''
+          form.value.resolucio = data.resolution || ''
+          form.value.pes = data.size || 0
         }
         break
     }
@@ -281,10 +282,13 @@ async function uploadVideoAndSave() {
       chapter: Number(form.value.chapter) || 1,
       season: Number(form.value.season) || 1,
       rating: 0.0, // default si no tienes rating
-      thumbnail: '', // o asigna la thumbnail si la tienes
+      thumbnail: '', // o asigna la thumbnail si la tienes 
       category: [] as Array<{ id: number }>,
       study: { id: estudioId.value || 0 },
-      series: { id: seriesId.value || 0 }
+      series: { id: seriesId.value || 0 },
+      codec: String(form.value.codec) || 0,
+      resolucio: String(form.value.resolucio) || 0,
+      pes: Number(file.value?.size) || 0
     }
 
     // Añadir categorías
@@ -327,7 +331,10 @@ function resetForm() {
     series: { id: 0 },
     season: null,
     chapter: null,
-    duration: 0
+    duration: 0,
+    codec: 'N/A',
+    resolucio: 'N/A',
+    pes: 0
   }
   category1.value = null
   category2.value = null

@@ -18,89 +18,94 @@ import lombok.Data;
 public class VideoCatalegDTO implements Serializable {
 
     private Long id;
-
     private String title;
-
     private String description;
-
     private Set<CategoriaIdDTO> category;
-
     private EstudiIdDTO study;
-
     private double rating;
-
     private Integer season;
-
     private SerieIdDTO series;
-
     private Integer chapter;
-
     private Integer duration;
-
-    // private LocalDateTime data_creacio;
-
-    // private LocalDateTime data_modif;
+    private String codec;
+    private String resolucio;
+    private long pes;
 
     public static VideoCatalegDTO convertToDTO(video_cataleg videoCataleg) {
+        VideoCatalegDTO dto = new VideoCatalegDTO();
 
-        VideoCatalegDTO videoCatalegDTO = new VideoCatalegDTO();
+        dto.setId(videoCataleg.getId());
+        dto.setTitle(videoCataleg.getTitle());
+        dto.setDescription(videoCataleg.getDescription());
 
-        videoCatalegDTO.setId(videoCataleg.getId());
-        videoCatalegDTO.setTitle(videoCataleg.getTitle());
-        videoCatalegDTO.setDescription(videoCataleg.getDescription());
         if (videoCataleg.getCategory() != null) {
-            videoCatalegDTO.setCategory(videoCataleg.getCategory().stream()
+            dto.setCategory(videoCataleg.getCategory().stream()
                     .map(c -> new CategoriaIdDTO(c.getId()))
                     .collect(Collectors.toSet()));
         }
+
         if (videoCataleg.getStudy() != null) {
-            videoCatalegDTO.setStudy(new EstudiIdDTO(videoCataleg.getStudy().getId()));
+            dto.setStudy(new EstudiIdDTO(videoCataleg.getStudy().getId()));
         }
 
-        videoCatalegDTO.setRating(videoCataleg.getRating());
-        videoCatalegDTO.setSeason(videoCataleg.getSeason());
+        dto.setRating(videoCataleg.getRating());
+        dto.setSeason(videoCataleg.getSeason());
+
         if (videoCataleg.getSeries() != null) {
-            videoCatalegDTO.setSeries(new SerieIdDTO(videoCataleg.getSeries().getId()));
+            dto.setSeries(new SerieIdDTO(videoCataleg.getSeries().getId()));
         }
-        videoCatalegDTO.setChapter(videoCataleg.getChapter());
-        videoCatalegDTO.setDuration(videoCataleg.getDuration());
 
-        return videoCatalegDTO;
+        dto.setChapter(videoCataleg.getChapter());
+        dto.setDuration(videoCataleg.getDuration());
 
+        // nous camps
+        dto.setCodec(videoCataleg.getCodec());
+        dto.setResolucio(videoCataleg.getResolucio());
+        dto.setPes(videoCataleg.getPes());
+
+        return dto;
     }
 
     public video_cataleg toEntity() {
-        video_cataleg videoCataleg = new video_cataleg();
-        videoCataleg.setId(this.getId());
-        videoCataleg.setTitle(this.getTitle());
-        videoCataleg.setDescription(this.getDescription());
+        video_cataleg entity = new video_cataleg();
+
+        entity.setId(this.getId());
+        entity.setTitle(this.getTitle());
+        entity.setDescription(this.getDescription());
 
         if (this.getCategory() != null) {
-            videoCataleg.setCategory(
-                    this.getCategory().stream()
-                            .map(c -> {
-                                categoria cat = new categoria();
-                                cat.setId(c.getId());
-                                return cat;
-                            })
-                            .collect(Collectors.toSet()));
+            entity.setCategory(this.getCategory().stream()
+                    .map(c -> {
+                        categoria cat = new categoria();
+                        cat.setId(c.getId());
+                        return cat;
+                    })
+                    .collect(Collectors.toSet()));
         }
 
         if (this.getStudy() != null) {
             estudi study = new estudi();
             study.setId(this.getStudy().getId());
-            videoCataleg.setStudy(study);
+            entity.setStudy(study);
         }
-        videoCataleg.setRating(this.getRating());
-        videoCataleg.setSeason(this.getSeason());
+
+        entity.setRating(this.getRating());
+        entity.setSeason(this.getSeason());
+
         if (this.getSeries() != null) {
             serie series = new serie();
             series.setId(this.getSeries().getId());
-            videoCataleg.setSeries(series);
+            entity.setSeries(series);
         }
-        videoCataleg.setChapter(this.getChapter());
-        videoCataleg.setDuration(this.getDuration());
-        return videoCataleg;
-    }
 
+        entity.setChapter(this.getChapter());
+        entity.setDuration(this.getDuration());
+
+        // nous camps
+        entity.setCodec(this.getCodec());
+        entity.setResolucio(this.getResolucio());
+        entity.setPes(this.getPes());
+
+        return entity;
+    }
 }
