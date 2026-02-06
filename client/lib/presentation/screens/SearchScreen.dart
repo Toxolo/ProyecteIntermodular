@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Serie.dart';
-import 'package:client/infrastructure/data_sources/ApiService.dart';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
 import 'package:client/infrastructure/mappers/SerieMapper.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +32,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService('$baseUrl:8090');
+    _api = ApiService.instance;
     _loadSeries();
   }
 
@@ -261,7 +261,7 @@ class _SerieTile extends StatelessWidget {
         width: 100,
         height: 60,
         child: CachedNetworkImage(
-          imageUrl: '$baseUrl:3000/static/${serie.id}/thumbnail.jpg',
+          imageUrl: '$expressUrl/static/${serie.id}/thumbnail.jpg',
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(
             color: Colors.grey[800],

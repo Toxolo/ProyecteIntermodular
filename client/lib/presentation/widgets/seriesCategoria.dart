@@ -3,30 +3,33 @@ import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Categoria.dart';
 import 'package:client/domain/entities/Serie.dart';
 import 'package:client/domain/entities/Video.dart';
+import 'package:client/presentation/providers/UserNotifier.dart';
 import 'package:client/presentation/screens/VistaPrevScreen.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
-import 'package:client/infrastructure/data_sources/ApiService.dart';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
 import 'package:client/infrastructure/mappers/CategoriaMapper.dart';
 import 'package:client/infrastructure/mappers/SerieMapper.dart';
 import 'package:client/infrastructure/mappers/VideoMapper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CategorySection extends StatefulWidget {
+class CategorySection extends ConsumerStatefulWidget {
   final AppDatabase db;
 
   const CategorySection({super.key, required this.db});
 
   @override
-  State<CategorySection> createState() => _CategorySectionState();
+  ConsumerState<CategorySection> createState() => _CategorySectionState();
 }
 
-class _CategorySectionState extends State<CategorySection> {
+class _CategorySectionState extends ConsumerState<CategorySection> {
   late final ApiService _api;
 
   @override
   void initState() {
     super.initState();
-    _api = ApiService(baseUrl);
+
+    _api = ref.read(apiServiceProvider);
   }
 
   @override
@@ -224,8 +227,7 @@ class _CategorySectionState extends State<CategorySection> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: CachedNetworkImage(
-                  imageUrl:
-                      '$baseUrl:3000/static/${firstVideo.id}/thumbnail.jpg',
+                  imageUrl: '$expressUrl/static/${firstVideo.id}/thumbnail.jpg',
                   fit: BoxFit.cover,
                   width: double.infinity,
                   placeholder: (context, url) => Container(

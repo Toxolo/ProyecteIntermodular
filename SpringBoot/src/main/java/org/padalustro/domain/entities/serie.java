@@ -22,7 +22,7 @@ public class serie {
     private String name;
 
     @Column(nullable = false)
-    private int classification;
+    private int  classification;
 
     public serie() {
     }

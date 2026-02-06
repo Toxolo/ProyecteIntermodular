@@ -10,6 +10,10 @@ const router = createRouter({
     { path: '/home', component: HomeScreen },
     { path: '/videos/edit/:id', component: EditScreen, props: true },
     { path: '/login', component: LoginScreen },
+    { path: "/series/edit/:id", name: "EditSerie", component: () => import("../components/Series/EditSeriesScreen.vue") },
+    { path: "/estudis/edit/:id", name: "EditEstudi", component: () => import("../components/Estudis/EditEstudisScreen.vue") },
+    { path: "/categories/edit/:id", name: "EditCategoria", component: () => import("../components/Categories/EditCategoriesScreen.vue") }
+
   ]
 })
 

@@ -6,7 +6,6 @@ class VideoMapper {
   final String title;
   final String description;
   final int duration;
-  final String thumbnail;
   final List<int> categorias;
   final int chapter;
   final int season;
@@ -18,7 +17,6 @@ class VideoMapper {
     required this.title,
     required this.description,
     required this.duration,
-    required this.thumbnail,
     required this.categorias,
     required this.chapter,
     required this.season,

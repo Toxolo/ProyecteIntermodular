@@ -1,6 +1,6 @@
 import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Video.dart';
-import 'package:client/infrastructure/data_sources/ApiService.dart';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
 import 'package:client/infrastructure/mappers/VideoMapper.dart';
 import 'package:client/presentation/screens/VistaPrevScreen.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,7 @@ class VideosDeLlistaPage extends StatefulWidget {
 }
 
 class _VideosDeLlistaPageState extends State<VideosDeLlistaPage> {
-  late final ApiService _api;
+  final api = ApiService.instance;
   List<Video> _videos = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -26,7 +26,6 @@ class _VideosDeLlistaPageState extends State<VideosDeLlistaPage> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService(baseUrl);
     _loadVideosFromList();
   }
 
@@ -53,7 +52,7 @@ class _VideosDeLlistaPageState extends State<VideosDeLlistaPage> {
 
       // 2. Fetch all video details in parallel
       final videoFutures = items
-          .map((item) => _api.getVideoById(item.videoId))
+          .map((item) => api.getVideoById(item.videoId))
           .toList();
       final results = await Future.wait(videoFutures);
 
@@ -152,7 +151,7 @@ class _VideosDeLlistaPageState extends State<VideosDeLlistaPage> {
                     width: 120,
                     height: 70,
                     child: Image.network(
-                      '$baseUrl:3000/static/${video.id}/thumbnail.jpg',
+                      '$expressUrl/static/${video.id}/thumbnail.jpg',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Container(
                         color: Colors.white12,

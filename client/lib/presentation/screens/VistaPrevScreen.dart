@@ -1,28 +1,30 @@
 import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Serie.dart';
 import 'package:client/domain/entities/Video.dart';
+import 'package:client/presentation/providers/UserNotifier.dart';
 import 'package:client/presentation/widgets/VideoPlayerHLS.dart';
 import 'package:client/presentation/widgets/menu_de_llistes.dart';
-import 'package:client/infrastructure/data_sources/ApiService.dart';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
 import 'package:client/infrastructure/mappers/VideoMapper.dart';
 import 'package:client/infrastructure/mappers/SerieMapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../infrastructure/data_sources/local/app_database.dart';
 import '../catalog_styles.dart';
 import '../widgets/series_episodes_section.dart';
 
-class VistaPrev extends StatefulWidget {
+class VistaPrev extends ConsumerStatefulWidget {
   final int videoId;
   final AppDatabase db;
 
   const VistaPrev({super.key, required this.videoId, required this.db});
 
   @override
-  State<VistaPrev> createState() => _VistaPrevState();
+  ConsumerState<VistaPrev> createState() => _VistaPrevState();
 }
 
-class _VistaPrevState extends State<VistaPrev> {
+class _VistaPrevState extends ConsumerState<VistaPrev> {
   late final ApiService _api;
   late final VideoListService _listService;
   Video? _video;
@@ -33,7 +35,7 @@ class _VistaPrevState extends State<VistaPrev> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService(baseUrl);
+    _api = ApiService.instance;
     _listService = VideoListService(widget.db.listsDao);
     _loadVideoDetails();
   }
@@ -107,6 +109,7 @@ class _VistaPrevState extends State<VistaPrev> {
         child: CircularProgressIndicator(color: Colors.white),
       );
     }
+    final user = ref.watch(userProvider);
 
     if (_errorMessage != null) {
       return Center(
@@ -151,7 +154,7 @@ class _VistaPrevState extends State<VistaPrev> {
         children: [
           // Thumbnail
           Image.network(
-            '$baseUrl:3000/static/${video.id}/thumbnail.jpg',
+            '$expressUrl/static/${video.id}/thumbnail.jpg',
             height: 220,
             width: double.infinity,
             fit: BoxFit.cover,
@@ -185,12 +188,12 @@ class _VistaPrevState extends State<VistaPrev> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => VideoPlayerHLS(
-                    url: '$baseUrl:3000/static/${video.id}/index.m3u8',
+                    url: '$expressUrl/static/${video.id}/index.m3u8',
+                    authToken: ref
+                        .read(userProvider)
+                        .getAccesToken(), // Pass it
                     onBack: () {
-                      SystemChrome.setPreferredOrientations([
-                        DeviceOrientation.portraitUp,
-                      ]);
-                      Navigator.pop(context);
+                      /* ... */
                     },
                   ),
                 ),

@@ -36,7 +36,7 @@ class ImageCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
-                imageUrl: '$baseUrl:3000/static/${video.id}/thumbnail.jpg',
+                imageUrl: '$expressUrl/static/${video.id}/thumbnail.jpg',
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: Colors.grey[800],

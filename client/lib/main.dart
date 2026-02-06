@@ -1,4 +1,5 @@
-import 'package:client/infrastructure/data_sources/ApiService.dart';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
+import 'package:client/presentation/providers/AppBootStrap.dart';
 import 'package:client/presentation/screens/HomeScreen.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
 import 'package:client/presentation/screens/LoginScreen.dart';
@@ -10,8 +11,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // important per usar async al main
 
-  final api = ApiService(baseUrl);
-
   // Forzar vertical por defecto
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -19,9 +18,7 @@ void main() async {
   ]);
 
   final db = AppDatabase(); // crea la base de dades
-  runApp(
-    ProviderScope(child: MyApp(db: db)), // passem la instància a MyApp
-  );
+  runApp(ProviderScope(child: AppBootstrap(db: db)));
 }
 
 class MyApp extends StatelessWidget {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/User.dart';
 import 'package:client/presentation/providers/UserNotifier.dart';
@@ -135,6 +136,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           // Afegim l'usuari al provider
           ref.read(userProvider.notifier).afegirUsuari(u);
 
+          while (ref.read(userProvider).getAccesToken() == null) {
+            // ignore: avoid_print
+            print("establint el token");
+            sleep(const Duration(milliseconds: 500));
+          }
           // Navigate to home
           if (mounted) {
             Navigator.pushReplacementNamed(context, '/home');

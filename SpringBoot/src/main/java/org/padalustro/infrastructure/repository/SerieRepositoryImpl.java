@@ -1,6 +1,7 @@
 package org.padalustro.infrastructure.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.padalustro.domain.entities.serie;
@@ -55,7 +56,8 @@ public class SerieRepositoryImpl implements SerieRepository {
     @Override
     public void updateById(Long id, SerieDTO dto) {
         jpaRepository.findById(id).ifPresent(entity -> {
-            entity.setName(dto.getName()); 
+            entity.setName(dto.getName());
+            entity.setClassification(dto.getClassification());
             jpaRepository.save(entity);
         });
     }
@@ -63,6 +65,12 @@ public class SerieRepositoryImpl implements SerieRepository {
     @Override
     public void deleteById(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+
+    @Override
+    public Optional<SerieDTO> findByIdDTO(Long id) {
+        return jpaRepository.findById(id).map(SerieDTO::convertToDTO);
     }
 
 

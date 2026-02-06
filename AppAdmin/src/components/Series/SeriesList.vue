@@ -1,7 +1,7 @@
-<!-- src/components/CategoriesList.vue -->
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import api from '../../services/api'
+import { useRouter } from 'vue-router'
 
 import SeriesCard from './SeriesCard.vue'
 
@@ -9,8 +9,9 @@ interface Serie {
   id: number
   name: string
   classification: number
-  
 }
+
+const router = useRouter()
 
 const props = defineProps<{
   searchQuery: string
@@ -23,6 +24,10 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 
 const token = localStorage.getItem('token')
+
+function goEdit(id: number) {
+  router.push(`/series/edit/${id}`)
+}
 
 async function fetchSeries() {
   try {
@@ -86,10 +91,10 @@ onMounted(fetchSeries)
         v-for="cat in filteredSeries"
         :key="cat.id"
         :serie="cat"
+        @edit="goEdit"  
       />
     </div>
   </div>
 </template>
-
 
 <style src="../../assets/css/Lists.css"></style>

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
+import 'package:client/presentation/providers/UserNotifier.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
@@ -6,8 +8,13 @@ import 'package:flutter/services.dart';
 class VideoPlayerHLS extends StatefulWidget {
   final String url;
   final VoidCallback onBack;
+  final String? authToken; // Add this
 
-  const VideoPlayerHLS({super.key, required this.url, required this.onBack});
+  const VideoPlayerHLS({
+    required this.url,
+    this.authToken,
+    required this.onBack,
+  });
 
   @override
   State<VideoPlayerHLS> createState() => _VideoPlayerHLSState();
@@ -17,23 +24,73 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
   late VideoPlayerController _controller;
   bool _showControls = true;
   Timer? _hideTimer;
+  final api = ApiService.instance;
+
+  // Refresh token
 
   @override
   void initState() {
     super.initState();
 
-    // Forcem landscape
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    final headers = <String, String>{};
+    if (widget.authToken != null) {
+      headers['Authorization'] = 'Bearer ${widget.authToken}';
+      headers['Accept'] = 'application/vnd.apple.mpegurl, */*';
+    }
 
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) {
-        setState(() {});
+    _controller = VideoPlayerController.networkUrl(
+      Uri.parse(widget.url),
+      httpHeaders: headers,
+      formatHint: VideoFormat.hls,
+    );
+
+    _controller.addListener(() {
+      if (_controller.value.hasError) {
+        final error = _controller.value.errorDescription ?? '';
+        if (error.contains('403') || error.contains('Forbidden')) {
+          _refreshAndRetry();
+        }
+      }
+    });
+
+    Future<void> _refreshAndRetry() async {
+      try {
+        // Llama a tu API de refresh
+        final newTokens = await api
+            .refreshToken(); // tu función que usa refresh_token
+        ref
+            .read(userProvider.notifier)
+            .updateAccessToken(newTokens['access_token']);
+
+        // Recarga el controller con nuevo token
+        final newHeaders = {
+          'Authorization': 'Bearer ${newTokens['access_token']}',
+        };
+        await _controller.dispose();
+        _controller = VideoPlayerController.networkUrl(
+          Uri.parse(widget.url),
+          httpHeaders: newHeaders,
+          formatHint: VideoFormat.hls,
+        );
+        await _controller.initialize();
         _controller.play();
-        _startHideTimer();
-      });
+      } catch (e) {
+        // Muestra "Sesión expirada, inicia sesión de nuevo"
+      }
+    }
+
+    Future<void> _initializePlayer() async {
+      try {
+        await _controller.initialize();
+        if (mounted) {
+          setState(() {});
+          _controller.play();
+          _startHideTimer();
+        }
+      } catch (error) {}
+    }
+
+    _initializePlayer(); // Call async method separately
   }
 
   void _startHideTimer() {

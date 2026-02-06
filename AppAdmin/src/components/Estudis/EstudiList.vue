@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import api from '../../services/api'
+import { useRouter } from 'vue-router'
 
 import EstudiCard from './EstudiCard.vue'
 
@@ -9,6 +10,8 @@ interface Estudi {
   id: number
   name: string
 }
+
+const router = useRouter()
 
 const props = defineProps<{
   searchQuery: string
@@ -21,6 +24,10 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 
 const token = localStorage.getItem('token')
+
+function goEdit(id: number) {
+  router.push(`/estudis/edit/${id}`)
+}
 
 async function fetchEstudis() {
   try {
@@ -78,6 +85,7 @@ onMounted(fetchEstudis)
         v-for="cat in filteredEstudis"
         :key="cat.id"
         :estudi="cat"
+        @edit="goEdit"  
       />
     </div>
   </div>
