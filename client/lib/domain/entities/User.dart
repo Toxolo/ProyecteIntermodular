@@ -1,8 +1,8 @@
 class User {
   late int id;
   late String name;
-  late String accesToken;
-  late String refreshToken;
+  String? accesToken;
+  late String? refreshToken;
   late bool isAdmin;
   late bool hasSuscription;
 
@@ -29,11 +29,11 @@ class User {
     return name;
   }
 
-  String getAccesToken() {
+  String? getAccesToken() {
     return accesToken;
   }
 
-  String getRefreshToken() {
+  String? getRefreshToken() {
     return refreshToken;
   }
 

@@ -57,7 +57,7 @@ class _SingleCategory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Use singleton instance
-    final api = ApiService(baseUrl);
+    final api = ApiService.instance;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

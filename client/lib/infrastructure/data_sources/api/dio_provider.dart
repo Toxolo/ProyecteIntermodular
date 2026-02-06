@@ -1,11 +1,15 @@
+import 'dart:io';
+
+import 'package:client/config/GlobalVariables.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../presentation/providers/UserNotifier.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: 'https://your-backend.com/api',
+      baseUrl: expressUrl,
       connectTimeout: const Duration(seconds: 12),
       receiveTimeout: const Duration(seconds: 12),
       headers: {
@@ -21,7 +25,7 @@ final dioProvider = Provider<Dio>((ref) {
       onRequest: (options, handler) {
         final token = ref.read(userProvider).getAccesToken();
 
-        if (token.isNotEmpty) {
+        if (token != null && token.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $token';
         }
 

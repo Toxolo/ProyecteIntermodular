@@ -35,7 +35,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService(baseUrl);
+    _api = ApiService.instance;
     _listService = VideoListService(widget.db.listsDao);
     _loadVideoDetails();
   }
@@ -154,7 +154,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
         children: [
           // Thumbnail
           Image.network(
-            '$baseUrl:3000/static/${video.id}/thumbnail.jpg',
+            '$expressUrl/static/${video.id}/thumbnail.jpg',
             height: 220,
             width: double.infinity,
             fit: BoxFit.cover,
@@ -188,12 +188,10 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => VideoPlayerHLS(
-<<<<<<< HEAD
                     url: '$expressUrl/static/${video.id}/index.m3u8',
-                    authToken: user.accesToken, // Pass it
-=======
-                    url: '$baseUrl:3000/static/${video.id}/index.m3u8',
->>>>>>> ccd756f (login creat user Provider)
+                    authToken: ref
+                        .read(userProvider)
+                        .getAccesToken(), // Pass it
                     onBack: () {
                       /* ... */
                     },

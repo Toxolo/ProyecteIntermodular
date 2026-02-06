@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:client/infrastructure/data_sources/api/ApiService.dart';
+import 'package:client/presentation/providers/UserNotifier.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
@@ -22,6 +24,9 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
   late VideoPlayerController _controller;
   bool _showControls = true;
   Timer? _hideTimer;
+  final api = ApiService.instance;
+
+  // Refresh token
 
   @override
   void initState() {
@@ -30,9 +35,49 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
     final headers = <String, String>{};
     if (widget.authToken != null) {
       headers['Authorization'] = 'Bearer ${widget.authToken}';
+      headers['Accept'] = 'application/vnd.apple.mpegurl, */*';
     }
 
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    _controller = VideoPlayerController.networkUrl(
+      Uri.parse(widget.url),
+      httpHeaders: headers,
+      formatHint: VideoFormat.hls,
+    );
+
+    _controller.addListener(() {
+      if (_controller.value.hasError) {
+        final error = _controller.value.errorDescription ?? '';
+        if (error.contains('403') || error.contains('Forbidden')) {
+          _refreshAndRetry();
+        }
+      }
+    });
+
+    Future<void> _refreshAndRetry() async {
+      try {
+        // Llama a tu API de refresh
+        final newTokens = await api
+            .refreshToken(); // tu función que usa refresh_token
+        ref
+            .read(userProvider.notifier)
+            .updateAccessToken(newTokens['access_token']);
+
+        // Recarga el controller con nuevo token
+        final newHeaders = {
+          'Authorization': 'Bearer ${newTokens['access_token']}',
+        };
+        await _controller.dispose();
+        _controller = VideoPlayerController.networkUrl(
+          Uri.parse(widget.url),
+          httpHeaders: newHeaders,
+          formatHint: VideoFormat.hls,
+        );
+        await _controller.initialize();
+        _controller.play();
+      } catch (e) {
+        // Muestra "Sesión expirada, inicia sesión de nuevo"
+      }
+    }
 
     Future<void> _initializePlayer() async {
       try {

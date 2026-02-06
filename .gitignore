@@ -10,7 +10,7 @@
 ./AppAdmin/.vscode
 
 # Express
-./Express/public/*
+Express/public/*
 
 ## Logs
 logs

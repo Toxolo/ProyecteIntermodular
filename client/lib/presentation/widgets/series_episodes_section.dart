@@ -34,7 +34,7 @@ class _SeriesEpisodesSectionState extends State<SeriesEpisodesSection> {
   @override
   void initState() {
     super.initState();
-    _api = ApiService(baseUrl);
+    _api = ApiService.instance;
     _loadEpisodes();
   }
 
@@ -167,8 +167,7 @@ class _SeriesEpisodesSectionState extends State<SeriesEpisodesSection> {
                   width: 110,
                   height: 65,
                   child: CachedNetworkImage(
-                    imageUrl:
-                        '$baseUrl:3000/static/${episode.id}/thumbnail.jpg',
+                    imageUrl: '$expressUrl/static/${episode.id}/thumbnail.jpg',
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       color: Colors.grey[800],
