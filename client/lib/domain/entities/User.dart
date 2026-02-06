@@ -47,7 +47,8 @@ class User {
 
   // ==================== METHODS =====================
 
-  void _refreshToken() {
-    //TODO
+  void clearTokens() {
+    setAccesToken("");
+    setRefreshToken("");
   }
 }

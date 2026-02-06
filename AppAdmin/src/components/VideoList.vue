@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, computed } from 'vue'
 import axios from 'axios'
 import VideoCard from './VideoCard.vue'
 import { useRouter } from 'vue-router'
+import api from '../services/api'
 
 const router = useRouter()
 
@@ -54,14 +55,14 @@ async function fetchAllData() {
     error.value = null
 
     // Fetch videos
-    const videosRes = await axios.get('http://localhost:8090/Cataleg')
+    const videosRes = await api.get('http://localhost:8090/Cataleg')
     const videosData = videosRes.data
 
     // Fetch categorías, series y estudios
     const [catRes, serRes, estRes] = await Promise.all([
-      axios.get('http://localhost:8090/Category'),
-      axios.get('http://localhost:8090/Serie'),
-      axios.get('http://localhost:8090/Estudi')
+      api.get('http://localhost:8090/Category'),
+      api.get('http://localhost:8090/Serie'),
+      api.get('http://localhost:8090/Estudi')
     ])
     categoriesList.value = catRes.data
     seriesList.value = serRes.data

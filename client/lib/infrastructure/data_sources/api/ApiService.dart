@@ -4,17 +4,23 @@ import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/Video.dart';
 import 'package:client/infrastructure/mappers/VideoMapper.dart';
 import 'package:client/presentation/providers/UserNotifier.dart';
+import 'package:client/presentation/screens/LoginScreen.dart';
+import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
+import 'package:dio_cookie_manager/dio_cookie_manager.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:client/infrastructure/data_sources/local/daos/lists_dao.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
-
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Unified API Service containing all remote and local data sources
 class ApiService {
   String _urlBase;
   late final Dio _dio;
+  late CookieJar _cookieJar;
   // Singleton pattern
   static ApiService? _instance;
 
@@ -25,7 +31,11 @@ class ApiService {
     return _instance!;
   }
 
-  // Private constructor
+  factory ApiService(Ref ref, String urlBase) {
+    _instance ??= ApiService._internal(ref, urlBase);
+    return _instance!;
+  }
+
   ApiService._internal(this._ref, this._urlBase) {
     _dio = Dio(
       BaseOptions(
@@ -39,30 +49,152 @@ class ApiService {
       ),
     );
 
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          final user = _ref.read(userProvider);
-          final token = user.getAccesToken();
+    // Initialize persistent cookie jar
+    _initCookies().then((_) {
+      // Add cookie manager AFTER jar is ready
+      _dio.interceptors.add(CookieManager(_cookieJar));
 
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-          // else: no token, proceed without Authorization
-          handler.next(options);
-        },
-        onError: (err, handler) {
-          // handle 401 globally
-          handler.next(err);
-        },
-      ),
-    );
+      // Your token interceptor (keep if mixing token + cookies, or remove if pure cookies)
+      _dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            final user = _ref.read(userProvider);
+            final token = user.getAccesToken();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
+            handler.next(options);
+          },
+          onError: (err, handler) {
+            // Optional: handle 401 → auto refresh or logout
+            handler.next(err);
+          },
+        ),
+      );
+    });
   }
 
-  // Factory constructor that returns the singleton instance
-  factory ApiService(Ref ref, String URL) {
-    _instance ??= ApiService._internal(ref, URL);
-    return _instance!;
+  Future<void> _initCookies() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final cookiePath =
+        '${directory.path}/.cookies/'; // subfolder for organization
+
+    // Create directory if needed
+    await Directory(cookiePath).create(recursive: true);
+
+    // Persistent jar: saves cookies to files → survives app restarts
+    _cookieJar = PersistCookieJar(
+      storage: FileStorage(cookiePath),
+      ignoreExpires: false, // respect cookie expiration
+      persistSession: true, // keep session cookies
+    );
+
+    // Optional: clear old cookies on init if needed (e.g. for logout)
+    // await _cookieJar.deleteAll();
+  }
+
+  Dio get dio => _dio;
+
+  /// Refresh token - returns true if successful, false otherwise
+  /// Refresh token - returns true if successful, false otherwise
+  Future<bool> refreshToken() async {
+    try {
+      final user = _ref.read(userProvider);
+      final refreshToken = user.getRefreshToken();
+      final userId = user.getId();
+
+      print("\n🔐 === TOKEN REFRESH DEBUG START ===");
+      print("User ID: $userId");
+      print(
+        "Refresh Token exists: ${refreshToken != null && refreshToken.isNotEmpty}",
+      );
+      print("Refresh Token length: ${refreshToken?.length}");
+
+      if (refreshToken == null || refreshToken.isEmpty) {
+        print("❌ No refresh token available");
+        print("🔐 === TOKEN REFRESH DEBUG END ===\n");
+        return false;
+      }
+
+      print("🔄 Attempting token refresh...");
+      print("📍 Endpoint: $refreshTokenUrl");
+
+      // Correct format with params wrapper and refreshToken (camelCase)
+      final Map<String, dynamic> requestBody = {
+        "params": {
+          "user_id": userId,
+          "refreshToken": refreshToken, // camelCase, not snake_case
+        },
+      };
+
+      final String jsonBody = jsonEncode(requestBody);
+      print("📤 Request body (string): $jsonBody");
+
+      final response = await http
+          .post(
+            Uri.parse(refreshTokenUrl),
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: jsonBody,
+          )
+          .timeout(const Duration(seconds: 10));
+
+      print("📊 Response status: ${response.statusCode}");
+      print("📦 Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        print("✅ Got 200 response, parsing...");
+
+        try {
+          final data = jsonDecode(response.body);
+          print("📋 Parsed JSON: $data");
+          print("📋 Result field: ${data['result']}");
+
+          // Expected format: {"result": {"access_token": "..."}}
+          final newAccessToken = data['result']?['access_token'] as String?;
+
+          print("🔑 Extracted token: ${newAccessToken?.substring(0, 20)}...");
+          print("🔑 Token is null: ${newAccessToken == null}");
+          print("🔑 Token is empty: ${newAccessToken?.isEmpty}");
+          print("🔑 Token length: ${newAccessToken?.length}");
+
+          if (newAccessToken != null && newAccessToken.isNotEmpty) {
+            _ref.read(userProvider).setAccesToken(newAccessToken);
+            print("✅ Token stored successfully");
+            print("✅ Token refresh successful");
+            print("🔐 === TOKEN REFRESH DEBUG END ===\n");
+            return true;
+          } else {
+            print("⚠️ No valid access token in response");
+            print("🔐 === TOKEN REFRESH DEBUG END ===\n");
+            return false;
+          }
+        } catch (parseError) {
+          print("❌ Error parsing response: $parseError");
+          print("🔐 === TOKEN REFRESH DEBUG END ===\n");
+          return false;
+        }
+      } else {
+        print("❌ Token refresh failed with status: ${response.statusCode}");
+        print("Response body: ${response.body}");
+        print("🔐 === TOKEN REFRESH DEBUG END ===\n");
+        return false;
+      }
+    } catch (e) {
+      print("❌ Token refresh exception: $e");
+      print("Exception type: ${e.runtimeType}");
+      print("🔐 === TOKEN REFRESH DEBUG END ===\n");
+      return false;
+    }
+  }
+
+  // Call this on app start or after login to ensure jar is loaded
+  Future<void> ensureCookiesInitialized() async {
+    if (_cookieJar is! PersistCookieJar) {
+      await _initCookies();
+    }
   }
 
   // Alternative: named constructor for getting the instance
@@ -75,7 +207,7 @@ class ApiService {
     return _instance!;
   }
 
-  // ── Helper: perform GET and return JSON list ───────────────────────────────
+  // ──── Helper: perform GET and return JSON list ────────────────────────────
   Future<List<dynamic>> _getList(String url, String path) async {
     try {
       final response = await _dio.get(url + path);
@@ -226,59 +358,6 @@ class VideoListService {
     );
     if (!exists) {
       await _listsDao.addVideoToList(listId: listId, videoId: videoId);
-    }
-  }
-
-  Future<Map<String, dynamic>?> refreshToken() async {
-    try {
-      final refreshToken = await storage.read(key: 'refresh_token');
-
-      if (refreshToken == null || refreshToken.isEmpty) {
-        print("No hay refresh token disponible");
-        return null;
-      }
-
-      final response = await http.post(
-        Uri.parse(
-          '$baseUrl/auth/refresh',
-        ), // ← ajusta esta ruta a tu endpoint real
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'refresh_token': refreshToken}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        // Suponiendo que tu backend devuelve algo como:
-        // { "access_token": "...", "refresh_token": "..." (opcional) }
-        final newAccessToken = data['access_token'] as String?;
-        final newRefreshToken = data['refresh_token'] as String?;
-
-        if (newAccessToken == null) {
-          print("No se recibió access_token en la respuesta");
-          return null;
-        }
-
-        // Opcional: actualizar refresh_token si el backend envía uno nuevo
-        if (newRefreshToken != null) {
-          await storage.write(key: 'refresh_token', value: newRefreshToken);
-        }
-
-        return {
-          'access_token': newAccessToken,
-          'refresh_token': newRefreshToken ?? refreshToken,
-        };
-      } else if (response.statusCode == 401 || response.statusCode == 403) {
-        print("Refresh token inválido o expirado: ${response.body}");
-        // Aquí podrías limpiar tokens y forzar logout
-        return null;
-      } else {
-        print("Error en refresh: ${response.statusCode} - ${response.body}");
-        return null;
-      }
-    } catch (e) {
-      print("Excepción al refrescar token: $e");
-      return null;
     }
   }
 

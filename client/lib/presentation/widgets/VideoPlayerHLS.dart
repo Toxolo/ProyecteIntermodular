@@ -2,13 +2,14 @@ import 'dart:async';
 import 'package:client/infrastructure/data_sources/api/ApiService.dart';
 import 'package:client/presentation/providers/UserNotifier.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
 
-class VideoPlayerHLS extends StatefulWidget {
+class VideoPlayerHLS extends ConsumerStatefulWidget {
   final String url;
   final VoidCallback onBack;
-  final String? authToken; // Add this
+  final String? authToken;
 
   const VideoPlayerHLS({
     required this.url,
@@ -17,80 +18,276 @@ class VideoPlayerHLS extends StatefulWidget {
   });
 
   @override
-  State<VideoPlayerHLS> createState() => _VideoPlayerHLSState();
+  ConsumerState<VideoPlayerHLS> createState() => _VideoPlayerHLSState();
 }
 
-class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
+class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
   late VideoPlayerController _controller;
   bool _showControls = true;
   Timer? _hideTimer;
   final api = ApiService.instance;
-
-  // Refresh token
+  bool _isRefreshing = false;
+  bool _hasTriedRefresh = false; // Prevent infinite loops
 
   @override
   void initState() {
     super.initState();
+    _initializePlayer();
 
-    final headers = <String, String>{};
-    if (widget.authToken != null) {
-      headers['Authorization'] = 'Bearer ${widget.authToken}';
-      headers['Accept'] = 'application/vnd.apple.mpegurl, */*';
-    }
+    // Forzar vertical por defecto
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  }
 
-    _controller = VideoPlayerController.networkUrl(
-      Uri.parse(widget.url),
-      httpHeaders: headers,
-      formatHint: VideoFormat.hls,
-    );
+  Future<void> _initializePlayer() async {
+    try {
+      print("\n🎬 ==================== PLAYER INIT START ====================");
+      print("🎬 Starting player initialization...");
 
-    _controller.addListener(() {
-      if (_controller.value.hasError) {
-        final error = _controller.value.errorDescription ?? '';
-        if (error.contains('403') || error.contains('Forbidden')) {
-          _refreshAndRetry();
-        }
-      }
-    });
+      // Get current token
+      final token = ref.read(userProvider).getAccesToken();
 
-    Future<void> _refreshAndRetry() async {
-      try {
-        // Llama a tu API de refresh
-        final newTokens = await api
-            .refreshToken(); // tu función que usa refresh_token
-        ref
-            .read(userProvider.notifier)
-            .updateAccessToken(newTokens['access_token']);
+      print("🎬 Token check:");
+      print("   - Token exists: ${token != null}");
+      print("   - Token not empty: ${token?.isNotEmpty}");
+      print("   - Token length: ${token?.length}");
+      print("   - Token preview: ${token?.substring(0, 20)}...");
 
-        // Recarga el controller con nuevo token
-        final newHeaders = {
-          'Authorization': 'Bearer ${newTokens['access_token']}',
-        };
-        await _controller.dispose();
-        _controller = VideoPlayerController.networkUrl(
-          Uri.parse(widget.url),
-          httpHeaders: newHeaders,
-          formatHint: VideoFormat.hls,
-        );
-        await _controller.initialize();
-        _controller.play();
-      } catch (e) {
-        // Muestra "Sesión expirada, inicia sesión de nuevo"
-      }
-    }
-
-    Future<void> _initializePlayer() async {
-      try {
-        await _controller.initialize();
+      if (token == null || token.isEmpty) {
+        print("❌ No token available");
         if (mounted) {
-          setState(() {});
-          _controller.play();
-          _startHideTimer();
+          _showSessionExpiredDialog();
         }
-      } catch (error) {}
+        print("🎬 ==================== PLAYER INIT END ====================\n");
+        return;
+      }
+
+      print("🎬 Video URL: ${widget.url}");
+      print("🔑 Creating headers with token...");
+
+      final headers = <String, String>{
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/vnd.apple.mpegurl, */*',
+      };
+
+      print("🔑 Headers: $headers");
+
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(widget.url),
+        formatHint: VideoFormat.hls,
+        httpHeaders: headers,
+      );
+
+      // Add error listener BEFORE initialization
+      _controller.addListener(_handleVideoError);
+
+      print("⏳ Initializing controller...");
+      await _controller.initialize();
+
+      print("✅ Controller initialized successfully");
+      print("✅ Controller value: ${_controller.value}");
+      print("✅ Duration: ${_controller.value.duration}");
+
+      if (mounted) {
+        setState(() {});
+        print("▶️ Starting playback...");
+        await _controller.play();
+        _startHideTimer();
+        print("▶️ Video playing");
+      }
+      print("🎬 ==================== PLAYER INIT END ====================\n");
+    } catch (error) {
+      print("❌ Error initializing video: $error");
+      print("❌ Error type: ${error.runtimeType}");
+      print("❌ Full stack trace:");
+      if (error is Exception) {
+        print(error.toString());
+      }
+
+      // ANY error during init = likely 403, try refresh once
+      if (!_hasTriedRefresh) {
+        print("🔐 Init failed - attempting token refresh in case of 403...");
+        _hasTriedRefresh = true;
+
+        try {
+          await _refreshAndRetry();
+          return; // _refreshAndRetry will restart everything
+        } catch (refreshError) {
+          print("❌ Refresh also failed: $refreshError");
+        }
+      } else {
+        print("⚠️ Already tried refresh once, giving up");
+      }
+
+      // If we get here, give up and show error
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error loading video: $error")));
+
+        // Show full dialog on persistent errors
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            _showSessionExpiredDialog();
+          }
+        });
+      }
+      print("🎬 ==================== PLAYER INIT END ====================\n");
+    }
+  }
+
+  void _handleVideoError() {
+    print("🎥 _handleVideoError called");
+    print("🎥 Has error: ${_controller.value.hasError}");
+    print("🎥 Error description: ${_controller.value.errorDescription}");
+
+    if (!_controller.value.hasError) {
+      print("🎥 No error, returning");
+      return;
     }
 
-    _initializePlayer(); // Call async method separately
+    final error = _controller.value.errorDescription ?? '';
+    print("🎥 Full error string: $error");
+    print("🎥 Contains '403': ${error.contains('403')}");
+    print("🎥 Contains 'Forbidden': ${error.contains('Forbidden')}");
+    print("🎥 Is refreshing: $_isRefreshing");
+
+    // Check for 403 Forbidden error during playback
+    if ((error.contains('403') || error.contains('Forbidden')) &&
+        !_isRefreshing) {
+      print("🔐 DETECTED 403 - attempting token refresh");
+      _refreshAndRetry();
+    } else if (_isRefreshing) {
+      print("⚠️ Already refreshing, skipping");
+    }
+  }
+
+  Future<void> _refreshAndRetry() async {
+    // Prevent concurrent refresh attempts
+    if (_isRefreshing) {
+      print("⚠️ Refresh already in progress, skipping");
+      return;
+    }
+
+    _isRefreshing = true;
+
+    try {
+      print("\n🔄 ==================== REFRESH START ====================");
+      print("🔄 Refreshing token...");
+
+      // Step 1: Call refresh endpoint
+      final refreshSuccess = await api.refreshToken();
+
+      print("🔄 Refresh result: $refreshSuccess");
+
+      if (!refreshSuccess) {
+        print("❌ Token refresh failed - invalid refresh token or server error");
+        if (mounted) _showSessionExpiredDialog();
+        print("🔄 ==================== REFRESH END ====================\n");
+        return;
+      }
+
+      // Step 2: Get the new token from provider
+      final newToken = ref.read(userProvider).getAccesToken();
+      print("🔄 New token from provider: ${newToken?.substring(0, 20)}...");
+      print("🔄 New token exists: ${newToken != null}");
+      print("🔄 New token not empty: ${newToken?.isNotEmpty}");
+
+      if (newToken == null || newToken.isEmpty) {
+        print("❌ No valid token in provider after refresh");
+        if (mounted) _showSessionExpiredDialog();
+        print("🔄 ==================== REFRESH END ====================\n");
+        return;
+      }
+
+      print("✅ Got new token, reinitializing player...");
+
+      // Step 3: Dispose old controller
+      try {
+        if (_controller.value.isInitialized) {
+          await _controller.pause();
+          print("✅ Old controller paused");
+        }
+        _controller.removeListener(_handleVideoError);
+        await _controller.dispose();
+        print("✅ Old controller disposed");
+      } catch (e) {
+        print("⚠️ Error disposing controller: $e");
+      }
+
+      if (!mounted) {
+        print("⚠️ Widget unmounted, returning");
+        print("🔄 ==================== REFRESH END ====================\n");
+        return;
+      }
+
+      // Step 4: Create fresh controller with new token
+      print("🔄 Creating new controller with fresh token...");
+
+      final headers = <String, String>{
+        'Authorization': 'Bearer $newToken',
+        'Accept': 'application/vnd.apple.mpegurl, */*',
+      };
+
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(widget.url),
+        formatHint: VideoFormat.hls,
+        httpHeaders: headers,
+      );
+
+      _controller.addListener(_handleVideoError);
+
+      print("⏳ Initializing new controller...");
+      await _controller.initialize();
+
+      if (!mounted) {
+        print("⚠️ Widget unmounted after init");
+        print("🔄 ==================== REFRESH END ====================\n");
+        return;
+      }
+
+      print("✅ New controller ready");
+      setState(() {});
+
+      await _controller.play();
+      _startHideTimer();
+
+      print("✅ Video resumed playback");
+      print("🔄 ==================== REFRESH END ====================\n");
+    } catch (e) {
+      print("❌ Error during refresh and retry: $e");
+      print("❌ Error type: ${e.runtimeType}");
+      if (mounted) {
+        _showSessionExpiredDialog();
+      }
+      print("🔄 ==================== REFRESH END ====================\n");
+    } finally {
+      _isRefreshing = false;
+    }
+  }
+
+  void _showSessionExpiredDialog() {
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text("Session Expired"),
+        content: const Text("Your session has expired. Please log in again."),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              widget.onBack(); // Go back to previous screen
+            },
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 
   void _startHideTimer() {
@@ -106,9 +303,11 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
 
   void _toggleControls() {
     setState(() {
-      _showControls = true;
+      _showControls = !_showControls;
     });
-    _startHideTimer();
+    if (_showControls) {
+      _startHideTimer();
+    }
   }
 
   void _rewind10() {
@@ -126,8 +325,13 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
   @override
   void dispose() {
     _hideTimer?.cancel();
+    _controller.removeListener(_handleVideoError);
     _controller.dispose();
     super.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
   }
 
   String _formatDuration(Duration duration) {
@@ -137,7 +341,6 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
     return '${duration.inHours > 0 ? '${twoDigits(duration.inHours)}:' : ''}$minutes:$seconds';
   }
 
-  @override
   Widget build(BuildContext context) {
     if (!_controller.value.isInitialized) {
       return const Scaffold(
@@ -163,14 +366,17 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
                 ),
               ),
             ),
-            // 🔙 Fletxa tornar enrere
+            // Back button
             if (_showControls)
               Positioned(
                 top: 16,
                 left: 16,
                 child: SafeArea(
-                  child: IconButton(
-                    icon: Container(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: const BoxDecoration(
                         color: Colors.black54,
@@ -182,11 +388,10 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
                         size: 28,
                       ),
                     ),
-                    onPressed: widget.onBack,
                   ),
                 ),
               ),
-            // Controls centrals (play, rewind, forward)
+            // Central controls (play, rewind, forward)
             if (_showControls)
               Align(
                 alignment: Alignment.center,
@@ -227,7 +432,7 @@ class _VideoPlayerHLSState extends State<VideoPlayerHLS> {
                   ],
                 ),
               ),
-            // Barra de reproducció a baix
+            // Progress bar at bottom
             if (_showControls)
               Positioned(
                 left: 16,

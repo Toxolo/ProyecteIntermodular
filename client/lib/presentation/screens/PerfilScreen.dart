@@ -1,5 +1,6 @@
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
 import 'package:client/presentation/providers/UserNotifier.dart';
+import 'package:client/presentation/screens/LoginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../catalog_styles.dart';
@@ -88,9 +89,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
 
             // configuracion
             InkWell(
-              onTap: () {
-                // tiene que ir a configuración_page
-              },
+              onTap: () {},
               child: Row(
                 children: const [
                   Icon(Icons.settings, color: Colors.white),
@@ -105,17 +104,21 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
 
             const SizedBox(height: 20),
 
-            // borrar perfil
+            // Tancar Sessio
             InkWell(
               onTap: () {
-                // configurar el use delete perfil
+                ref.read(userProvider).clearTokens();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
+                );
               },
               child: Row(
                 children: const [
                   Icon(Icons.delete, color: Colors.red),
                   SizedBox(width: 12),
                   Text(
-                    'Borrar Perfil',
+                    'Tancar sessio',
                     style: TextStyle(color: Colors.red, fontSize: 18),
                   ),
                 ],
