@@ -95,6 +95,13 @@ class ApiService {
 
   Dio get dio => _dio;
 
+  // ──── Helper to get token (used by all requests) ────────────────────────────────
+  String? _getAuthToken(Ref ref) {
+    final user = ref.read(userProvider);
+    final token = user.getAccesToken();
+    return (token != null && token.isNotEmpty) ? token : null;
+  }
+
   /// Refresh token - returns true if successful, false otherwise
   /// Refresh token - returns true if successful, false otherwise
   Future<bool> refreshToken() async {
@@ -103,32 +110,19 @@ class ApiService {
       final refreshToken = user.getRefreshToken();
       final userId = user.getId();
 
-      print("\n🔐 === TOKEN REFRESH DEBUG START ===");
-      print("User ID: $userId");
-      print(
-        "Refresh Token exists: ${refreshToken != null && refreshToken.isNotEmpty}",
-      );
-      print("Refresh Token length: ${refreshToken?.length}");
-
       if (refreshToken == null || refreshToken.isEmpty) {
-        print("❌ No refresh token available");
-        print("🔐 === TOKEN REFRESH DEBUG END ===\n");
         return false;
       }
-
-      print("🔄 Attempting token refresh...");
-      print("📍 Endpoint: $refreshTokenUrl");
 
       // Correct format with params wrapper and refreshToken (camelCase)
       final Map<String, dynamic> requestBody = {
         "params": {
           "user_id": userId,
-          "refreshToken": refreshToken, // camelCase, not snake_case
+          "refresh_token": refreshToken, // camelCase, not snake_case
         },
       };
 
       final String jsonBody = jsonEncode(requestBody);
-      print("📤 Request body (string): $jsonBody");
 
       final response = await http
           .post(
@@ -141,51 +135,25 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 10));
 
-      print("📊 Response status: ${response.statusCode}");
-      print("📦 Response body: ${response.body}");
-
       if (response.statusCode == 200) {
-        print("✅ Got 200 response, parsing...");
-
         try {
           final data = jsonDecode(response.body);
-          print("📋 Parsed JSON: $data");
-          print("📋 Result field: ${data['result']}");
 
           // Expected format: {"result": {"access_token": "..."}}
           final newAccessToken = data['result']?['access_token'] as String?;
-
-          print("🔑 Extracted token: ${newAccessToken?.substring(0, 20)}...");
-          print("🔑 Token is null: ${newAccessToken == null}");
-          print("🔑 Token is empty: ${newAccessToken?.isEmpty}");
-          print("🔑 Token length: ${newAccessToken?.length}");
-
           if (newAccessToken != null && newAccessToken.isNotEmpty) {
             _ref.read(userProvider).setAccesToken(newAccessToken);
-            print("✅ Token stored successfully");
-            print("✅ Token refresh successful");
-            print("🔐 === TOKEN REFRESH DEBUG END ===\n");
             return true;
           } else {
-            print("⚠️ No valid access token in response");
-            print("🔐 === TOKEN REFRESH DEBUG END ===\n");
             return false;
           }
         } catch (parseError) {
-          print("❌ Error parsing response: $parseError");
-          print("🔐 === TOKEN REFRESH DEBUG END ===\n");
           return false;
         }
       } else {
-        print("❌ Token refresh failed with status: ${response.statusCode}");
-        print("Response body: ${response.body}");
-        print("🔐 === TOKEN REFRESH DEBUG END ===\n");
         return false;
       }
     } catch (e) {
-      print("❌ Token refresh exception: $e");
-      print("Exception type: ${e.runtimeType}");
-      print("🔐 === TOKEN REFRESH DEBUG END ===\n");
       return false;
     }
   }
@@ -207,48 +175,65 @@ class ApiService {
     return _instance!;
   }
 
-  // ──── Helper: perform GET and return JSON list ────────────────────────────
-  Future<List<dynamic>> _getList(String url, String path) async {
-    try {
-      final response = await _dio.get(url + path);
-      if (response.statusCode == HttpStatus.ok) {
-        return response.data as List<dynamic>;
-      }
-      return [];
-    } on DioException catch (e) {
-      // ignore: avoid_print
-      print(e);
-      return [];
-    }
-  }
-
-  // ==================== CATEGORIA API ====================
-
-  //Future<List<dynamic>> getCategories() => _getList(baseUrl, '/Category');
-
-  /// Devuelve la lista de categorías desde el backend
+  // ──── CATEGORIES ────────────────────────────────────────────────────────────────
   Future<List<dynamic>> getCategories() async {
-    String url = "$_urlBase/Category";
-    http.Response data = await http.get(Uri.parse(url));
-    if (data.statusCode == HttpStatus.ok) {
-      String body = utf8.decode(data.bodyBytes);
-      final bodyJSON = jsonDecode(body);
-      return bodyJSON as List;
-    } else {
+    final token = _getAuthToken(_ref);
+    final uri = Uri.parse('$_urlBase/Category');
+
+    try {
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'Accept': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final body = utf8.decode(response.bodyBytes);
+        final json = jsonDecode(body);
+        return json is List ? json : [];
+      } else {
+        return [];
+      }
+    } catch (e) {
       return [];
     }
   }
 
-  // ==================== SERIE API ====================
+  // ──── SERIES ────────────────────────────────────────────────────────────────────
+  Future<List<dynamic>> getSeries() async {
+    final token = _getAuthToken(_ref);
+    final uri = Uri.parse('$_urlBase/Serie');
 
-  //Future<List<dynamic>> getSeries() => _getList(baseUrl, '/Serie');
+    try {
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'Accept': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final body = utf8.decode(response.bodyBytes);
+        final json = jsonDecode(body);
+        return json is List ? json : [];
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
 
   /// Obtiene una serie por su ID
   Future<dynamic> getSerieById(int serieId) async {
     final series = await getSeries();
-
-    // ignore: avoid_print
-    print(series);
 
     try {
       return series.firstWhere((s) => s['id'] == serieId);
@@ -272,58 +257,67 @@ class ApiService {
     return filtered;
   }
 
-  /// Obtiene todas las series
-  Future<List<dynamic>> getSeries() async {
-    String url = "$_urlBase/Serie";
-    http.Response data = await http.get(Uri.parse(url));
-    if (data.statusCode == HttpStatus.ok) {
-      String body = utf8.decode(data.bodyBytes);
-      final bodyJSON = jsonDecode(body);
-      return bodyJSON as List;
-    } else {
-      return [];
-    }
-  }
-
-  // ==================== VIDEO API ====================
-
-  //// Future<List<dynamic>> getVideos() => _getList(baseUrl, '/Cataleg');
-  /*
-  Future<dynamic> getVideoById(int id) async {
-    try {
-      final response = await _dio.get('/Cataleg/$id');
-      if (response.statusCode == HttpStatus.ok) {
-        return response.data;
-      }
-      return null;
-    } on DioException {
-      return null;
-    }
-  }
-*/
-  /// Obtiene todos los vídeos
+  // ──── VIDEOS / CATALEG ──────────────────────────────────────────────────────────
   Future<List<dynamic>> getVideos() async {
-    String url = "$_urlBase/Cataleg";
-    http.Response data = await http.get(Uri.parse(url));
-    if (data.statusCode == HttpStatus.ok) {
-      String body = utf8.decode(data.bodyBytes);
-      final bodyJSON = jsonDecode(body);
-      return bodyJSON as List;
-    } else {
+    final token = _getAuthToken(_ref);
+    final uri = Uri.parse('$_urlBase/Cataleg');
+
+    try {
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'Accept': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final body = utf8.decode(response.bodyBytes);
+        final json = jsonDecode(body);
+
+        if (json is List) {
+          return json;
+        } else if (json is Map) {
+          // Handle common wrapped responses
+          final list = json['data'] ?? json['results'] ?? json['content'] ?? [];
+          return list is List ? list : [];
+        }
+        return [];
+      } else {
+        return [];
+      }
+    } catch (e) {
       return [];
     }
   }
 
-  /// Obtiene un vídeo por su ID
-  Future<dynamic> getVideoById(int id) async {
-    String url = "$_urlBase/Cataleg/$id";
-    http.Response data = await http.get(Uri.parse(url));
-    if (data.statusCode == HttpStatus.ok) {
-      String body = utf8.decode(data.bodyBytes);
-      final bodyJSON = jsonDecode(body);
-      return bodyJSON as Map<String, dynamic>?;
-    } else {
-      return [];
+  // ──── SINGLE VIDEO ──────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>?> getVideoById(int id) async {
+    final token = _getAuthToken(_ref);
+    final uri = Uri.parse('$_urlBase/Cataleg/$id');
+
+    try {
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'Accept': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final body = utf8.decode(response.bodyBytes);
+        final json = jsonDecode(body);
+        return json is Map<String, dynamic> ? json : null;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
     }
   }
 }

@@ -214,17 +214,12 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
         await _controller.dispose();
         print("✅ Old controller disposed");
       } catch (e) {
-        print("⚠️ Error disposing controller: $e");
+        print(e);
       }
 
       if (!mounted) {
-        print("⚠️ Widget unmounted, returning");
-        print("🔄 ==================== REFRESH END ====================\n");
         return;
       }
-
-      // Step 4: Create fresh controller with new token
-      print("🔄 Creating new controller with fresh token...");
 
       final headers = <String, String>{
         'Authorization': 'Bearer $newToken',
@@ -239,30 +234,20 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
 
       _controller.addListener(_handleVideoError);
 
-      print("⏳ Initializing new controller...");
       await _controller.initialize();
 
       if (!mounted) {
-        print("⚠️ Widget unmounted after init");
-        print("🔄 ==================== REFRESH END ====================\n");
         return;
       }
 
-      print("✅ New controller ready");
       setState(() {});
 
       await _controller.play();
       _startHideTimer();
-
-      print("✅ Video resumed playback");
-      print("🔄 ==================== REFRESH END ====================\n");
     } catch (e) {
-      print("❌ Error during refresh and retry: $e");
-      print("❌ Error type: ${e.runtimeType}");
       if (mounted) {
         _showSessionExpiredDialog();
       }
-      print("🔄 ==================== REFRESH END ====================\n");
     } finally {
       _isRefreshing = false;
     }

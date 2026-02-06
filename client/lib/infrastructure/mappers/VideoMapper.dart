@@ -24,40 +24,37 @@ class VideoMapper {
     required this.puntuacio,
   });
 
-  static Video fromJson(Map<String, dynamic> json) {
-    try {
+  static Video fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      debugPrint('[VideoMapper] fromJson: null json → empty video');
       return Video(
-        id: json['id'] as int,
-        titol: json['title'] ?? '',
-        descripcio: json['description'] ?? '',
-        duracio: json['duration'] ?? 0,
-        categories: json['category'] != null
-            ? List<int>.from(json['category'].map((e) => e['id'] as int))
-            : [],
-        capitol: json['chapter'] ?? 0,
-        temporada: json['season'] ?? 0,
-        serie: json['series'] != null ? json['series']['id'] as int : 0,
-        puntuacio: json['rating'] ?? 0,
-      );
-    } catch (error) {
-      debugPrint("[Principal Mapper] Error:  $error");
-      return (Video(
         id: 0,
-
-        titol: json['title'] ?? '',
-        descripcio: json['description'] ?? '',
-        duracio: json['duration'] ?? 0,
-
-        categories: json['category'] != null
-            ? List<int>.from(json['category'].map((e) => e['id'] as int))
-            : [],
-
-        capitol: json['chapter'] ?? 0,
-        temporada: json['season'] ?? 0,
-
-        serie: json['series'] != null ? json['series']['id'] as int : 0,
-        puntuacio: json['rating'] ?? 0,
-      ));
+        titol: '',
+        descripcio: '',
+        duracio: 0,
+        categories: const [],
+        capitol: 0,
+        temporada: 0,
+        serie: 0,
+        puntuacio: 0,
+      );
     }
+
+    return Video(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      titol: json['title'] as String? ?? '',
+      descripcio: json['description'] as String? ?? '',
+      duracio: (json['duration'] as num?)?.toInt() ?? 0,
+      categories:
+          (json['category'] as List<dynamic>?)
+              ?.map((e) => (e as Map<String, dynamic>?)?['id'] as int? ?? 0)
+              .where((id) => id != 0)
+              .toList() ??
+          [],
+      capitol: (json['chapter'] as num?)?.toInt() ?? 0,
+      temporada: (json['season'] as num?)?.toInt() ?? 0,
+      serie: (json['series'] as Map<String, dynamic>?)?['id'] as int? ?? 0,
+      puntuacio: (json['rating'] as num?)?.toDouble() ?? 0.0,
+    );
   }
 }
