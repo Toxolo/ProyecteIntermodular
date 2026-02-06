@@ -26,7 +26,7 @@ export default function verifyToken(req, res, next) {
         return res.status(403).json({ message: 'Token inválido' });
     }
     // comprobar suscripción
-    if (!decoded.has_subscription) {
+    if (!decoded.has_subscription && !decoded.is_admin) {
       return res.status(403).json({
         message: 'Existe usuario pero no tiene suscripción',
       });
