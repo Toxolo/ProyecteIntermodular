@@ -43,36 +43,20 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
 
   Future<void> _initializePlayer() async {
     try {
-      print("\n🎬 ==================== PLAYER INIT START ====================");
-      print("🎬 Starting player initialization...");
-
       // Get current token
       final token = ref.read(userProvider).getAccesToken();
 
-      print("🎬 Token check:");
-      print("   - Token exists: ${token != null}");
-      print("   - Token not empty: ${token?.isNotEmpty}");
-      print("   - Token length: ${token?.length}");
-      print("   - Token preview: ${token?.substring(0, 20)}...");
-
       if (token == null || token.isEmpty) {
-        print("❌ No token available");
         if (mounted) {
           _showSessionExpiredDialog();
         }
-        print("🎬 ==================== PLAYER INIT END ====================\n");
         return;
       }
-
-      print("🎬 Video URL: ${widget.url}");
-      print("🔑 Creating headers with token...");
 
       final headers = <String, String>{
         'Authorization': 'Bearer $token',
         'Accept': 'application/vnd.apple.mpegurl, */*',
       };
-
-      print("🔑 Headers: $headers");
 
       _controller = VideoPlayerController.networkUrl(
         Uri.parse(widget.url),
@@ -82,44 +66,27 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
 
       // Add error listener BEFORE initialization
       _controller.addListener(_handleVideoError);
-
-      print("⏳ Initializing controller...");
       await _controller.initialize();
-
-      print("✅ Controller initialized successfully");
-      print("✅ Controller value: ${_controller.value}");
-      print("✅ Duration: ${_controller.value.duration}");
 
       if (mounted) {
         setState(() {});
-        print("▶️ Starting playback...");
         await _controller.play();
         _startHideTimer();
-        print("▶️ Video playing");
       }
-      print("🎬 ==================== PLAYER INIT END ====================\n");
     } catch (error) {
-      print("❌ Error initializing video: $error");
-      print("❌ Error type: ${error.runtimeType}");
-      print("❌ Full stack trace:");
       if (error is Exception) {
         print(error.toString());
       }
 
       // ANY error during init = likely 403, try refresh once
       if (!_hasTriedRefresh) {
-        print("🔐 Init failed - attempting token refresh in case of 403...");
         _hasTriedRefresh = true;
 
         try {
           await _refreshAndRetry();
           return; // _refreshAndRetry will restart everything
-        } catch (refreshError) {
-          print("❌ Refresh also failed: $refreshError");
-        }
-      } else {
-        print("⚠️ Already tried refresh once, giving up");
-      }
+        } catch (refreshError) {}
+      } else {}
 
       // If we get here, give up and show error
       if (mounted) {
@@ -134,85 +101,55 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
           }
         });
       }
-      print("🎬 ==================== PLAYER INIT END ====================\n");
     }
   }
 
   void _handleVideoError() {
-    print("🎥 _handleVideoError called");
-    print("🎥 Has error: ${_controller.value.hasError}");
-    print("🎥 Error description: ${_controller.value.errorDescription}");
-
     if (!_controller.value.hasError) {
-      print("🎥 No error, returning");
       return;
     }
 
     final error = _controller.value.errorDescription ?? '';
-    print("🎥 Full error string: $error");
-    print("🎥 Contains '403': ${error.contains('403')}");
-    print("🎥 Contains 'Forbidden': ${error.contains('Forbidden')}");
-    print("🎥 Is refreshing: $_isRefreshing");
 
     // Check for 403 Forbidden error during playback
     if ((error.contains('403') || error.contains('Forbidden')) &&
         !_isRefreshing) {
-      print("🔐 DETECTED 403 - attempting token refresh");
       _refreshAndRetry();
-    } else if (_isRefreshing) {
-      print("⚠️ Already refreshing, skipping");
-    }
+    } else if (_isRefreshing) {}
   }
 
   Future<void> _refreshAndRetry() async {
     // Prevent concurrent refresh attempts
     if (_isRefreshing) {
-      print("⚠️ Refresh already in progress, skipping");
       return;
     }
 
     _isRefreshing = true;
 
     try {
-      print("\n🔄 ==================== REFRESH START ====================");
-      print("🔄 Refreshing token...");
-
       // Step 1: Call refresh endpoint
       final refreshSuccess = await api.refreshToken();
 
-      print("🔄 Refresh result: $refreshSuccess");
-
       if (!refreshSuccess) {
-        print("❌ Token refresh failed - invalid refresh token or server error");
         if (mounted) _showSessionExpiredDialog();
-        print("🔄 ==================== REFRESH END ====================\n");
         return;
       }
 
       // Step 2: Get the new token from provider
       final newToken = ref.read(userProvider).getAccesToken();
-      print("🔄 New token from provider: ${newToken?.substring(0, 20)}...");
-      print("🔄 New token exists: ${newToken != null}");
-      print("🔄 New token not empty: ${newToken?.isNotEmpty}");
 
       if (newToken == null || newToken.isEmpty) {
-        print("❌ No valid token in provider after refresh");
         if (mounted) _showSessionExpiredDialog();
-        print("🔄 ==================== REFRESH END ====================\n");
         return;
       }
-
-      print("✅ Got new token, reinitializing player...");
 
       // Step 3: Dispose old controller
       try {
         if (_controller.value.isInitialized) {
           await _controller.pause();
-          print("✅ Old controller paused");
         }
         _controller.removeListener(_handleVideoError);
         await _controller.dispose();
-        print("✅ Old controller disposed");
       } catch (e) {
         print(e);
       }
