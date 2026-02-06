@@ -69,11 +69,12 @@ async function handleLogin() {
 }
 
 input {
+  text-align: center;
   display: block;
   width: 100%;
   margin: 12px 0;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 12px 0;
+  border-radius: 80px;
   border: 1px solid #ccc;
   font-size: 16px;
 }
