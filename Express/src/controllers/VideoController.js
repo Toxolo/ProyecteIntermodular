@@ -2,8 +2,10 @@ import multer from 'multer';
 import ffmpeg from 'ffmpeg-static';
 import { spawn } from 'child_process';
 import path from 'path';
-import { publicPath } from '../../index.js ';
+import { publicPath } from '../../index.js';
 import connect from '../../connectionDB.js';
+import fs from 'fs';
+
 
 let db = null;
 
@@ -160,7 +162,7 @@ export const processVideo = (req, res) => {
                 console.error('Timeout: kill FFmpeg per timeout');
                 ffmpegProcess.kill('SIGKILL');
             }
-        }, 60000);
+        }, 600000);
 
         // ffmpeg -i /home/disnaking/Downloads/videoplayback.mp4 -profile:v baseline -level 3.0 -start_number 0 -hls_time 10 -hls_list_size 0 -f hls ./public/index.m3u8       
     } catch (error) {

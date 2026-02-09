@@ -55,41 +55,47 @@ export async function refreshAccessToken(): Promise<string | null> {
     return null;
   }
 
+  const API_BASE = import.meta.env.DEV ? "/api" : "http://localhost:8069";
+
   try {
-    const response = await fetch("http://localhost:8069/api/update/access-token", {
+    const response = await fetch(`${API_BASE}/update/access-token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "call",
         params: {
           user_id: userId,
-          refreshToken: refreshToken
-        }
+          refresh_token: refreshToken
+        },
+        id: null
       })
     });
 
     if (!response.ok) {
-      console.error("Error al refrescar el token:", response.status, response.statusText);
+      console.error("Error HTTP refrescant token:", response.status, response.statusText);
       return null;
     }
 
-    const data: RefreshResponse = await response.json();
+    const data = await response.json();
+
     if (!data.result?.access_token) {
-      console.error("No s'ha rebut access token del servidor", data);
+      console.error("Resposta invàlida del servidor:", data);
       return null;
     }
 
-    const newAccessToken = data.result.access_token;
+    // Guardar cookie amb nou token
+    document.cookie = `token=${data.result.access_token}; path=/; max-age=3600`;
 
-    // Guardar el nou access token a les cookies (1 hora)
-    document.cookie = `token=${newAccessToken}; path=/; max-age=3600`;
-
-    return newAccessToken;
+    return data.result.access_token;
 
   } catch (err) {
     console.error("Error de connexió al refrescar token:", err);
     return null;
   }
 }
+
 
 /**
  * getValidAccessToken: Retorna un access token vàlid,

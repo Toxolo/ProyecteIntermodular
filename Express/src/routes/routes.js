@@ -7,7 +7,7 @@ import verifyToken from '../midlewares/verifyToken.js';
 
 const Routes = express.Router();
 
-Routes.post('/vid',uploadVideo.single('video'), metadata, saveDB, extractThumbnail, processVideo);
+Routes.post('/vid',uploadVideo.single('video'), metadata, extractThumbnail, processVideo);
 Routes.get('/', getVideos);
 Routes.get('/video/:id', verifyToken, getVideoById);
 
