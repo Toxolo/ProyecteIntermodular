@@ -7,9 +7,20 @@ _logger = logging.getLogger(__name__)
 
 
 class ApiAuth(http.Controller):
+    """
+    Controlador principal para la gestión de autenticación via API utilizando JWT.
+    Proporciona endpoints para inicio de sesión, refresco de tokens y validación de identidad.
+    """
 
+
+    # ¡¡¡¡ Endpoint  de inicio de sesión, (retorna solo token acceso y refresco)(hace falta pasar correo y contraseña )!!!
+    
+     
     @http.route('/api/authenticate', type='json', auth='none', methods=['POST'], csrf=False)
     def authenticate_post(self, **kwargs):
+        """
+        Endpoint para autenticar a un usuario y generar un par de tokens (Access y Refresh).
+        """
         # Forzar cierre de sesión previo para limpieza total (especialmente en Postman)
         request.session.logout()
         
@@ -32,6 +43,7 @@ class ApiAuth(http.Controller):
             return {"error": "Please provide login and password"}
 
         try:
+            # Intento de autenticación estándar en Odoo
             uid = request.session.authenticate(db_name, login, password)
             if not uid:
                 return {"error": "Invalid login or password"}
@@ -42,7 +54,7 @@ class ApiAuth(http.Controller):
             user = request.env['res.users'].browse(uid)
             has_subscription = self._user_has_active_subscription(uid)
 
-            # Generar tokens
+            # Generar tokens de acceso y refresco
             is_admin = user.has_group('base.group_system')
             access_token = JwtToken.generate_token(uid, extra_payload={
                 'user_id': uid,
@@ -64,6 +76,9 @@ class ApiAuth(http.Controller):
 
     @staticmethod
     def _user_has_active_subscription(uid):
+        """
+        Verifica si el usuario indicado tiene al menos una suscripción activa.
+        """
         user = request.env['res.users'].sudo().browse(uid)
         if not user:
             return False
@@ -77,9 +92,16 @@ class ApiAuth(http.Controller):
             ], limit=1)
         )
         return has_subscription
+   
+
+    # ¡¡¡¡ Endpoint  de refrescar token de acceso, (retorna solo token acceso) (hace falta pasar solo refresh tokens para refrescar)!!! 
+
 
     @http.route('/api/update/access-token', type='json', auth='none', methods=['POST'], csrf=False)
     def updated_short_term_token(self, **kwargs):
+        """
+        Permite obtener un nuevo Access Token utilizando un Refresh Token vigente.
+        """
         # Extraer parámetros - compatible con múltiples formatos
         params = {}
         if hasattr(request, 'jsonrequest') and request.jsonrequest:
@@ -98,7 +120,7 @@ class ApiAuth(http.Controller):
             return {'error': 'Refresh token not provided'}
 
         try:
-            # Verificar el refresh token
+            # Verificar la validez del refresh token
             user_id = JwtToken.verify_refresh_token(request, long_term_token, uid=user_id)
             
             # Obtener datos del usuario para incluir en el nuevo token
@@ -119,6 +141,9 @@ class ApiAuth(http.Controller):
 
     @http.route('/api/update/refresh-token', type='json', auth='jwt', methods=['POST'], csrf=False)
     def updated_long_term_token(self, **kwargs):
+        """
+        Renueva el Refresh Token actual por uno nuevo. Requiere autenticación JWT.
+        """
         # Extraer parámetros - compatible con múltiples formatos
         params = {}
         if hasattr(request, 'jsonrequest') and request.jsonrequest:
@@ -162,9 +187,16 @@ class ApiAuth(http.Controller):
             return res_data
         except Exception as e:
             return {'error': str(e)}
+   
+
+    # ¡¡¡¡ Endpoint  de cierre de sesión, (confirmación de cierre de sessión(success)) (hace falta pasar los dos tokens para cerrar sesión)!!! 
+
 
     @http.route('/api/revoke/token', type='json', auth='none', methods=['POST'], csrf=False)
     def revoke_api_token(self, **kwargs):
+        """
+        Invalida manualmente un Refresh Token (Cierre de sesión).
+        """
         # Extraer parámetros - compatible con múltiples formatos
         params = {}
         if hasattr(request, 'jsonrequest') and request.jsonrequest:
@@ -192,15 +224,29 @@ class ApiAuth(http.Controller):
         except Exception as e:
             return {'error': str(e)}
 
+
+    #¡¡No gastado!! Endpoint  de petición de token protegida. ( no requerida en proyecto debido al cigfrado de los tokens.) !!! 
+
+
     @http.route('/api/protected/test', type='json', auth='jwt', methods=['POST'], csrf=False)
     def protected_users_json(self):
+        """
+        Endpoint de prueba protegido. Retorna datos dummy si el token es válido.
+        """
         uob = request.env.user
         users = [{'id': 1, 'name': 'test_user'}]
         user_data = [{'id': user['id'], 'name': user['name']} for user in users]
         return {'uid': uob.id, 'data': user_data}
 
+
+    #¡¡No gastado!! Endpoint  de petición de información de usuario. ( no requerida en proyecto, info pasada en el token.) !!! 
+
+
     @http.route('/api/me', type='json', auth='jwt', methods=['POST'], csrf=False)
     def api_me(self):
+        """
+        Retorna información del usuario actualmente autenticado.
+        """
         uob = request.env.user
         has_subscription = self._user_has_active_subscription(uob.id)
         return {
@@ -211,15 +257,29 @@ class ApiAuth(http.Controller):
             'has_subscription': has_subscription
         }
 
+
+    #¡¡No gastado!! Endpoint  de petición de token protegida. ( no requerida en proyecto debido al cigfrado de los tokens.) !!! 
+
+
     @http.route('/api/protected/test', type='json', auth='jwt', methods=['POST'], csrf=False)
     def protected_users_json(self):
+        """
+        Endpoint de prueba protegido (Duplicado para mantener estructura original).
+        """
         uob = request.env.user
         users = [{'id': 1, 'name': 'test_user'}]
         user_data = [{'id': user['id'], 'name': user['name']} for user in users]
         return {'uid': uob.id, 'data': user_data}
 
+
+    #¡¡No gastado!! Endpoint  de petición de información de usuario. ( no requerida en proyecto, info pasada en el token.) !!! 
+
+
     @http.route('/api/me', type='json', auth='jwt', methods=['POST'], csrf=False)
     def api_me(self):
+        """
+        Retorna información del usuario actualmente autenticado (Duplicado para mantener estructura original).
+        """
         uob = request.env.user
         has_subscription = self._user_has_active_subscription(uob.id)
         return {
@@ -229,9 +289,16 @@ class ApiAuth(http.Controller):
             'active': uob.active,
             'has_subscription': has_subscription
         }
+
+
+    #¡¡No gastado!! Endpoint  de refrescado de refresh token.) !!! 
+
 
     @classmethod
     def get_refresh_token(cls, req_obj):
+        """
+        Busca el Refresh Token en cookies, cabeceras o cuerpo de la petición.
+        """
         key_name = 'refresh_token'
         http_req = req_obj.httprequest
         token = None
