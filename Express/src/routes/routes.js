@@ -6,9 +6,9 @@ import verifyToken from '../midlewares/verifyToken.js';
 
 const Routes = express.Router();
 
-Routes.post('/vid',uploadVideo.single('video'), metadata, extractThumbnail, processVideo);
-Routes.get('/', getVideos);
-Routes.get('/video/:id', verifyToken, getVideoById);
+Routes.post('/vid',uploadVideo.single('video'), metadata, extractThumbnail, processVideo); //para poder subir videos
+Routes.get('/', getVideos); //enviar todos los videos
+Routes.get('/video/:id', verifyToken, getVideoById); //dar la direccion protegida del video siempre que pase el verifytoken
 
 export default Routes;
 
