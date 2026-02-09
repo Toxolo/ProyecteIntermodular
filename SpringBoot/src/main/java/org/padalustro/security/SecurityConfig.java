@@ -53,6 +53,9 @@ public class SecurityConfig {
         return http.build();
     }
 
+/**
+ * Configura y devuelve un JwtDecoder.
+ */
 
     @Bean
     public JwtDecoder jwtDecoder(
@@ -89,8 +92,6 @@ public class SecurityConfig {
 
     /**
      * Envuelve una clave PKCS#1 (RSA PUBLIC KEY) en una estructura X.509
-     * (SubjectPublicKeyInfo).
-     * Esto es necesario porque Java espera X.509, pero Odoo genera PKCS#1.
      */
     private byte[] wrapPkcs1InX509(byte[] pkcs1) {
         int len = pkcs1.length;
