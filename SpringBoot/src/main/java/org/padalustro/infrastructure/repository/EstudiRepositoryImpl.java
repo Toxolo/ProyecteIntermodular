@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.padalustro.domain.entities.categoria;
 import org.padalustro.domain.entities.estudi;
 import org.padalustro.domain.repository.EstudiRepository;
-import org.padalustro.infrastructure.DTO.CategoriaDTO;
 import org.padalustro.infrastructure.DTO.EstudiDTO;
 import org.padalustro.infrastructure.repository.jpa.EstudiJpaRepository;
 import org.springframework.stereotype.Service;
+
+
 @Service
 public class EstudiRepositoryImpl implements EstudiRepository {
     

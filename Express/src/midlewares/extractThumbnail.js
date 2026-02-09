@@ -3,11 +3,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import { spawn } from 'child_process';
 
+// Middleware para generar miniatura de un video
 export async function extractThumbnail(req, res, next) {
     const { clientId, videoId } = req;
     const WS = req.app.get('uploadScreenSocket');
     try {
         WS.sendProgress(clientId, 40, 'Starting thumbnail generation...');
+
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({ error: 'No file uploaded or buffer missing' });
         }
@@ -17,6 +19,7 @@ export async function extractThumbnail(req, res, next) {
             throw new Error('videoId missing on request');
         }
 
+        // crear directorio de salida para guardar thumbnail
         const outputDir = path.join(publicPath, videoId);
         await fs.mkdir(outputDir, { recursive: true });
 
@@ -24,14 +27,16 @@ export async function extractThumbnail(req, res, next) {
 
         const file = req.file.buffer;
         const name = req.file.originalname || 'video';
-        const type = req.file.mimetype || 'video/mp4'        // fallback mimetype
+        const type = req.file.mimetype || 'video/mp4';
 
-        // ── Generate thumbnail directly from buffer ─────────────────────────────
+        // Generar miniatura desde buffer del video
         const thumbnailBuffer = await generateThumbnailFromBuffer(file, name, type);
+
         WS.sendProgress(clientId, 70, 'Thumbnail generated successfully', {
             thumbnailUrl: `/public/${videoId}_thumbnail.png`
         });
-        // Write the resulting JPEG buffer to disk (this is the only file write)
+
+        // Guardar miniatura 
         await fs.writeFile(thumbnailPath, thumbnailBuffer);
 
         req.outputDir = outputDir;
@@ -43,11 +48,7 @@ export async function extractThumbnail(req, res, next) {
     }
 }
 
-/**
- * Generates a single JPEG thumbnail from video buffer in memory.
- * @param {Buffer} videoBuffer - The raw video data from Multer memory storage
- * @returns {Promise<Buffer>} - The thumbnail JPEG as Buffer
- */
+// Genera un JPEG de miniatura a partir del buffer del vídeo
 async function generateThumbnailFromBuffer(videoBuffer, originalName, mimeType) {
     return new Promise((resolve, reject) => {
         let inputFormat = 'mp4';
@@ -59,15 +60,15 @@ async function generateThumbnailFromBuffer(videoBuffer, originalName, mimeType) 
         if (mimeType.includes('quicktime')) inputFormat = 'mov';
 
         const ffmpegArgs = [
-            '-ss',         '3',                    // seek early
-            '-f',          inputFormat,
-            '-i',          'pipe:0',
-            '-frames:v',   '1',
-            '-vf',         'scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2',
-            '-q:v',        '2',
-            '-f',          'image2',
-            '-vcodec',     'mjpeg',
-            '-update',     '1',
+            '-ss', '3', // seek inicial
+            '-f', inputFormat,
+            '-i', 'pipe:0',
+            '-frames:v', '1',
+            '-vf', 'scale=640:360:force_original_aspect_ratio=decrease,pad=640:360:(ow-iw)/2:(oh-ih)/2',
+            '-q:v', '2',
+            '-f', 'image2',
+            '-vcodec', 'mjpeg',
+            '-update', '1',
             'pipe:1'
         ];
 
@@ -78,6 +79,7 @@ async function generateThumbnailFromBuffer(videoBuffer, originalName, mimeType) 
         let thumbnailChunks = [];
         let stderrLines = [];
 
+        // Captura salida de ffmpeg
         ffmpegProcess.stdout.on('data', (chunk) => {
             thumbnailChunks.push(chunk);
         });
@@ -96,7 +98,8 @@ async function generateThumbnailFromBuffer(videoBuffer, originalName, mimeType) 
             const stderr = stderrLines.join('\n');
             const thumbnail = Buffer.concat(thumbnailChunks);
 
-            if (thumbnail.length >= 5000) {  // reasonable minimum for a 640x360 jpeg
+            // Validacion de tamaño de thumbnail
+            if (thumbnail.length >= 5000) {
                 console.log(`Thumbnail success: ${thumbnail.length} bytes`);
                 resolve(thumbnail);
             } else if (code === 0 && thumbnail.length > 0) {
@@ -111,19 +114,16 @@ async function generateThumbnailFromBuffer(videoBuffer, originalName, mimeType) 
             }
         });
 
-        // ── Critical: Ignore EPIPE on stdin ────────────────────────────────
-        // This is the main fix — we treat EPIPE as non-fatal when we have output
         ffmpegProcess.stdin.on('error', (err) => {
             if (err.code === 'EPIPE') {
                 console.log('EPIPE on stdin ignored (ffmpeg finished reading early)');
-                // Do NOT reject here — we wait for 'close' to check if we have thumbnail
             } else {
                 console.error('Unexpected stdin error:', err);
                 reject(err);
             }
         });
 
-        // Write the buffer (ffmpeg will stop reading early — that's OK)
+        // Enviar buffer a ffmpeg
         ffmpegProcess.stdin.write(videoBuffer);
         ffmpegProcess.stdin.end();
     });
