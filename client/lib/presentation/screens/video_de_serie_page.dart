@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
 import 'VistaPrevScreen.dart';
 
+// Pantalla que muestra todos los episodios (vídeos) de una serie concreta
 class VideosDeSeriePage extends StatefulWidget {
   final AppDatabase db;
   final int seriesId;
@@ -21,18 +22,30 @@ class VideosDeSeriePage extends StatefulWidget {
 }
 
 class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
+  // Instancia singleton del servicio API (Dio configurado con token)
   late final ApiService _api;
+
+  // Lista de vídeos (episodios) de la serie
   List<Video> _videos = [];
+
+  // Controla el estado de carga inicial
   bool _isLoading = true;
+
+  // Mensaje de error si falla la petición
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+
+    // Obtenemos la instancia única del ApiService
     _api = ApiService.instance;
+
+    // Cargamos los vídeos de la serie al abrir la pantalla
     _loadVideos();
   }
 
+  // Carga los episodios de la serie desde la API
   Future<void> _loadVideos() async {
     if (!mounted) return;
 
@@ -42,7 +55,10 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
     });
 
     try {
+      // Llamamos al método específico que filtra por serie y ordena por temporada/capítulo
       final videosJson = await _api.getVideosBySeries(widget.seriesId);
+
+      // Convertimos cada JSON a objeto Video usando el mapper
       final videos = videosJson
           .map((json) => VideoMapper.fromJson(json))
           .toList();
@@ -63,7 +79,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
     }
   }
 
-  // Smooth custom transition to VistaPrev
+  // Navegación personalizada con animación suave (fade + slide up)
   void _navigateToVideo(int videoId) {
     Navigator.push(
       context,
@@ -72,7 +88,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
           return VistaPrev(db: widget.db, videoId: videoId);
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // Fade + SlideUp combined
+          // Combinación de fade + deslizamiento desde abajo
           return FadeTransition(
             opacity: CurvedAnimation(
               parent: animation,
@@ -111,6 +127,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
     );
   }
 
+  // Decide qué mostrar según el estado: cargando, error, vacío o lista
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
@@ -149,6 +166,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
       );
     }
 
+    // Lista scrollable de episodios
     return ListView.builder(
       itemCount: _videos.length,
       itemBuilder: (context, index) {
@@ -158,6 +176,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
     );
   }
 
+  // Tarjeta de cada episodio: thumbnail + título + temporada/capítulo
   Widget _buildVideoCard(Video video) {
     return InkWell(
       onTap: () => _navigateToVideo(video.id),
@@ -169,7 +188,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // Thumbnail
+              // Miniatura del vídeo
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: SizedBox(
@@ -187,7 +206,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
               ),
               const SizedBox(width: 12),
 
-              // Info
+              // Información del episodio
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,7 +233,7 @@ class _VideosDeSeriePageState extends State<VideosDeSeriePage> {
                 ),
               ),
 
-              // Arrow
+              // Flecha indicadora
               const Icon(Icons.chevron_right, color: Colors.white38),
             ],
           ),

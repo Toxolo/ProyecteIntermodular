@@ -8,8 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets/series_episodes_section.dart';
 
+// Pantalla de búsqueda de series con filtro en tiempo real y debounce
 class SearchPage extends StatefulWidget {
   final AppDatabase db;
+
   const SearchPage({super.key, required this.db});
 
   @override
@@ -17,32 +19,48 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  // Use singleton instance
+  // Instancia singleton del servicio API (ya inicializado con Dio + token)
   late final ApiService _api;
 
+  // Texto actual que el usuario está escribiendo en la barra de búsqueda
   String _searchQuery = '';
+
+  // Lista completa de todas las series cargadas desde la API
   List<Serie> _allSeries = [];
+
+  // Lista filtrada que se muestra según lo que escribe el usuario
   List<Serie> _filteredResults = [];
+
+  // Indica si estamos cargando las series inicialmente
   bool _isLoading = true;
+
+  // Mensaje de error si falla la carga de datos
   String? _errorMessage;
 
+  // Temporizador para debounce (evita filtrar en cada tecla)
   Timer? _debounceTimer;
+
+  // Controlador del campo de texto de búsqueda
   final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    // Obtenemos la instancia única del ApiService
     _api = ApiService.instance;
+    // Cargamos todas las series al entrar en la pantalla
     _loadSeries();
   }
 
   @override
   void dispose() {
+    // Cancelamos cualquier timer pendiente y liberamos recursos
     _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
+  // Carga la lista completa de series desde la API
   Future<void> _loadSeries() async {
     if (!mounted) return;
 
@@ -52,9 +70,10 @@ class _SearchPageState extends State<SearchPage> {
     });
 
     try {
+      // Obtenemos los datos JSON de series
       final seriesJson = await _api.getSeries();
 
-      // Mappers now return domain entities directly
+      // Convertimos cada elemento JSON a objeto Serie (usando mapper)
       final series = seriesJson.map((json) {
         return SerieMapper.fromJson(json);
       }).toList();
@@ -62,7 +81,9 @@ class _SearchPageState extends State<SearchPage> {
       if (mounted) {
         setState(() {
           _allSeries = series;
-          _filteredResults = List.from(series);
+          _filteredResults = List.from(
+            series,
+          ); // copia para mostrar todo inicialmente
           _isLoading = false;
         });
       }
@@ -76,11 +97,12 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  // Se ejecuta cada vez que cambia el texto en la barra de búsqueda
   void _onSearchChanged(String input) {
-    // Cancel previous timer
+    // Cancelamos el timer anterior (evita procesar muchas veces seguidas)
     _debounceTimer?.cancel();
 
-    // Create new timer
+    // Creamos un nuevo timer: solo filtramos después de 400 ms sin escribir
     _debounceTimer = Timer(const Duration(milliseconds: 400), () {
       if (!mounted) return;
 
@@ -90,8 +112,10 @@ class _SearchPageState extends State<SearchPage> {
         _searchQuery = input;
 
         if (trimmed.isEmpty) {
+          // Si no hay texto → mostramos todas las series
           _filteredResults = List.from(_allSeries);
         } else {
+          // Filtramos por nombre de serie (insensible a mayúsculas)
           _filteredResults = _allSeries
               .where((serie) => serie.nom.toLowerCase().contains(trimmed))
               .toList();
@@ -100,6 +124,7 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  // Limpia el campo de búsqueda y restablece la lista completa
   void _clearSearch() {
     _searchController.clear();
     _onSearchChanged('');
@@ -118,13 +143,16 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  // Decide qué contenido mostrar según el estado actual
   Widget _buildBody() {
+    // Estado de carga inicial
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.white),
       );
     }
 
+    // Error al cargar datos
     if (_errorMessage != null) {
       return Center(
         child: Column(
@@ -147,6 +175,7 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
 
+    // Pantalla normal: barra de búsqueda + lista de resultados
     return Column(
       children: [
         _buildSearchBar(),
@@ -155,6 +184,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  // Barra de búsqueda estilizada con icono de limpiar
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.all(12.0),
@@ -183,7 +213,9 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  // Muestra la lista de resultados o mensajes cuando no hay coincidencias
   Widget _buildResultsList() {
+    // No hay resultados pero sí búsqueda activa
     if (_filteredResults.isEmpty && _searchQuery.isNotEmpty) {
       return const Center(
         child: Column(
@@ -200,6 +232,7 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
 
+    // No hay series en absoluto (lista vacía inicial)
     if (_filteredResults.isEmpty) {
       return const Center(
         child: Text(
@@ -209,6 +242,7 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
 
+    // Lista scrollable de series encontradas
     return ListView.builder(
       itemCount: _filteredResults.length,
       padding: const EdgeInsets.only(bottom: 16),
@@ -219,12 +253,14 @@ class _SearchPageState extends State<SearchPage> {
   }
 }
 
+// Widget que representa cada fila de serie en los resultados
 class _SerieTile extends StatelessWidget {
   final Serie serie;
   final AppDatabase db;
 
   const _SerieTile({required this.serie, required this.db});
 
+  // Imagen por defecto si falla la carga del thumbnail real
   static const _fallbackImageUrl =
       'https://ih1.redbubble.net/image.1861329650.2941/flat,750x,075,f-pad,750x1000,f8f8f8.jpg';
 
@@ -254,6 +290,7 @@ class _SerieTile extends StatelessWidget {
     );
   }
 
+  // Muestra la miniatura de la serie con caché y placeholders
   Widget _buildThumbnail() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -285,6 +322,7 @@ class _SerieTile extends StatelessWidget {
     );
   }
 
+  // Navega a la pantalla de detalle de episodios de esta serie
   void _navigateToSerieDetail(BuildContext context) {
     Navigator.push(
       context,

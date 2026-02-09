@@ -14,6 +14,8 @@ import '../../infrastructure/data_sources/local/app_database.dart';
 import '../catalog_styles.dart';
 import '../widgets/series_episodes_section.dart';
 
+// Pantalla de vista previa detallada de un vídeo concreto
+// Muestra thumbnail, título, botón de reproducir, descripción, puntuación, opción de añadir a lista y episodios relacionados (si es serie)
 class VistaPrev extends ConsumerStatefulWidget {
   final int videoId;
   final AppDatabase db;
@@ -25,21 +27,37 @@ class VistaPrev extends ConsumerStatefulWidget {
 }
 
 class _VistaPrevState extends ConsumerState<VistaPrev> {
+  // Instancia singleton del servicio API
   late final ApiService _api;
+
+  // Servicio para gestionar listas locales (añadir/quitar vídeo)
   late final VideoListService _listService;
+
+  // Detalles del vídeo cargado
   Video? _video;
+
+  // Serie a la que pertenece el vídeo (si aplica)
   Serie? _serie;
+
+  // Estado de carga inicial
   bool _isLoading = true;
+
+  // Mensaje de error si falla la carga
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+
+    // Inicializamos servicios
     _api = ApiService.instance;
     _listService = VideoListService(widget.db.listsDao);
+
+    // Cargamos detalles del vídeo y serie relacionada
     _loadVideoDetails();
   }
 
+  // Carga los detalles del vídeo y, si pertenece a una serie, también los de la serie
   Future<void> _loadVideoDetails() async {
     if (!mounted) return;
 
@@ -49,10 +67,13 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
     });
 
     try {
+      // 1. Obtenemos detalles del vídeo
       final videoJson = await _api.getVideoById(widget.videoId);
       final video = VideoMapper.fromJson(videoJson);
 
       Serie? serie;
+
+      // 2. Si el vídeo pertenece a una serie (serie > 0), cargamos la serie
       if (video.serie > 0) {
         final serieJson = await _api.getSerieById(video.serie);
         if (serieJson != null) {
@@ -84,6 +105,8 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
       body: Stack(
         children: [
           _buildBody(),
+
+          // Botón de volver (superpuesto en la esquina superior izquierda)
           Positioned(
             top: 40,
             left: 15,
@@ -103,12 +126,14 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
     );
   }
 
+  // Construye el contenido principal según el estado
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.white),
       );
     }
+
     final user = ref.watch(userProvider);
 
     if (_errorMessage != null) {
@@ -152,7 +177,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Thumbnail
+          // Thumbnail grande (fondo)
           Image.network(
             '$expressUrl/static/${video.id}/thumbnail.jpg',
             height: 220,
@@ -166,7 +191,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
           ),
           const SizedBox(height: 20),
 
-          // Title
+          // Título del vídeo
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
@@ -181,7 +206,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
           ),
           const SizedBox(height: 20),
 
-          // Play button
+          // Botón grande de reproducir
           ElevatedButton.icon(
             onPressed: () {
               Navigator.push(
@@ -189,11 +214,9 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
                 MaterialPageRoute(
                   builder: (_) => VideoPlayerHLS(
                     url: '$expressUrl/static/${video.id}/index.m3u8',
-                    authToken: ref
-                        .read(userProvider)
-                        .getAccesToken(), // Pass it
+                    authToken: ref.read(userProvider).getAccesToken(),
                     onBack: () {
-                      /* ... */
+                      // Puedes añadir lógica al volver (ej: recargar datos)
                     },
                   ),
                 ),
@@ -213,11 +236,11 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
           ),
           const SizedBox(height: 25),
 
-          // Actions row
+          // Fila de acciones: añadir a lista + puntuación
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              // Add to list
+              // Botón para añadir/quitar de listas
               GestureDetector(
                 onTap: () {
                   showModalBottomSheet(
@@ -242,7 +265,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
                 ),
               ),
 
-              // Rating
+              // Puntuación (estrellas amarillas)
               Column(
                 children: [
                   Text(
@@ -260,7 +283,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
           ),
           const SizedBox(height: 30),
 
-          // Description
+          // Descripción del vídeo
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
@@ -274,7 +297,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
             ),
           ),
 
-          // Series episodes
+          // Si pertenece a una serie → mostramos sección de episodios
           if (_serie != null) ...[
             const SizedBox(height: 20),
             Padding(
@@ -283,7 +306,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
                 seriesId: video.serie,
                 serieName: _serie!.nom,
                 db: widget.db,
-                currentVideoId: video.id,
+                currentVideoId: video.id, // resalta el episodio actual
               ),
             ),
           ],

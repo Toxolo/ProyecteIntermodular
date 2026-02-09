@@ -6,10 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart';
 
+// Reproductor de vídeo HLS con controles personalizados
 class VideoPlayerHLS extends ConsumerStatefulWidget {
-  final String url;
-  final VoidCallback onBack;
-  final String? authToken;
+  final String url; // URL del archivo .m3u8 (HLS)
+  final VoidCallback onBack; // Callback al pulsar atrás
+  final String? authToken; // Token opcional (aunque se lee del provider)
 
   const VideoPlayerHLS({
     required this.url,
@@ -22,30 +23,42 @@ class VideoPlayerHLS extends ConsumerStatefulWidget {
 }
 
 class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
+  // Controlador oficial de video_player para reproducir HLS
   late VideoPlayerController _controller;
+
+  // Muestra u oculta los controles (barra progreso, play/pausa, etc.)
   bool _showControls = true;
+
+  // Temporizador que oculta los controles tras 3 segundos sin tocar
   Timer? _hideTimer;
+
+  // Instancia singleton del API (para refrescar token)
   final api = ApiService.instance;
+
+  // Evita múltiples refrescos simultáneos
   bool _isRefreshing = false;
-  bool _hasTriedRefresh = false; // Prevent infinite loops
+
+  // Bandera para refrescar solo una vez por sesión (evita bucle infinito)
+  bool _hasTriedRefresh = false;
 
   @override
   void initState() {
     super.initState();
-    _initializePlayer();
 
-    // Forzar vertical por defecto
+    // Forzamos orientación landscape al entrar
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+
+    _initializePlayer();
   }
 
+  // Inicializa el reproductor con headers de autenticación
   Future<void> _initializePlayer() async {
     try {
-      // Get current token
+      // Obtenemos token actual del provider
       final token = ref.read(userProvider).getAccesToken();
-
       if (token == null || token.isEmpty) {
         if (mounted) {
           _showSessionExpiredDialog();
@@ -53,6 +66,7 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
         return;
       }
 
+      // Headers necesarios para HLS autenticado
       final headers = <String, String>{
         'Authorization': 'Bearer $token',
         'Accept': 'application/vnd.apple.mpegurl, */*',
@@ -64,8 +78,9 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
         httpHeaders: headers,
       );
 
-      // Add error listener BEFORE initialization
+      // Listener para detectar errores durante reproducción
       _controller.addListener(_handleVideoError);
+
       await _controller.initialize();
 
       if (mounted) {
@@ -74,27 +89,23 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
         _startHideTimer();
       }
     } catch (error) {
-      if (error is Exception) {
-        print(error.toString());
-      }
+      print(error.toString());
 
-      // ANY error during init = likely 403, try refresh once
+      // Si hay error (muy probablemente 403) → intentamos refrescar token una vez
       if (!_hasTriedRefresh) {
         _hasTriedRefresh = true;
-
         try {
           await _refreshAndRetry();
-          return; // _refreshAndRetry will restart everything
+          return; // _refreshAndRetry se encarga del resto
         } catch (refreshError) {}
-      } else {}
+      }
 
-      // If we get here, give up and show error
+      // Si falla el refresh o ya lo intentamos → mostramos error
       if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text("Error loading video: $error")));
 
-        // Show full dialog on persistent errors
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             _showSessionExpiredDialog();
@@ -104,46 +115,41 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
     }
   }
 
+  // Listener que detecta errores durante la reproducción
   void _handleVideoError() {
-    if (!_controller.value.hasError) {
-      return;
-    }
+    if (!_controller.value.hasError) return;
 
     final error = _controller.value.errorDescription ?? '';
 
-    // Check for 403 Forbidden error during playback
+    // Si detectamos 403 Forbidden → intentamos refrescar token
     if ((error.contains('403') || error.contains('Forbidden')) &&
         !_isRefreshing) {
       _refreshAndRetry();
-    } else if (_isRefreshing) {}
+    }
   }
 
+  // Intenta refrescar el token y reinicializar el reproductor
   Future<void> _refreshAndRetry() async {
-    // Prevent concurrent refresh attempts
-    if (_isRefreshing) {
-      return;
-    }
+    if (_isRefreshing) return; // Evitamos múltiples refrescos simultáneos
 
     _isRefreshing = true;
 
     try {
-      // Step 1: Call refresh endpoint
+      // 1. Llamamos al endpoint de refresh
       final refreshSuccess = await api.refreshToken();
-
       if (!refreshSuccess) {
         if (mounted) _showSessionExpiredDialog();
         return;
       }
 
-      // Step 2: Get the new token from provider
+      // 2. Obtenemos el nuevo token del provider
       final newToken = ref.read(userProvider).getAccesToken();
-
       if (newToken == null || newToken.isEmpty) {
         if (mounted) _showSessionExpiredDialog();
         return;
       }
 
-      // Step 3: Dispose old controller
+      // 3. Limpiamos el controlador anterior
       try {
         if (_controller.value.isInitialized) {
           await _controller.pause();
@@ -154,10 +160,9 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
         print(e);
       }
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
+      // 4. Creamos nuevo controlador con el token fresco
       final headers = <String, String>{
         'Authorization': 'Bearer $newToken',
         'Accept': 'application/vnd.apple.mpegurl, */*',
@@ -170,15 +175,11 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
       );
 
       _controller.addListener(_handleVideoError);
-
       await _controller.initialize();
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       setState(() {});
-
       await _controller.play();
       _startHideTimer();
     } catch (e) {
@@ -190,6 +191,7 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
     }
   }
 
+  // Muestra diálogo cuando la sesión expira o falla el refresh
   void _showSessionExpiredDialog() {
     if (!mounted) return;
 
@@ -203,7 +205,7 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              widget.onBack(); // Go back to previous screen
+              widget.onBack(); // Volvemos a la pantalla anterior
             },
             child: const Text("OK"),
           ),
@@ -212,6 +214,7 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
     );
   }
 
+  // Inicia temporizador para ocultar controles tras 3 segundos
   void _startHideTimer() {
     _hideTimer?.cancel();
     _hideTimer = Timer(const Duration(seconds: 3), () {
@@ -223,20 +226,24 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
     });
   }
 
+  // Alterna visibilidad de controles al tocar la pantalla
   void _toggleControls() {
     setState(() {
       _showControls = !_showControls;
     });
+
     if (_showControls) {
       _startHideTimer();
     }
   }
 
+  // Retrocede 10 segundos
   void _rewind10() {
     final pos = _controller.value.position - const Duration(seconds: 10);
     _controller.seekTo(pos > Duration.zero ? pos : Duration.zero);
   }
 
+  // Avanza 10 segundos
   void _forward10() {
     final pos = _controller.value.position + const Duration(seconds: 10);
     _controller.seekTo(
@@ -249,13 +256,17 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
     _hideTimer?.cancel();
     _controller.removeListener(_handleVideoError);
     _controller.dispose();
-    super.dispose();
+
+    // Restauramos orientación portrait al salir
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+
+    super.dispose();
   }
 
+  // Formatea duración en HH:MM:SS o MM:SS
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final minutes = twoDigits(duration.inMinutes.remainder(60));
@@ -263,7 +274,9 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
     return '${duration.inHours > 0 ? '${twoDigits(duration.inHours)}:' : ''}$minutes:$seconds';
   }
 
+  @override
   Widget build(BuildContext context) {
+    // Mientras no esté inicializado → spinner negro
     if (!_controller.value.isInitialized) {
       return const Scaffold(
         backgroundColor: Colors.black,
@@ -274,10 +287,12 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
+        // Tocar cualquier parte → muestra/oculta controles
         behavior: HitTestBehavior.opaque,
         onTap: _toggleControls,
         child: Stack(
           children: [
+            // Vídeo que ocupa toda la pantalla y se ajusta
             SizedBox.expand(
               child: FittedBox(
                 fit: BoxFit.cover,
@@ -288,7 +303,8 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
                 ),
               ),
             ),
-            // Back button
+
+            // Botón de volver (solo visible con controles)
             if (_showControls)
               Positioned(
                 top: 16,
@@ -313,7 +329,8 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
                   ),
                 ),
               ),
-            // Central controls (play, rewind, forward)
+
+            // Controles centrales: retroceder, play/pausa, avanzar
             if (_showControls)
               Align(
                 alignment: Alignment.center,
@@ -354,7 +371,8 @@ class _VideoPlayerHLSState extends ConsumerState<VideoPlayerHLS> {
                   ],
                 ),
               ),
-            // Progress bar at bottom
+
+            // Barra de progreso y tiempos (abajo)
             if (_showControls)
               Positioned(
                 left: 16,

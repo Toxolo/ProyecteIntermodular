@@ -13,6 +13,7 @@ import 'package:client/infrastructure/mappers/VideoMapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Sección principal de categorías en el catálogo
 class CategorySection extends ConsumerStatefulWidget {
   final AppDatabase db;
 
@@ -23,12 +24,13 @@ class CategorySection extends ConsumerStatefulWidget {
 }
 
 class _CategorySectionState extends ConsumerState<CategorySection> {
+  // Instancia del servicio API obtenida del provider de Riverpod
   late final ApiService _api;
 
   @override
   void initState() {
     super.initState();
-
+    // Leemos el provider para obtener ApiService ya inicializado
     _api = ref.read(apiServiceProvider);
   }
 
@@ -37,14 +39,17 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: FutureBuilder<(List<Video>, List<Serie>, List<Categoria>)>(
+        // Carga en paralelo: vídeos, series y categorías
         future: _loadAllData(),
         builder: (context, snapshot) {
+          // Mientras carga → spinner centrado
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(color: Colors.white),
             );
           }
 
+          // Error → mensaje con icono
           if (snapshot.hasError) {
             return Center(
               child: Column(
@@ -62,6 +67,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
             );
           }
 
+          // Sin datos → mensaje simple
           if (!snapshot.hasData) {
             return const Center(
               child: Text(
@@ -79,36 +85,41 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
     );
   }
 
+  // Carga simultánea de los tres conjuntos de datos principales
   Future<(List<Video>, List<Serie>, List<Categoria>)> _loadAllData() async {
+    // Ejecutamos las 3 peticiones en paralelo
     final results = await Future.wait([
       _api.getVideos(),
       _api.getSeries(),
       _api.getCategories(),
     ]);
 
-    // Mappers now return domain entities directly
-    final videos = (results[0])
+    // Convertimos cada lista JSON → entidades de dominio
+    final videos = (results[0] as List<dynamic>)
         .map((json) => VideoMapper.fromJson(json))
         .toList();
-    final series = (results[1])
+
+    final series = (results[1] as List<dynamic>)
         .map((json) => SerieMapper.fromJson(json))
         .toList();
-    final categories = (results[2])
+
+    final categories = (results[2] as List<dynamic>)
         .map((json) => CategoriaMapper.fromJson(json))
         .toList();
 
     return (videos, series, categories);
   }
 
+  // Construye el contenido final: categorías con sus series
   Widget _buildCategoryContent(
     List<Video> videos,
     List<Serie> series,
     List<Categoria> categories,
   ) {
-    // Map id → nombre categoría
+    // Mapa rápido: id categoría → nombre
     final categoryMap = <int, String>{for (final c in categories) c.id: c.nom};
 
-    // Map serieId → primer vídeo
+    // Mapa: serieId → primer vídeo encontrado (para mostrar miniatura)
     final serieToFirstVideo = <int, Video>{};
     for (final video in videos) {
       if (!serieToFirstVideo.containsKey(video.serie)) {
@@ -116,16 +127,18 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
       }
     }
 
-    // Agrupar series por categorías
+    // Agrupamos series por categoría (una serie puede estar en varias)
     final seriesByCategory = <String, List<Map<String, dynamic>>>{};
 
     for (final serie in series) {
+      // Vídeos de esta serie
       final serieVideos = videos.where((v) => v.serie == serie.id).toList();
       if (serieVideos.isEmpty) continue;
 
       final firstVideo = serieToFirstVideo[serie.id];
       if (firstVideo == null) continue;
 
+      // Conjunto de nombres de categorías de esta serie
       final serieCategories = <String>{};
       for (final v in serieVideos) {
         for (final catId in v.categories) {
@@ -134,6 +147,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
         }
       }
 
+      // Añadimos la serie a cada categoría que le corresponde
       for (final catName in serieCategories) {
         seriesByCategory.putIfAbsent(catName, () => []);
         seriesByCategory[catName]!.add({
@@ -143,7 +157,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
       }
     }
 
-    // Caso borde: sin categorías → "Totes"
+    // Caso borde: si no hay categorías asignadas pero sí series → grupo "Totes"
     if (seriesByCategory.isEmpty && videos.isNotEmpty) {
       seriesByCategory['Totes'] = series
           .where((s) => serieToFirstVideo.containsKey(s.id))
@@ -154,6 +168,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
           .toList();
     }
 
+    // Si después de todo no hay nada → mensaje
     if (seriesByCategory.isEmpty) {
       return const Center(
         child: Text(
@@ -163,6 +178,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
       );
     }
 
+    // Generamos una sección por cada categoría
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: seriesByCategory.entries.map((entry) {
@@ -171,6 +187,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
     );
   }
 
+  // Una sección individual: título de categoría + carrusel horizontal
   Widget _buildCategorySection(
     String categoryName,
     List<Map<String, dynamic>> items,
@@ -179,6 +196,8 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
+
+        // Nombre de la categoría
         Text(
           categoryName,
           style: const TextStyle(
@@ -188,6 +207,8 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
           ),
         ),
         const SizedBox(height: 10),
+
+        // Carrusel horizontal de series de esta categoría
         SizedBox(
           height: 200,
           child: ListView.separated(
@@ -207,8 +228,10 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
     );
   }
 
+  // Tarjeta de cada serie: miniatura del primer vídeo + nombre de la serie
   Widget _buildSerieCard(Serie serie, Video firstVideo) {
     return GestureDetector(
+      // Al tocar → abre la vista previa del primer vídeo de la serie
       onTap: () {
         Navigator.push(
           context,
@@ -223,6 +246,7 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Miniatura ocupa la mayor parte de la tarjeta
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -251,6 +275,8 @@ class _CategorySectionState extends ConsumerState<CategorySection> {
               ),
             ),
             const SizedBox(height: 6),
+
+            // Nombre de la serie debajo
             Text(
               serie.nom,
               style: const TextStyle(

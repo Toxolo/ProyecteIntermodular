@@ -2,9 +2,11 @@ import 'package:client/infrastructure/data_sources/api/ApiService.dart';
 import 'package:flutter/material.dart';
 import '../../infrastructure/data_sources/local/app_database.dart';
 
+// BottomSheet modal que permite añadir o quitar un vídeo de las listas del usuario
+// Muestra checkboxes para cada lista existente y opción para crear una nueva
 class AddToListBottomSheet extends StatefulWidget {
-  final VideoListService service;
-  final int videoId;
+  final VideoListService service; // Servicio para operaciones con listas
+  final int videoId; // ID del vídeo que queremos gestionar
 
   const AddToListBottomSheet({
     super.key,
@@ -17,8 +19,13 @@ class AddToListBottomSheet extends StatefulWidget {
 }
 
 class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
+  // Future que carga la lista de todas las listas del usuario
   late Future<List<VideoList>> _listsFuture;
+
+  // Conjunto de IDs de listas donde el vídeo YA está incluido
   Set<int> _selectedListIds = {};
+
+  // Controla si hay una operación en curso (evita múltiples clics)
   bool _isLoading = false;
 
   @override
@@ -27,30 +34,35 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
     _loadLists();
   }
 
+  // Carga todas las listas y marca las que ya contienen el vídeo
   Future<void> _loadLists() async {
     setState(() {
       _listsFuture = widget.service.getAllLists();
     });
 
     try {
+      // Obtenemos las listas que YA contienen este vídeo
       final listsWithVideo = await widget.service.getListsContainingVideo(
         widget.videoId,
       );
+
       if (mounted) {
         setState(() {
           _selectedListIds = listsWithVideo;
         });
       }
     } catch (e) {
-      // Handle error silently or show snackbar
+      // Error silencioso (puedes mostrar SnackBar si quieres)
     }
   }
 
+  // Añade o quita el vídeo de una lista concreta
   Future<void> _toggleList(VideoList list, bool selected) async {
     setState(() => _isLoading = true);
 
     try {
       if (selected) {
+        // Añadir vídeo a la lista
         await widget.service.addVideoToList(
           listId: list.id,
           videoId: widget.videoId,
@@ -59,6 +71,7 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
           setState(() => _selectedListIds.add(list.id));
         }
       } else {
+        // Quitar vídeo de la lista
         await widget.service.removeVideoFromList(
           listId: list.id,
           videoId: widget.videoId,
@@ -80,6 +93,7 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
     }
   }
 
+  // Muestra diálogo para crear una nueva lista
   void _showCreateListDialog() {
     final controller = TextEditingController();
 
@@ -125,7 +139,7 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
                 await widget.service.createList(name);
                 if (mounted) {
                   Navigator.pop(dialogContext);
-                  _loadLists();
+                  _loadLists(); // Recargamos listas
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Llista "$name" creada')),
                   );
@@ -148,7 +162,7 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return FractionallySizedBox(
-      heightFactor: 0.6,
+      heightFactor: 0.6, // Ocupa 60% de la pantalla desde abajo
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -157,7 +171,7 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
         ),
         child: Column(
           children: [
-            // Handle indicator
+            // Barra de arrastre (handle) para indicar que es un bottom sheet
             Container(
               width: 50,
               height: 4,
@@ -168,7 +182,7 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
               ),
             ),
 
-            // Title
+            // Título del modal
             const Text(
               'Afegir a llista',
               style: TextStyle(
@@ -179,7 +193,7 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
             ),
             const SizedBox(height: 20),
 
-            // Lists
+            // Lista de listas existentes con checkboxes
             Expanded(
               child: FutureBuilder<List<VideoList>>(
                 future: _listsFuture,
@@ -223,7 +237,7 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
                         ),
                         value: isSelected,
                         onChanged: _isLoading
-                            ? null
+                            ? null // Deshabilitado mientras hay operación
                             : (value) {
                                 if (value != null) {
                                   _toggleList(list, value);
@@ -238,10 +252,9 @@ class _AddToListBottomSheetState extends State<AddToListBottomSheet> {
                 },
               ),
             ),
-
             const SizedBox(height: 16),
 
-            // Create new list button
+            // Botón para crear una nueva lista
             ElevatedButton.icon(
               onPressed: _showCreateListDialog,
               style: ElevatedButton.styleFrom(
