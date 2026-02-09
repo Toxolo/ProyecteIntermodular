@@ -45,7 +45,7 @@ class User {
     return hasSuscription;
   }
 
-  // ==================== METHODS =====================
+  // ==================== Metodes =====================
 
   void clearTokens() {
     setAccesToken("");

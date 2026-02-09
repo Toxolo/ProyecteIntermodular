@@ -1,42 +1,41 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:client/config/GlobalVariables.dart';
-import 'package:client/domain/entities/Video.dart';
-import 'package:client/infrastructure/mappers/VideoMapper.dart';
 import 'package:client/presentation/providers/UserNotifier.dart';
-import 'package:client/presentation/screens/LoginScreen.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:client/infrastructure/data_sources/local/daos/lists_dao.dart';
 import 'package:client/infrastructure/data_sources/local/app_database.dart';
-import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
-/// Unified API Service containing all remote and local data sources
+// Clase principal para comunicarse con la API
 class ApiService {
-  String _urlBase;
-  late final Dio _dio;
-  late CookieJar _cookieJar;
-  // Singleton pattern
+  String _urlBase; // Dirección base de la API (ej: https://api.ejemplo.com)
+  late final Dio _dio; // Cliente HTTP avanzado (usamos Dio)
+  late CookieJar _cookieJar; // Maneja y guarda cookies
+
+  // Patrón Singleton → solo queremos UNA instancia de ApiService
   static ApiService? _instance;
+  final Ref _ref; // Referencia a Riverpod para leer providers
 
-  final Ref _ref;
-
+  // Método recomendado para inicializar (se usa normalmente)
   static ApiService init(Ref ref, String urlBase) {
     _instance ??= ApiService._internal(ref, urlBase);
     return _instance!;
   }
 
+  // Constructor factory (por compatibilidad)
   factory ApiService(Ref ref, String urlBase) {
     _instance ??= ApiService._internal(ref, urlBase);
     return _instance!;
   }
 
+  // Constructor privado real
   ApiService._internal(this._ref, this._urlBase) {
+    // Configuramos Dio con opciones básicas
     _dio = Dio(
       BaseOptions(
         baseUrl: _urlBase,
@@ -49,12 +48,12 @@ class ApiService {
       ),
     );
 
-    // Initialize persistent cookie jar
+    // Preparamos las cookies (se hace de forma asíncrona)
     _initCookies().then((_) {
-      // Add cookie manager AFTER jar is ready
+      // Añadimos el manejador de cookies a Dio
       _dio.interceptors.add(CookieManager(_cookieJar));
 
-      // Your token interceptor (keep if mixing token + cookies, or remove if pure cookies)
+      // Añadimos token de autorización automáticamente cuando existe
       _dio.interceptors.add(
         InterceptorsWrapper(
           onRequest: (options, handler) {
@@ -66,7 +65,7 @@ class ApiService {
             handler.next(options);
           },
           onError: (err, handler) {
-            // Optional: handle 401 → auto refresh or logout
+            // Aquí se podría manejar error 401 (token caducado) en el futuro
             handler.next(err);
           },
         ),
@@ -74,36 +73,33 @@ class ApiService {
     });
   }
 
+  // Crea y configura el almacenamiento persistente de cookies
   Future<void> _initCookies() async {
     final directory = await getApplicationDocumentsDirectory();
-    final cookiePath =
-        '${directory.path}/.cookies/'; // subfolder for organization
+    final cookiePath = '${directory.path}/.cookies/';
 
-    // Create directory if needed
+    // Creamos la carpeta si no existe
     await Directory(cookiePath).create(recursive: true);
 
-    // Persistent jar: saves cookies to files → survives app restarts
+    // Guardamos cookies en disco → sobreviven al cerrar la app
     _cookieJar = PersistCookieJar(
       storage: FileStorage(cookiePath),
-      ignoreExpires: false, // respect cookie expiration
-      persistSession: true, // keep session cookies
+      ignoreExpires: false, // Respetamos fecha de caducidad
+      persistSession: true, // Guardamos también cookies de sesión
     );
-
-    // Optional: clear old cookies on init if needed (e.g. for logout)
-    // await _cookieJar.deleteAll();
   }
 
+  // Getter para acceder al cliente Dio desde fuera
   Dio get dio => _dio;
 
-  // ──── Helper to get token (used by all requests) ────────────────────────────────
+  // Obtiene el token actual del usuario (o null si no hay)
   String? _getAuthToken(Ref ref) {
     final user = ref.read(userProvider);
     final token = user.getAccesToken();
     return (token != null && token.isNotEmpty) ? token : null;
   }
 
-  /// Refresh token - returns true if successful, false otherwise
-  /// Refresh token - returns true if successful, false otherwise
+  // Intenta renovar el access token usando el refresh token
   Future<bool> refreshToken() async {
     try {
       final user = _ref.read(userProvider);
@@ -114,15 +110,10 @@ class ApiService {
         return false;
       }
 
-      // Correct format with params wrapper and refreshToken (camelCase)
+      // Preparamos el cuerpo de la petición (formato esperado por el backend)
       final Map<String, dynamic> requestBody = {
-        "params": {
-          "user_id": userId,
-          "refresh_token": refreshToken, // camelCase, not snake_case
-        },
+        "params": {"user_id": userId, "refresh_token": refreshToken},
       };
-
-      final String jsonBody = jsonEncode(requestBody);
 
       final response = await http
           .post(
@@ -131,51 +122,45 @@ class ApiService {
               'Accept': 'application/json',
               'Content-Type': 'application/json',
             },
-            body: jsonBody,
+            body: jsonEncode(requestBody),
           )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        try {
-          final data = jsonDecode(response.body);
+        final data = jsonDecode(response.body);
+        final newAccessToken = data['result']?['access_token'] as String?;
 
-          // Expected format: {"result": {"access_token": "..."}}
-          final newAccessToken = data['result']?['access_token'] as String?;
-          if (newAccessToken != null && newAccessToken.isNotEmpty) {
-            _ref.read(userProvider).setAccesToken(newAccessToken);
-            return true;
-          } else {
-            return false;
-          }
-        } catch (parseError) {
-          return false;
+        if (newAccessToken != null && newAccessToken.isNotEmpty) {
+          _ref.read(userProvider).setAccesToken(newAccessToken);
+          return true;
         }
-      } else {
-        return false;
       }
+      return false;
     } catch (e) {
       return false;
     }
   }
 
-  // Call this on app start or after login to ensure jar is loaded
+  // Asegura que las cookies estén inicializadas (útil al iniciar la app)
   Future<void> ensureCookiesInitialized() async {
     if (_cookieJar is! PersistCookieJar) {
       await _initCookies();
     }
   }
 
-  // Alternative: named constructor for getting the instance
+  // Forma segura de obtener la instancia ya creada
   static ApiService get instance {
     if (_instance == null) {
       throw Exception(
-        'ApiService not initialized. Call ApiService(urlBase) first.',
+        'ApiService no inicializado. Llama primero a ApiService.init()',
       );
     }
     return _instance!;
   }
 
-  // ──── CATEGORIES ────────────────────────────────────────────────────────────────
+  // ──── CATEGORÍAS ────────────────────────────────────────────────────────────────
+
+  // Obtiene la lista de todas las categorías
   Future<List<dynamic>> getCategories() async {
     final token = _getAuthToken(_ref);
     final uri = Uri.parse('$_urlBase/Category');
@@ -195,15 +180,16 @@ class ApiService {
         final body = utf8.decode(response.bodyBytes);
         final json = jsonDecode(body);
         return json is List ? json : [];
-      } else {
-        return [];
       }
+      return [];
     } catch (e) {
       return [];
     }
   }
 
   // ──── SERIES ────────────────────────────────────────────────────────────────────
+
+  // Obtiene todas las series disponibles
   Future<List<dynamic>> getSeries() async {
     final token = _getAuthToken(_ref);
     final uri = Uri.parse('$_urlBase/Serie');
@@ -223,18 +209,16 @@ class ApiService {
         final body = utf8.decode(response.bodyBytes);
         final json = jsonDecode(body);
         return json is List ? json : [];
-      } else {
-        return [];
       }
+      return [];
     } catch (e) {
       return [];
     }
   }
 
-  /// Obtiene una serie por su ID
+  // Busca una serie específica por su ID (busca en la lista completa)
   Future<dynamic> getSerieById(int serieId) async {
     final series = await getSeries();
-
     try {
       return series.firstWhere((s) => s['id'] == serieId);
     } catch (_) {
@@ -242,13 +226,14 @@ class ApiService {
     }
   }
 
-  /// Obtiene todos los vídeos de una serie, ordenados por temporada y capítulo
+  // Obtiene todos los vídeos de una serie y los ordena por temporada y capítulo
   Future<List<dynamic>> getVideosBySeries(int seriesId) async {
     final videos = await getVideos();
     final filtered = videos
         .where((v) => v['series']['id'] == seriesId)
         .toList();
 
+    // Ordenamos: primero por temporada, luego por capítulo
     filtered.sort((a, b) {
       if (a['season'] != b['season']) return a['season'].compareTo(b['season']);
       return a['chapter'].compareTo(b['chapter']);
@@ -257,7 +242,9 @@ class ApiService {
     return filtered;
   }
 
-  // ──── VIDEOS / CATALEG ──────────────────────────────────────────────────────────
+  // ──── CATÁLOGO / VÍDEOS ─────────────────────────────────────────────────────────
+
+  // Obtiene todo el catálogo de vídeos
   Future<List<dynamic>> getVideos() async {
     final token = _getAuthToken(_ref);
     final uri = Uri.parse('$_urlBase/Cataleg');
@@ -277,23 +264,19 @@ class ApiService {
         final body = utf8.decode(response.bodyBytes);
         final json = jsonDecode(body);
 
-        if (json is List) {
-          return json;
-        } else if (json is Map) {
-          // Handle common wrapped responses
-          final list = json['data'] ?? json['results'] ?? json['content'] ?? [];
-          return list is List ? list : [];
-        }
-        return [];
-      } else {
-        return [];
+        if (json is List) return json;
+
+        // Algunos backends envuelven la lista en "data", "results", etc.
+        final list = json['data'] ?? json['results'] ?? json['content'] ?? [];
+        return list is List ? list : [];
       }
+      return [];
     } catch (e) {
       return [];
     }
   }
 
-  // ──── SINGLE VIDEO ──────────────────────────────────────────────────────────────
+  // Obtiene los detalles de un vídeo concreto por su ID
   Future<Map<String, dynamic>?> getVideoById(int id) async {
     final token = _getAuthToken(_ref);
     final uri = Uri.parse('$_urlBase/Cataleg/$id');
@@ -313,35 +296,34 @@ class ApiService {
         final body = utf8.decode(response.bodyBytes);
         final json = jsonDecode(body);
         return json is Map<String, dynamic> ? json : null;
-      } else {
-        return null;
       }
+      return null;
     } catch (e) {
       return null;
     }
   }
 }
 
-/// Service for managing video lists (local database operations)
+// Servicio para manejar listas locales (favoritos, para ver, etc.)
 class VideoListService {
   final ListsDao _listsDao;
 
   VideoListService(this._listsDao);
 
-  /// Obtener todas las listas
+  // Devuelve todas las listas creadas por el usuario
   Future<List<VideoList>> getAllLists() async {
     return await _listsDao.getAllLists();
   }
 
-  /// Crear nueva lista
+  // Crea una nueva lista con el nombre indicado
   Future<void> createList(String name) async {
     if (name.trim().isEmpty) {
-      throw Exception('El nom de la llista no pot estar buit');
+      throw Exception('El nombre de la lista no puede estar vacío');
     }
     await _listsDao.createList(name);
   }
 
-  /// Añadir un vídeo a una lista
+  // Añade un vídeo a una lista (si no está ya)
   Future<void> addVideoToList({
     required int listId,
     required int videoId,
@@ -355,7 +337,7 @@ class VideoListService {
     }
   }
 
-  /// Quitar un vídeo de una lista
+  // Quita un vídeo de una lista (si existe)
   Future<void> removeVideoFromList({
     required int listId,
     required int videoId,
@@ -369,10 +351,11 @@ class VideoListService {
     }
   }
 
-  /// Obtener IDs de listas que contienen un vídeo (para checkboxes)
+  // Devuelve en qué listas está guardado un vídeo (para marcar checkboxes)
   Future<Set<int>> getListsContainingVideo(int videoId) async {
     final allLists = await _listsDao.getAllLists();
     final result = <int>{};
+
     for (var list in allLists) {
       final contains = await _listsDao.isVideoInList(
         listId: list.id,
@@ -383,7 +366,7 @@ class VideoListService {
     return result;
   }
 
-  /// Eliminar una lista
+  // Elimina una lista completa
   Future<void> deleteList(int listId) async {
     await _listsDao.deleteList(listId);
   }

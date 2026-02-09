@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:client/config/GlobalVariables.dart';
 import 'package:client/domain/entities/User.dart';
 import 'package:client/presentation/providers/UserNotifier.dart';
@@ -9,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 
+// Pantalla de inicio de sesión con diseño oscuro, animaciones y manejo de login
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -18,50 +18,60 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen>
     with TickerProviderStateMixin {
+  // Clave para validar el formulario completo
   final _formKey = GlobalKey<FormState>();
+
+  // Controladores para capturar email y contraseña
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // Controla si la contraseña se muestra en texto plano o asteriscos
   bool _isPasswordVisible = false;
+
+  // Indica si está procesando el login (muestra spinner en el botón)
   bool _isLoading = false;
 
+  // Controladores y animaciones para entrada suave de elementos
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+  // Variable auxiliar para el usuario (se usa tras login exitoso)
   late User userActual;
 
   @override
   void initState() {
     super.initState();
 
+    // Animación de aparición gradual (fade)
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeInOut,
     );
 
+    // Animación de deslizamiento desde abajo hacia su posición final
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 900),
       vsync: this,
     );
-
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
           CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
         );
 
+    // Iniciamos ambas animaciones al cargar la pantalla
     _fadeController.forward();
     _slideController.forward();
   }
 
   @override
   void dispose() {
+    // Liberamos recursos para evitar memory leaks
     _emailController.dispose();
     _passwordController.dispose();
     _fadeController.dispose();
@@ -69,17 +79,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     super.dispose();
   }
 
+  // Maneja todo el proceso de inicio de sesión
   Future<void> _handleLogin() async {
+    // Valida campos del formulario antes de continuar
     if (!_formKey.currentState!.validate()) return;
 
+    // Mostramos indicador de carga
     setState(() => _isLoading = true);
 
+    // Payload en formato JSON-RPC (parece backend Odoo o similar)
     final payload = {
       "jsonrpc": "2.0",
       "method": "call",
       "params": {
         "db": "Padalustro",
-        "login": _emailController.text,
+        "login": _emailController.text.trim(), // trim() evita espacios
         "password": _passwordController.text,
       },
       "id": 1,
@@ -87,7 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
     try {
       final response = await http.post(
-        Uri.parse(getTokenUrl),
+        Uri.parse(getTokenUrl), // URL de login definida en GlobalVariables
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       );
@@ -97,34 +111,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
+        // Respuesta exitosa con tokens
         if (data['result'] != null) {
           setState(() => _isLoading = false);
 
-          final response = data['result'];
+          final result = data['result'];
+          final token = result['access_token'];
+          final refreshToken = result['refresh_token'];
 
-          // ignore: avoid_print
-          print(response);
-
-          // Extraem les dades necessaries dels tokens
-          final token = response['access_token'];
+          // Decodificamos el JWT para obtener información del usuario
           Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
 
-          // ignore: avoid_print
-          print(decodedToken);
-
-          final refreshToken = response['refresh_token'];
           final int id = decodedToken['user_id'] ?? 0;
-          final String name = decodedToken['name'] ?? "USER"; //TODO
+          final String name = decodedToken['name'] ?? "USER";
           final bool isAdmin = decodedToken['is_admin'] ?? false;
           final bool hasSuscription =
               decodedToken['has_susbscription'] ?? false;
 
-          // ignore: avoid_print
-          print(
-            "decoded Token: id:$id, Name: $name, admin: $isAdmin, sus: $hasSuscription",
-          );
-
-          // Creem un nou usuari
+          // Creamos objeto User con todos los datos
           User u = User();
           u.setId(id);
           u.setName(name);
@@ -133,22 +137,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           u.setIsAdmin(isAdmin);
           u.setRefreshToken(refreshToken);
 
-          // Afegim l'usuari al provider
+          // Guardamos el usuario en el provider de Riverpod
           ref.read(userProvider.notifier).afegirUsuari(u);
 
+          // Pequeña espera hasta que el estado se actualice (no ideal, pero funcional)
           while (ref.read(userProvider).getAccesToken() == null) {
-            // ignore: avoid_print
-            print("establint el token");
-            sleep(const Duration(milliseconds: 500));
+            await Future.delayed(const Duration(milliseconds: 500));
           }
-          // Navigate to home
+
+          // Navegamos a la pantalla principal eliminando esta del stack
           if (mounted) {
             Navigator.pushReplacementNamed(context, '/home');
           }
-        } else if (data['error'] != null) {
-          // Show error message
+        }
+        // Error devuelto por el servidor
+        else if (data['error'] != null) {
           setState(() => _isLoading = false);
-
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -158,9 +162,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ),
             );
           }
-        } else {
+        }
+        // Respuesta inesperada (no tiene result ni error)
+        else {
           setState(() => _isLoading = false);
-
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -171,9 +176,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             );
           }
         }
-      } else {
+      }
+      // Error HTTP diferente de 200
+      else {
         setState(() => _isLoading = false);
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -186,9 +192,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       }
     } catch (e) {
       if (!mounted) return;
-
       setState(() => _isLoading = false);
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error de connexió: $e'),
@@ -203,6 +207,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        // Fondo con gradiente oscuro elegante
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -237,6 +242,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
+  // Logo animado con escala elástica + nombre de la app
   Widget _buildLogo() {
     return Column(
       children: [
@@ -252,8 +258,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 height: 150,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                     colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
                   ),
                   borderRadius: BorderRadius.circular(24),
@@ -306,6 +310,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
+  // Contenedor del formulario (email + contraseña + botón)
   Widget _buildLoginForm() {
     return Form(
       key: _formKey,
@@ -321,6 +326,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
+  // Campo para introducir el correo electrónico
   Widget _buildEmailField() {
     return TextFormField(
       controller: _emailController,
@@ -368,6 +374,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
+  // Campo para la contraseña con opción de mostrar/ocultar
   Widget _buildPasswordField() {
     return TextFormField(
       controller: _passwordController,
@@ -421,6 +428,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
+  // Botón grande de "Iniciar sessió" con spinner durante carga
   Widget _buildLoginButton() {
     return SizedBox(
       width: double.infinity,
@@ -457,6 +465,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
+  // Pie de página con enlace a registro (aún por implementar)
   Widget _buildFooter() {
     return Column(
       children: [
@@ -483,7 +492,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             ),
             TextButton(
               onPressed: () {
-                // TODO: Navigate to register screen
+                // TODO: Navegar a la pantalla de registro
               },
               child: const Text(
                 'Registra\'t',
