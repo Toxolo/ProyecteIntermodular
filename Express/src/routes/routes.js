@@ -1,7 +1,6 @@
 import express from 'express';
 import {processVideo,uploadVideo,getVideos, getVideoById } from '../controllers/VideoController.js';
 import {metadata} from '../midlewares/extractMetadata.js';
-import { saveDB } from '../midlewares/saveMetadataDB.js';
 import { extractThumbnail } from '../midlewares/extractThumbnail.js';
 import verifyToken from '../midlewares/verifyToken.js';
 

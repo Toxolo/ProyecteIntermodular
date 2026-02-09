@@ -1,6 +1,6 @@
 // Variables Globals
 
-const ip = '10.173.195.160';
+const ip = '10.173.195.15';
 
 const String baseUrl = 'http://$ip:8090';
 
