@@ -103,7 +103,8 @@ class _LlistesScreenState extends State<LlistesScreen> {
       appBar: AppBar(
         backgroundColor: CatalogStyles.backgroundBlack,
         foregroundColor: Colors.white,
-        title: const Text('Llistes'),
+        title: const Text('Listas'),
+        automaticallyImplyLeading: false,
         actions: [
           // Botón para recargar manualmente (útil si se editan listas desde otra pantalla)
           IconButton(
@@ -133,12 +134,12 @@ class _LlistesScreenState extends State<LlistesScreen> {
             Icon(Icons.list_alt, color: Colors.white38, size: 64),
             SizedBox(height: 16),
             Text(
-              'Cap llista creada',
+              'Ninguna lista creada',
               style: TextStyle(color: Colors.white70, fontSize: 16),
             ),
             SizedBox(height: 8),
             Text(
-              'Afegix vídeos a llistes des de la pantalla de vídeo',
+              'Inserta algun video en alguna lista',
               style: TextStyle(color: Colors.white38, fontSize: 13),
               textAlign: TextAlign.center,
             ),

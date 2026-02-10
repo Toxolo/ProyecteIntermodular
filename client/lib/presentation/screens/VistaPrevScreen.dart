@@ -10,6 +10,7 @@ import 'package:client/infrastructure/mappers/SerieMapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../infrastructure/data_sources/local/app_database.dart';
 import '../catalog_styles.dart';
 import '../widgets/series_episodes_section.dart';
@@ -208,19 +209,31 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
 
           // Botón grande de reproducir
           ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => VideoPlayerHLS(
-                    url: '$expressUrl/static/${video.id}/index.m3u8',
-                    authToken: ref.read(userProvider).getAccesToken(),
-                    onBack: () {
-                      // Puedes añadir lógica al volver (ej: recargar datos)
-                    },
+            onPressed: () async {
+              if (ref.read(userProvider).hasSuscription == true ||
+                  ref.read(userProvider).isAdmin == true) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => VideoPlayerHLS(
+                      url: '$expressUrl/static/${video.id}/index.m3u8',
+                      authToken: ref.read(userProvider).getAccesToken(),
+                      onBack: () {
+                        // Puedes añadir lógica al volver (ej: recargar datos)
+                      },
+                    ),
                   ),
-                ),
-              );
+                );
+              } else {
+                const url = subURL;
+                final uri = Uri.parse(url);
+
+                try {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  debugPrint('Error launching URL: $e');
+                }
+              }
             },
             icon: const Icon(Icons.play_arrow),
             label: const Text('REPRODUCIR'),

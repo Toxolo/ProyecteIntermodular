@@ -5,6 +5,7 @@ class User {
   late String? refreshToken;
   late bool isAdmin;
   late bool hasSuscription;
+  DateTime? tokenExpiration;
 
   // ==================== SETTERS =====================
 
@@ -19,6 +20,8 @@ class User {
   void setIsAdmin(bool isAdmin) => this.isAdmin = isAdmin;
 
   void setHasSuscription(bool sub) => hasSuscription = sub;
+
+  void setTokenExpiration(DateTime d) => tokenExpiration = d;
 
   // ==================== GETTERS =====================
   int getId() {
@@ -45,10 +48,35 @@ class User {
     return hasSuscription;
   }
 
+  DateTime? getTokenExpiration() {
+    return tokenExpiration;
+  }
+
   // ==================== Metodes =====================
+
+  /// Checks if token is about to expire (within 10 seconds by default)
+  bool isTokenExpiringSoon({
+    Duration warningTime = const Duration(seconds: 10),
+  }) {
+    if (tokenExpiration == null) return false;
+    final now = DateTime.now().toUtc();
+    final timeUntilExpiry = tokenExpiration!.difference(now);
+    return timeUntilExpiry.isNegative || timeUntilExpiry <= warningTime;
+  }
+
+  /// Call this to handle token refresh when expiration is near
+  void onTokenExpirationWarning(Function() onExpire) {
+    if (isTokenExpiringSoon()) {
+      onExpire();
+    }
+  }
 
   void clearTokens() {
     setAccesToken("");
     setRefreshToken("");
+  }
+
+  DateTime formatExp(int exp) {
+    return DateTime.fromMillisecondsSinceEpoch(exp * 1000, isUtc: true);
   }
 }

@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  url_launcher: ^6.1.10
+
   # UI
   cupertino_icons: ^1.0.8
   video_player: ^2.10.1

@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Pantalla de inicio de sesión con diseño oscuro, animaciones y manejo de login
 class LoginScreen extends ConsumerStatefulWidget {
@@ -125,8 +127,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           final int id = decodedToken['user_id'] ?? 0;
           final String name = decodedToken['name'] ?? "USER";
           final bool isAdmin = decodedToken['is_admin'] ?? false;
-          final bool hasSuscription =
-              decodedToken['has_susbscription'] ?? false;
+          final bool hasSuscription = decodedToken['has_subscription'] ?? false;
+          final int expiration = decodedToken['exp'] ?? 0;
 
           // Creamos objeto User con todos los datos
           User u = User();
@@ -136,9 +138,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           u.setHasSuscription(hasSuscription);
           u.setIsAdmin(isAdmin);
           u.setRefreshToken(refreshToken);
+          u.setTokenExpiration(u.formatExp(expiration));
 
           // Guardamos el usuario en el provider de Riverpod
           ref.read(userProvider.notifier).afegirUsuari(u);
+
+          ref.read(userProvider.notifier).startTokenRefreshCheck();
 
           // Pequeña espera hasta que el estado se actualice (no ideal, pero funcional)
           while (ref.read(userProvider).getAccesToken() == null) {
@@ -486,19 +491,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'No tens compte?',
-              style: TextStyle(color: Colors.white.withOpacity(0.7)),
-            ),
-            TextButton(
-              onPressed: () {
-                // TODO: Navegar a la pantalla de registro
+            ElevatedButton(
+              onPressed: () async {
+                const url = registerURL;
+                final uri = Uri.parse(url);
+
+                try {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  debugPrint('Error launching URL: $e');
+                }
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Colors.blueGrey[900], // example: dark background
+                foregroundColor: const Color(
+                  0xFFFFD700,
+                ), // gold text/icon color
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               child: const Text(
                 'Registra\'t',
                 style: TextStyle(
-                  color: Color(0xFFFFD700),
                   fontWeight: FontWeight.bold,
+                  fontSize: 18, // optional improvement
                 ),
               ),
             ),

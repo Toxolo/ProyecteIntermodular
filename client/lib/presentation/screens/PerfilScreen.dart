@@ -50,59 +50,12 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        // añadir aqui para que edite nombre perfil
-                      },
-                      icon: const Icon(
-                        Icons.edit,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
                   ],
                 ),
               ],
             ),
 
             const SizedBox(height: 30),
-
-            // infantil
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Infantil',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-                Switch(
-                  value: false,
-                  onChanged: (value) {
-                    //  switch preparar para cambiar a modo infantil
-                  },
-                  activeThumbColor: const Color(0xFFD4AF37),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // configuracion
-            InkWell(
-              onTap: () {},
-              child: Row(
-                children: const [
-                  Icon(Icons.settings, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text(
-                    'Configuración',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
 
             // Tancar Sessio
             InkWell(
@@ -118,7 +71,7 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
                   Icon(Icons.delete, color: Colors.red),
                   SizedBox(width: 12),
                   Text(
-                    'Tancar sessio',
+                    'Cerrar Sesion',
                     style: TextStyle(color: Colors.red, fontSize: 18),
                   ),
                 ],
@@ -126,23 +79,6 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
             ),
 
             const SizedBox(height: 20),
-
-            // Boton de perfiles
-            InkWell(
-              onTap: () {
-                // hay que ponerle aqui para que vaya a perfiles_page
-              },
-              child: Row(
-                children: const [
-                  Icon(Icons.switch_account, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text(
-                    'Perfiles',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
