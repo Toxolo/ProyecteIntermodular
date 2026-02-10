@@ -3,50 +3,13 @@ import ffmpeg from 'ffmpeg-static';
 import { spawn } from 'child_process';
 import path from 'path';
 import { publicPath } from '../../index.js';
-import connect from '../../connectionDB.js';
 import fs from 'fs/promises'; // Cambiado a fs/promises
 import { existsSync } from 'fs'; // Para verificar existencia de archivos de forma síncrona
 
-// Variable global para almacenar la conexión a la base de datos
-let db = null;
-
-// Función para iniciar la conexión a la base de datos
-export async function initDb() {
-    if (!db) {
-        // si la conexión no existe la inicia aquí
-        db = await connect();
-        console.log("DB pool initialized");
-    }
-    return db;
-}
-
-// cntrolador para obtener todos los videos
-export const getVideos = async (req, res) => {
-    try {
-        if (!db) {
-            throw new Error("Database pool is null or undefined – connection never initialized?");
-        }
-
-        // busca en todos los videos de la base de datos
-        const [rows] = await db.query('SELECT * FROM video');
-        // da los resultados en formato JSON
-        res.status(200).json(rows);
-    } catch (err) {
-        // control de errores en la consulta
-        res.status(500).json({
-            error: "Failed to fetch videos",
-            details: err.message || "Unknown database error",
-            code: err.code || "UNKNOWN"
-        });
-    }
-};
 
 // Controlador para obtener un vídeo por su ID
 export const getVideoById = async (req, res) => {
     try {
-        if (!db) {
-            throw new Error("DB not initialized");
-        }
 
         const { id } = req.params;
         const userId = req.user.user_id; // ID del usuario autenticado
@@ -58,19 +21,15 @@ export const getVideoById = async (req, res) => {
 
         console.log(`Usuario ${userId} pide el vídeo ${id}`);
 
-        // Consulta la URL del video en la base de datos
-        const [rows] = await db.query(
-            'SELECT url FROM video WHERE id = ?',
-            [id]
-        );
-
         if (rows.length === 0) {
             // Si no encuentra el video devuelve error 404
             return res.status(404).json({ error: "Video no encontrado" });
         }
 
+
+        
         // Construye la ruta completa
-        const playlistPath = path.join(process.cwd(), rows[0].url);
+        const playlistPath = publicPath + '/' + id + '/index.m3u8';
 
         if (!existsSync(playlistPath)) {
             // Si el archivo no existe en el sistema devuelve error 404

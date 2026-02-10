@@ -29,9 +29,6 @@ const uploadScreenSocket = new UploadScreenSocket();
 uploadScreenSocket.initialize(server);
 app.set('uploadScreenSocket', uploadScreenSocket);
 
-// Init DB (good that it's awaited)
-import { initDb } from './src/controllers/VideoController.js';
-await initDb();
 
 // Define public path
 export const publicPath = path.join(__dirname, 'public');
