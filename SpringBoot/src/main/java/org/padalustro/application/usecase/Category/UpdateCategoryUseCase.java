@@ -1,7 +1,7 @@
 package org.padalustro.application.usecase.Category;
 
 import org.padalustro.domain.repository.CategoriaRepository;
-import org.padalustro.infrastructure.DTO.CategoriaDTO;
+import org.padalustro.presentation.DTO.CategoriaDTO;
 import org.springframework.stereotype.Component;
 
 @Component

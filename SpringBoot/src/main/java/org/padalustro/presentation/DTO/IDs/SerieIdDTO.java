@@ -1,4 +1,4 @@
-package org.padalustro.infrastructure.DTO.IDs;
+package org.padalustro.presentation.DTO.IDs;
 
 import java.io.Serializable;
 

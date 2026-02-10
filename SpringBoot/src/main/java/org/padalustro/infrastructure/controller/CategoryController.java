@@ -1,4 +1,4 @@
-package org.padalustro.presentation.controller;
+package org.padalustro.infrastructure.controller;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ import org.padalustro.application.usecase.Category.GetCategoryByIdUseCase;
 import org.padalustro.application.usecase.Category.SaveAllCategoryUseCase;
 import org.padalustro.application.usecase.Category.SaveCategoryUseCase;
 import org.padalustro.application.usecase.Category.UpdateCategoryUseCase;
-import org.padalustro.infrastructure.DTO.CategoriaDTO;
+import org.padalustro.presentation.DTO.CategoriaDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

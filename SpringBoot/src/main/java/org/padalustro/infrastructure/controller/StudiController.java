@@ -1,4 +1,4 @@
-package org.padalustro.presentation.controller;
+package org.padalustro.infrastructure.controller;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ import org.padalustro.application.usecase.Estudi.GetStudiByIdUseCase;
 import org.padalustro.application.usecase.Estudi.SaveAllStudiUseCase;
 import org.padalustro.application.usecase.Estudi.SaveStudiUseCase;
 import org.padalustro.application.usecase.Estudi.UpdateStudiUseCase;
-import org.padalustro.infrastructure.DTO.EstudiDTO;
+import org.padalustro.presentation.DTO.EstudiDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

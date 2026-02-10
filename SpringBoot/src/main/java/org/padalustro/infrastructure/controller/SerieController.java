@@ -1,4 +1,4 @@
-package org.padalustro.presentation.controller;
+package org.padalustro.infrastructure.controller;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ import org.padalustro.application.usecase.Serie.GetSerieByIdUseCase;
 import org.padalustro.application.usecase.Serie.SaveAllSerieUseCase;
 import org.padalustro.application.usecase.Serie.SaveSerieUseCase;
 import org.padalustro.application.usecase.Serie.UpdateSerieUseCase;
-import org.padalustro.infrastructure.DTO.SerieDTO;
+import org.padalustro.presentation.DTO.SerieDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

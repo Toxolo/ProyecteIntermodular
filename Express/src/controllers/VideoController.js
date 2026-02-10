@@ -4,7 +4,8 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { publicPath } from '../../index.js';
 import connect from '../../connectionDB.js';
-import fs from 'fs';
+import fs from 'fs/promises'; // Cambiado a fs/promises
+import { existsSync } from 'fs'; // Para verificar existencia de archivos de forma síncrona
 
 // Variable global para almacenar la conexión a la base de datos
 let db = null;
@@ -23,7 +24,7 @@ export async function initDb() {
 export const getVideos = async (req, res) => {
     try {
         if (!db) {
-            throw new Error("Database pool is null or undefined — connection never initialized?");
+            throw new Error("Database pool is null or undefined – connection never initialized?");
         }
 
         // busca en todos los videos de la base de datos
@@ -71,7 +72,7 @@ export const getVideoById = async (req, res) => {
         // Construye la ruta completa
         const playlistPath = path.join(process.cwd(), rows[0].url);
 
-        if (!fs.existsSync(playlistPath)) {
+        if (!existsSync(playlistPath)) {
             // Si el archivo no existe en el sistema devuelve error 404
             return res.status(404).json({ error: "Archivo no encontrado" });
         }
@@ -97,107 +98,153 @@ const memoryUpload = multer({
 export const uploadVideo = memoryUpload;
 
 // Controlador para procesar el vídeo subido
-export const processVideo = (req, res) => {
+export const processVideo = async (req, res) => {
     const { clientId, videoId } = req;
-    const WS = req.app.get('uploadScreenSocket'); // Socket para enviar progreso al cliente
+    const WS = req.app.get('uploadScreenSocket');
+
+    let tempVideoPath;
+    let fixedVideoPath;
 
     try {
-        // Envía mensaje inicial 
         WS.sendProgress(clientId, 70, 'Starting video processing...');
 
-        // Comprovar si se esta pujant un fitxer
         if (!req.file || !req.file.buffer) {
             return res.status(400).json({ error: 'No se recibió ningún vídeo o está vacío' });
         }
 
-        const videoId = req.videoId;
-        const outputPlaylist = path.join(req.outputDir, 'index.m3u8'); // Ruta de salida HLS
+        const outputDir = req.outputDir; // ya creado por middleware
+        tempVideoPath = path.join(outputDir, 'temp_upload_video');
+        fixedVideoPath = path.join(outputDir, 'fixed_video.mp4');
+        const outputPlaylist = path.join(outputDir, 'index.m3u8');
 
-        // Argumentos para ffmpeg para convertir vídeo a HLS
+        // Guardar vídeo temporal (usando fs/promises)
+        await fs.writeFile(tempVideoPath, req.file.buffer);
+        console.log('Temporary video saved:', tempVideoPath);
+
+        // Crear versión "faststart" para evitar errores de MP4
+        await new Promise((resolve, reject) => {
+            const ffmpegFix = spawn('ffmpeg', ['-i', tempVideoPath, '-c', 'copy', '-movflags', '+faststart', fixedVideoPath]);
+            ffmpegFix.stderr.on('data', d => console.log('FFmpeg fix:', d.toString()));
+            ffmpegFix.on('close', code => code === 0 ? resolve() : reject(new Error('ffmpeg faststart failed')));
+        });
+        console.log('Fixed video created:', fixedVideoPath);
+
+        // Argumentos para HLS
         const args = [
-            '-i', 'pipe:0', // Entrada desde stdin
+            '-i', fixedVideoPath, 
             '-profile:v', 'baseline',
             '-level', '3.0',
             '-start_number', '0',
-            '-hls_time', '10', // Duración de cada segmento HLS
-            '-hls_list_size', '0', // Lista infinita
-            '-f', 'hls', // Formato HLS
+            '-hls_time', '10',
+            '-hls_list_size', '0',
+            '-f', 'hls',
             outputPlaylist
         ];
 
-        console.log('Executant FFmpeg:', ffmpeg, args.join(' '));
-
-        // Inicia ffmpeg como proceso hijo
+        console.log('Executant FFmpeg:', args.join(' '));
         const ffmpegProcess = spawn(ffmpeg || 'ffmpeg', args);
+        ffmpegProcess.stderr.on('data', d => console.log('FFmpeg HLS:', d.toString()));
 
-        // Muestra por consola los errores de ffmpeg
-        ffmpegProcess.stderr.on('data', (data) => {
-            console.log(`FFmpeg: ${data}`);
-        });
+        ffmpegProcess.on('close', async (code) => {
+            try {
+                if (code === 0) {
+                    WS.sendProgress(clientId, 90, 'Cleaning up temporary files...');
 
-        // Escribe el buffer del vídeo en ffmpeg
-        setImmediate(() => {
-            ffmpegProcess.stdin.write(req.file.buffer);
-            ffmpegProcess.stdin.end();
-        });
-
-        // Cuando ffmpeg termina de procesar
-        ffmpegProcess.on('close', (code) => {
-            if (code === 0) {
-                // Enviar progreso completo
-                WS.sendProgress(clientId, 100, 'Video processing completed');
-
-                // Guardar ruta procesada en la request
-                req.processedVideoPath = `${videoId}/index.m3u8`;
-
-                // Notificar que terminó
-                WS.completeProcessing(clientId, {
-                    videoId,
-                    videoUrl: req.processedVideoPath,
-                    thumbnailUrl: req.thumbnailPath,
-                    metadata: {
-                        duration: req.videoDuration,
-                        codec: req.videoCodec,
-                        resolution: req.videoResolution,
-                        size: req.file.size
+                    // Eliminar archivos temporales después de procesar
+                    try {
+                        await fs.unlink(tempVideoPath);
+                        console.log('Deleted temp video:', tempVideoPath);
+                    } catch (err) {
+                        console.warn('Could not delete temp video:', err.message);
                     }
-                });
 
-                // Enviar respuesta HTTP de correcto
-                res.json({
-                    success: true,
-                    message: 'Video processed successfully',
-                    data: {
+                    try {
+                        await fs.unlink(fixedVideoPath);
+                        console.log('Deleted fixed video:', fixedVideoPath);
+                    } catch (err) {
+                        console.warn('Could not delete fixed video:', err.message);
+                    }
+
+                    WS.sendProgress(clientId, 100, 'Video processing completed');
+
+                    req.processedVideoPath = `${videoId}/index.m3u8`;
+
+                    WS.completeProcessing(clientId, {
                         videoId,
                         videoUrl: req.processedVideoPath,
-                        thumbnailUrl: req.thumbnailPath
-                    }
-                });
-            } else {
-                // Error en procesamiento
-                console.error(`Error: ${code}`);
-                res.status(500).json({ error: 'Error al processar el video' });
+                        thumbnailUrl: req.thumbnailPath,
+                        metadata: {
+                            duration: req.videoDuration,
+                            codec: req.videoCodec,
+                            resolution: req.videoResolution,
+                            size: req.file.size
+                        }
+                    });
+
+                    res.json({
+                        success: true,
+                        message: 'Video processed successfully',
+                        data: {
+                            videoId,
+                            videoUrl: req.processedVideoPath,
+                            thumbnailUrl: req.thumbnailPath
+                        }
+                    });
+                } else {
+                    console.error(`FFmpeg error code: ${code}`);
+                    
+                    // Intentar limpiar archivos temporales incluso si falla
+                    await cleanupTempFiles(tempVideoPath, fixedVideoPath);
+                    
+                    res.status(500).json({ error: 'Error al procesar el video' });
+                }
+            } catch (cleanupError) {
+                console.error('Error during cleanup:', cleanupError);
             }
         });
 
-        // error al iniciar ffmpeg
-        ffmpegProcess.on('error', (err) => {
+        ffmpegProcess.on('error', async (err) => {
             console.error('Error al iniciar FFmpeg:', err);
+            
+            // Intentar limpiar archivos temporales
+            await cleanupTempFiles(tempVideoPath, fixedVideoPath);
+            
             res.status(500).json({ error: 'Error al iniciar FFmpeg', details: err.message });
         });
 
-        // Timeout para FFmpeg
-        setTimeout(() => {
+        setTimeout(async () => {
             if (ffmpegProcess.pid && !ffmpegProcess.killed) {
-                console.error('Timeout: kill FFmpeg per timeout');
+                console.error('Timeout: killing FFmpeg');
                 ffmpegProcess.kill('SIGKILL');
+                
+                // Limpiar archivos temporales por timeout
+                await cleanupTempFiles(tempVideoPath, fixedVideoPath);
             }
-        }, 600000); // 10 minutos de timeout
+        }, 600000); // 10 minutos
 
-        // ffmpeg -i /home/disnaking/Downloads/videoplayback.mp4 -profile:v baseline -level 3.0 -start_number 0 -hls_time 10 -hls_list_size 0 -f hls ./public/index.m3u8       
     } catch (error) {
-        // falla cualquier cosa en el try y se notifica 
+        console.error('Video processing error:', error);
+        
+        // Intentar limpiar archivos temporales en caso de error
+        await cleanupTempFiles(tempVideoPath, fixedVideoPath);
+        
         WS.sendError(clientId, 'Video processing failed: ' + error.message);
         return res.status(500).json({ error: error.message });
+    }
+};
+
+// Función auxiliar para limpiar archivos temporales
+async function cleanupTempFiles(tempVideoPath, fixedVideoPath) {
+    const filesToClean = [tempVideoPath, fixedVideoPath].filter(Boolean);
+    
+    for (const filePath of filesToClean) {
+        try {
+            if (existsSync(filePath)) {
+                await fs.unlink(filePath);
+                console.log('Cleaned up:', filePath);
+            }
+        } catch (err) {
+            console.warn(`Could not delete ${filePath}:`, err.message);
+        }
     }
 }

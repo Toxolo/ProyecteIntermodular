@@ -1,4 +1,4 @@
-package org.padalustro.presentation.controller;
+package org.padalustro.infrastructure.controller;
 
 import java.util.List;
 
@@ -7,7 +7,7 @@ import org.padalustro.application.usecase.Cataleg.GetAllVideoCatalegUseCase;
 import org.padalustro.application.usecase.Cataleg.GetVideoCatalegByIdUseCase;
 import org.padalustro.application.usecase.Cataleg.SaveVideoCatalegUseCase;
 import org.padalustro.application.usecase.Cataleg.UpdateVideoCatalegUseCase;
-import org.padalustro.infrastructure.DTO.VideoCatalegDTO;
+import org.padalustro.presentation.DTO.VideoCatalegDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

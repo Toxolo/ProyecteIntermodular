@@ -3,7 +3,7 @@ package org.padalustro.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.padalustro.infrastructure.DTO.SerieDTO;
+import org.padalustro.presentation.DTO.SerieDTO;
 
 
 
