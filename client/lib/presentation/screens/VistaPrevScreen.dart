@@ -212,6 +212,7 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
             onPressed: () async {
               if (ref.read(userProvider).hasSuscription == true ||
                   ref.read(userProvider).isAdmin == true) {
+                ref.read(userProvider.notifier).startTokenRefreshCheck();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -219,7 +220,9 @@ class _VistaPrevState extends ConsumerState<VistaPrev> {
                       url: '$expressUrl/static/${video.id}/index.m3u8',
                       authToken: ref.read(userProvider).getAccesToken(),
                       onBack: () {
-                        // Puedes añadir lógica al volver (ej: recargar datos)
+                        ref
+                            .read(userProvider.notifier)
+                            .startTokenRefreshCheck();
                       },
                     ),
                   ),
