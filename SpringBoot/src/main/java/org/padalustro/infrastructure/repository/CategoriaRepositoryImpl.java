@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 
 import org.padalustro.domain.entities.categoria;
 import org.padalustro.domain.repository.CategoriaRepository;
-import org.padalustro.infrastructure.DTO.CategoriaDTO;
 import org.padalustro.infrastructure.repository.jpa.CategoriaJpaRepository;
+import org.padalustro.presentation.DTO.CategoriaDTO;
 import org.springframework.stereotype.Service;
 
 @Service

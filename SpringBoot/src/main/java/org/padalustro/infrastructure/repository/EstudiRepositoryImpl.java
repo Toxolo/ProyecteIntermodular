@@ -6,8 +6,8 @@ import java.util.stream.Collectors;
 
 import org.padalustro.domain.entities.estudi;
 import org.padalustro.domain.repository.EstudiRepository;
-import org.padalustro.infrastructure.DTO.EstudiDTO;
 import org.padalustro.infrastructure.repository.jpa.EstudiJpaRepository;
+import org.padalustro.presentation.DTO.EstudiDTO;
 import org.springframework.stereotype.Service;
 
 

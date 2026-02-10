@@ -3,7 +3,7 @@ package org.padalustro.domain.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.padalustro.infrastructure.DTO.CategoriaDTO;
+import org.padalustro.presentation.DTO.CategoriaDTO;
 
 public interface CategoriaRepository {
 

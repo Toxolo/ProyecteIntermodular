@@ -3,7 +3,7 @@ package org.padalustro.application.usecase.Serie;
 import java.util.List;
 
 import org.padalustro.domain.repository.SerieRepository;
-import org.padalustro.infrastructure.DTO.SerieDTO;
+import org.padalustro.presentation.DTO.SerieDTO;
 import org.springframework.stereotype.Component;
 
 @Component

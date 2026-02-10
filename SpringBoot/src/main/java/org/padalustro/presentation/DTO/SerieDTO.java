@@ -1,4 +1,4 @@
-package org.padalustro.infrastructure.DTO;
+package org.padalustro.presentation.DTO;
 
 import java.io.Serializable;
 

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.padalustro.domain.entities.video_cataleg;
-import org.padalustro.infrastructure.DTO.VideoCatalegDTO;
+import org.padalustro.presentation.DTO.VideoCatalegDTO;
 
 
 public interface VideoCatalegRepository {

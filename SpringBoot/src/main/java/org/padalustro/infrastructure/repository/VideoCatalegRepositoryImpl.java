@@ -6,11 +6,11 @@ import java.util.stream.Collectors;
 
 import org.padalustro.domain.entities.video_cataleg;
 import org.padalustro.domain.repository.VideoCatalegRepository;
-import org.padalustro.infrastructure.DTO.VideoCatalegDTO;
 import org.padalustro.infrastructure.repository.jpa.CategoriaJpaRepository;
 import org.padalustro.infrastructure.repository.jpa.EstudiJpaRepository;
 import org.padalustro.infrastructure.repository.jpa.SerieJpaRepository;
 import org.padalustro.infrastructure.repository.jpa.VideoCatalegJpaRepository;
+import org.padalustro.presentation.DTO.VideoCatalegDTO;
 import org.springframework.stereotype.Service;
 
 

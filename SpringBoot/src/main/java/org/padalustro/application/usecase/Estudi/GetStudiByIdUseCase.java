@@ -2,7 +2,7 @@ package org.padalustro.application.usecase.Estudi;
 
 import org.padalustro.domain.exceptions.VideoCatalegNotFoundException;
 import org.padalustro.domain.repository.EstudiRepository;
-import org.padalustro.infrastructure.DTO.EstudiDTO;
+import org.padalustro.presentation.DTO.EstudiDTO;
 import org.springframework.stereotype.Component;
 
 @Component

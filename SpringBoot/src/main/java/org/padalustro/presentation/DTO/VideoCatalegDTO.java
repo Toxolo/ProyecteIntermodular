@@ -1,4 +1,4 @@
-package org.padalustro.infrastructure.DTO;
+package org.padalustro.presentation.DTO;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -8,9 +8,9 @@ import org.padalustro.domain.entities.categoria;
 import org.padalustro.domain.entities.estudi;
 import org.padalustro.domain.entities.serie;
 import org.padalustro.domain.entities.video_cataleg;
-import org.padalustro.infrastructure.DTO.IDs.CategoriaIdDTO;
-import org.padalustro.infrastructure.DTO.IDs.EstudiIdDTO;
-import org.padalustro.infrastructure.DTO.IDs.SerieIdDTO;
+import org.padalustro.presentation.DTO.IDs.CategoriaIdDTO;
+import org.padalustro.presentation.DTO.IDs.EstudiIdDTO;
+import org.padalustro.presentation.DTO.IDs.SerieIdDTO;
 
 import lombok.Data;
 
