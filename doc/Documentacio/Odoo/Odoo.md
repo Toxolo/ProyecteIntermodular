@@ -1,7 +1,7 @@
 
 # Servidor de ODOO
 
-## Ciclos de vida - Levantar odoo desde cero
+## Levantar odoo desde cero
 
 1. Ejecuta el comando `docker compose build --no-cache` en la carpeta /docker situada en la raiz del proyecto.
 2. Ejecuta el comando `docker compose up -d`
@@ -14,7 +14,7 @@
    - Master password (proporcionada por el admin)
 
 
-## Ciclo de vida - Levantar odoo ( ya base de datos )
+## Levantar odoo ( ya base de datos )
 
 1. Ejecuta el comando `docker compose up -d` en la carpeta /docker situada en la raiz del proyecto.
 2. Accede a Odoo: `http://localhost:8069`
