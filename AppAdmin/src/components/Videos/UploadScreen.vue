@@ -355,6 +355,6 @@ onMounted(() => {
 </script>
 
 
-<style src="../assets/css/edit.css">
+<style src="../../assets/css/edit.css">
 
 </style>
