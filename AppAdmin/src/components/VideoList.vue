@@ -55,14 +55,14 @@ async function fetchAllData() {
     error.value = null
 
     // Fetch videos
-    const videosRes = await api.get('http://localhost:8090/Cataleg')
+    const videosRes = await api.get('https://localhost:8090/Cataleg')
     const videosData = videosRes.data
 
     // Fetch categorías, series y estudios
     const [catRes, serRes, estRes] = await Promise.all([
-      api.get('http://localhost:8090/Category'),
-      api.get('http://localhost:8090/Serie'),
-      api.get('http://localhost:8090/Estudi')
+      api.get('https://localhost:8090/Category'),
+      api.get('https://localhost:8090/Serie'),
+      api.get('https://localhost:8090/Estudi')
     ])
     categoriesList.value = catRes.data
     seriesList.value = serRes.data
